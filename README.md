@@ -11,9 +11,9 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
 - Generates PNG locally with Night, Light, and maimai themes.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
-- Persists image choices for timestamp, timezone, watermark, accent color, scale, assets, and score fields.
-- Uses one explicit export selector for PNG, dxrating JSON, full JSON, or Rhythm Record JSON.
-- Opens [Mai-Score Studio](https://mai-score-studio.solilium.chatgpt.site) for live preview and mobile-friendly image editing.
+- Keeps image choices for timestamp, timezone, watermark, accent color, assets, and score fields in the Studio.
+- Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score-studio.solilium.chatgpt.site) with the result already loaded.
+- Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Does not transmit login details or score data to a third-party server.
 
@@ -43,9 +43,11 @@ npm run typecheck
 npm run build
 ```
 
-### Studio and export selection in v0.3.0
+### Automatic Studio handoff in v0.3.1
 
-Choose the output in **匯出內容**. PNG keeps the built-in image controls; JSON outputs do not show irrelevant image settings. Open **網頁預覽 Studio** to download the current full JSON and launch the live editor. The Studio loads that file locally, previews Classic, Compact, and Landscape designs, and exports PNG or SVG without uploading the score document.
+After collection, choose **在網頁預覽並調整**. The extension stores the result behind a random, single-use transfer token for up to five minutes, opens Studio with the token and extension ID in the URL fragment, and removes the staged result as soon as Studio receives it. The score document is not placed in the URL or sent to the Studio server.
+
+Studio is intentionally a compact preview tool: data controls, style controls, the live B50 preview, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **直接匯出**.
 
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 

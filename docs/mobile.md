@@ -2,7 +2,9 @@
 
 ## Available now
 
-The reliable mobile workflow is file-based:
+Desktop Chrome/Edge can pass the captured B50 directly to Studio with **在網頁預覽並調整**. The handoff uses a single-use browser-local token and does not upload the score document.
+
+The reliable phone workflow remains file-based:
 
 1. Use Mai-Score on desktop Chrome or Edge to collect DX NET data.
 2. Choose **Full JSON** or **Rhythm Record JSON** in the export selector.

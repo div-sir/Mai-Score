@@ -1,6 +1,6 @@
 :root{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#edf1ff;background:#0d1020;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;width:410px;max-height:600px;overflow:auto}
+body{margin:0;width:380px}
 main{padding:18px}
 header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
 header img{width:44px}
@@ -13,24 +13,15 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .summary div{background:#151a30;border:1px solid #252c4b;border-radius:10px;padding:9px}
 .summary span{display:block;color:#8f9abf;font-size:11px}
 .summary strong{font-size:16px}
-button,select,input[type=text]{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650}
+button,select{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650}
 button{cursor:pointer}
 button:disabled{opacity:.4;cursor:not-allowed}
-.primary{width:100%;border:0;background:linear-gradient(135deg,#24bde8,#7667ff)}
-.export-picker{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:9px}
-.export-picker label{display:flex;grid-column:1/-1;align-items:center;justify-content:space-between;color:#9aa5c8;font-size:11px}
-.export-picker select{min-width:245px;padding:7px}
-.export-picker #export{min-width:112px;background:#edf1ff;color:#11172a}
-.studio-button{grid-column:1/2;background:#171e38;color:#aeb9dc}
-.customize{margin-top:12px;border:1px solid #252c4b;border-radius:12px;background:#11162a}
-.customize summary{padding:11px 12px;cursor:pointer;font-size:13px;font-weight:750}
-.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:2px 12px 10px}
-.control-grid label{display:flex;flex-direction:column;gap:5px;color:#9aa5c8;font-size:11px}
-.control-grid .wide{grid-column:1/-1}
-.control-grid select,.control-grid input[type=text]{width:100%;padding:7px;font-size:12px}
-.control-grid input[type=color]{width:100%;height:34px;border:1px solid #333c63;border-radius:9px;background:#1c2342;padding:3px}
-.toggle-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;padding:2px 12px 10px}
-.toggle-grid label{display:flex;align-items:center;gap:6px;color:#bac3df;font-size:11px}
-.toggle-grid input{accent-color:#6e67ff}
-.quiet{margin:0 12px 12px;width:calc(100% - 24px);padding:7px;background:transparent;color:#9aa5c8;font-size:11px}
+.primary,.studio-button{width:100%;border:0}
+.primary{background:linear-gradient(135deg,#24bde8,#7667ff)}
+.studio-button{margin-top:8px;background:#edf1ff;color:#11172a}
+.direct-export{margin-top:10px;border:1px solid #252c4b;border-radius:10px;background:#11162a}
+.direct-export summary{padding:10px 12px;color:#9aa5c8;font-size:12px;cursor:pointer}
+.export-picker{display:grid;grid-template-columns:1fr auto;gap:7px;padding:0 10px 10px}
+.export-picker select{min-width:0;padding:7px}
+.export-picker button{min-width:82px;background:#171e38}
 .privacy{text-align:center;margin-top:14px}

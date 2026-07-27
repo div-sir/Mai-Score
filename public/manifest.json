@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Export maimai DX International B50 as customizable images or versioned JSON.",
   "action": {
     "default_title": "Mai-Score",
@@ -15,6 +15,9 @@
     "https://maimaidx-eng.com/maimai-mobile/*",
     "https://shama.dxrating.net/images/cover/v2/*"
   ],
+  "externally_connectable": {
+    "matches": ["https://mai-score-studio.solilium.chatgpt.site/*"]
+  },
   "content_scripts": [
     {
       "matches": ["https://maimaidx-eng.com/maimai-mobile/*"],
