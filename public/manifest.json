@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Export maimai DX International B50 as customizable images or versioned JSON.",
   "action": {
     "default_title": "Mai-Score",

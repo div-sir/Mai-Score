@@ -6,6 +6,7 @@ import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
   studioTransferKey,
+  type StudioTransferAssets,
   type StudioTransfer
 } from "./lib/studio-transfer";
 import type { CollectionResult } from "./lib/types";
@@ -125,6 +126,26 @@ async function exportQuickPng() {
   setStatus("快速 PNG 已準備下載。", "ok");
 }
 
+async function prepareStudioAssets(): Promise<StudioTransferAssets> {
+  if (!result) return { covers: {} };
+  const coverNames = [...new Set(result.records.flatMap((record) => record.imageName ? [record.imageName] : []))];
+  const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
+    name,
+    await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
+  ] as const);
+  const [icon, frame] = await Promise.all([
+    fetchDataUrl(result.player.iconUrl),
+    fetchDataUrl(result.player.frameUrl)
+  ]);
+  return {
+    icon,
+    frame,
+    covers: Object.fromEntries(
+      coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
+    )
+  };
+}
+
 $<HTMLButtonElement>("collect").addEventListener("click", async () => {
   setStatus("正在抓取個人資料、frame 與 B50…");
   try {
@@ -152,11 +173,13 @@ $<HTMLButtonElement>("collect").addEventListener("click", async () => {
 $<HTMLButtonElement>("studio").addEventListener("click", async () => {
   if (!result) return;
   studioButton.disabled = true;
-  setStatus("正在開啟網頁預覽…");
+  setStatus("正在準備 frame、icon 與歌曲封面…");
   try {
     const token = crypto.randomUUID();
+    const assets = await prepareStudioAssets();
     const transfer: StudioTransfer = {
       data: result,
+      assets,
       expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
     };
     await chrome.storage.session.set({ [studioTransferKey(token)]: transfer });
@@ -166,7 +189,7 @@ $<HTMLButtonElement>("studio").addEventListener("click", async () => {
       transfer: token
     }).toString();
     await chrome.tabs.create({ url: url.toString() });
-    setStatus("Studio 已開啟，B50 會自動載入。", "ok");
+    setStatus(`Studio 已開啟，已帶入 ${Object.keys(assets.covers).length} 張封面。`, "ok");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   } finally {

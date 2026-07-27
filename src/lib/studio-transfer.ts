@@ -4,8 +4,15 @@ export const STUDIO_URL = "https://mai-score-studio.solilium.chatgpt.site";
 export const STUDIO_TRANSFER_TTL_MS = 5 * 60 * 1000;
 export const STUDIO_TRANSFER_PREFIX = "studioTransfer:";
 
+export interface StudioTransferAssets {
+  icon?: string;
+  frame?: string;
+  covers: Record<string, string>;
+}
+
 export interface StudioTransfer {
   data: CollectionResult;
+  assets: StudioTransferAssets;
   expiresAt: number;
 }
 
