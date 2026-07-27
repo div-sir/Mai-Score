@@ -8,11 +8,19 @@ let indexPromise: Promise<Map<string, SheetRecord>> | undefined;
 
 async function getIndex(): Promise<Map<string, SheetRecord>> {
   indexPromise ??= (async () => {
-    const response = await fetch(chrome.runtime.getURL("data/sheets.json.gz"));
-    if (!response.ok || !response.body) throw new Error("無法讀取內建譜面資料。");
-    const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
-    const sheets = JSON.parse(await new Response(stream).text()) as SheetRecord[];
-    return new Map(sheets.map((sheet) => [key(sheet.title, sheet.type, sheet.difficulty), sheet]));
+    try {
+      const response = await fetch(chrome.runtime.getURL("data/sheets.json.gz"));
+      if (!response.ok || !response.body) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
+      const sheets = JSON.parse(await new Response(stream).text()) as SheetRecord[];
+      return new Map(sheets.map((sheet) => [key(sheet.title, sheet.type, sheet.difficulty), sheet]));
+    } catch (error) {
+      indexPromise = undefined;
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`內建譜面資料載入失敗（${detail}）。請重新載入擴充功能。`);
+    }
   })();
   return indexPromise;
 }

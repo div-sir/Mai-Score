@@ -38,6 +38,10 @@ npm run typecheck
 npm run build
 ```
 
+### “Failed to fetch” in v0.1.0
+
+Version 0.1.0 tried to load the compressed chart database directly from a content script, which Chrome blocks unless the file is exposed to the page. Version 0.1.1 loads it inside the extension service worker instead. After updating, reload the extension from `chrome://extensions` and refresh DX NET once.
+
 This project is not affiliated with SEGA. maimai is a trademark of SEGA. dxrating and its data are used under their respective MIT-licensed project terms.
 
 ## License

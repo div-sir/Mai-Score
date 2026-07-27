@@ -1,24 +1,38 @@
 import { parseCurrentFrame, parseProfile, parseRatingTarget } from "./lib/parser";
-import { resolveScores } from "./lib/resolver";
-import type { CollectionResult } from "./lib/types";
+import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
 
 const ROOT = "https://maimaidx-eng.com/maimai-mobile";
 
-async function fetchDocument(path: string): Promise<Document> {
-  const response = await fetch(`${ROOT}${path}`, { credentials: "include" });
-  if (!response.ok) throw new Error(`DX NET 回傳 ${response.status}`);
+async function fetchDocument(path: string, label: string): Promise<Document> {
+  let response: Response;
+  try {
+    response = await fetch(`${ROOT}${path}`, { credentials: "include" });
+  } catch {
+    throw new Error(`無法讀取 ${label}：DX NET 網路請求失敗。`);
+  }
+  if (!response.ok) throw new Error(`無法讀取 ${label}：DX NET 回傳 ${response.status}。`);
   return new DOMParser().parseFromString(await response.text(), "text/html");
+}
+
+async function resolveViaBackground(records: ParsedScore[]): Promise<ResolvedScore[]> {
+  const response = await chrome.runtime.sendMessage({
+    type: "MAI_SCORE_RESOLVE",
+    records
+  }) as { ok: true; records: ResolvedScore[] } | { ok: false; error: string } | undefined;
+  if (!response) throw new Error("譜面資料服務沒有回應，請重新載入擴充功能。");
+  if (!response.ok) throw new Error(response.error);
+  return response.records;
 }
 
 async function collect(): Promise<CollectionResult> {
   const [home, ratingTarget, frame] = await Promise.all([
-    fetchDocument("/home/"),
-    fetchDocument("/home/ratingTargetMusic/"),
-    fetchDocument("/collection/frame/")
+    fetchDocument("/home/", "玩家資料"),
+    fetchDocument("/home/ratingTargetMusic/", "B50"),
+    fetchDocument("/collection/frame/", "frame")
   ]);
   const player = parseProfile(home);
   player.frameUrl = parseCurrentFrame(frame);
-  const records = await resolveScores(parseRatingTarget(ratingTarget));
+  const records = await resolveViaBackground(parseRatingTarget(ratingTarget));
   if (records.length < 50) throw new Error(`只找到 ${records.length} 筆成績，預期為 50 筆。`);
   const warnings = records.flatMap((record) => record.warning ? [record.warning] : []);
   const b15Rating = records.filter((x) => x.bucket === "b15").reduce((sum, x) => sum + (x.chartRating ?? 0), 0);
