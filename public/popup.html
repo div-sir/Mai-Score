@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mai-Score</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p>International B50 exporter</p></div></header>
+      <div id="status" class="status">請先登入 maimai DX NET 國際版。</div>
+      <section id="summary" hidden>
+        <div><span>玩家</span><strong id="player">—</strong></div>
+        <div><span>官方 Rating</span><strong id="official-rating">—</strong></div>
+        <div><span>B50 合計</span><strong id="b50-rating">—</strong></div>
+        <div><span>已解析</span><strong id="resolved">—</strong></div>
+      </section>
+      <button id="collect" class="primary">抓取 B50</button>
+      <div class="actions">
+        <button id="png" disabled>匯出 PNG</button>
+        <button id="dxjson" disabled>dxrating JSON</button>
+        <button id="fulljson" disabled>完整 JSON</button>
+      </div>
+      <label>圖樣
+        <select id="theme"><option value="night">Night</option><option value="light">Light</option></select>
+      </label>
+      <p class="privacy">資料只在瀏覽器本機處理；不會上傳帳號或成績。</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
