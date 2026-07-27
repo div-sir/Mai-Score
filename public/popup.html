@@ -10,7 +10,7 @@
     <main>
       <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p>International B50 exporter</p></div></header>
       <div id="status" class="status">請先登入 maimai DX NET 國際版。</div>
-      <section id="summary" hidden>
+      <section id="summary" class="summary" hidden>
         <div><span>玩家</span><strong id="player">—</strong></div>
         <div><span>官方 Rating</span><strong id="official-rating">—</strong></div>
         <div><span>B50 合計</span><strong id="b50-rating">—</strong></div>
@@ -22,9 +22,65 @@
         <button id="dxjson" disabled>dxrating JSON</button>
         <button id="fulljson" disabled>完整 JSON</button>
       </div>
-      <label>圖樣
-        <select id="theme"><option value="night">Night</option><option value="light">Light</option></select>
-      </label>
+      <details class="customize" open>
+        <summary>圖片自訂</summary>
+        <div class="control-grid">
+          <label>排版
+            <select id="layout">
+              <option value="classic">Classic 5×10</option>
+              <option value="compact">Compact 5×10</option>
+              <option value="landscape">Landscape 10×5</option>
+            </select>
+          </label>
+          <label>主題
+            <select id="theme">
+              <option value="night">Night</option>
+              <option value="light">Light</option>
+              <option value="maimai">maimai</option>
+            </select>
+          </label>
+          <label>時間戳記
+            <select id="timestamp-mode">
+              <option value="off">關閉</option>
+              <option value="date">日期</option>
+              <option value="datetime">日期＋時間</option>
+            </select>
+          </label>
+          <label>時區
+            <select id="timestamp-zone">
+              <option value="local">本機</option>
+              <option value="utc">UTC</option>
+            </select>
+          </label>
+          <label>解析度
+            <select id="scale">
+              <option value="1">標準</option>
+              <option value="1.5">高解析 1.5×</option>
+            </select>
+          </label>
+          <label>強調色
+            <input id="accent-color" type="color" value="#6e67ff">
+          </label>
+          <label class="wide">浮水印
+            <input id="watermark" type="text" maxlength="48" placeholder="例如 @username">
+          </label>
+        </div>
+        <div class="toggle-grid">
+          <label><input id="show-frame" type="checkbox">Frame</label>
+          <label><input id="show-icon" type="checkbox">Icon</label>
+          <label><input id="show-covers" type="checkbox">歌曲封面</label>
+          <label><input id="show-player-title" type="checkbox">稱號</label>
+          <label><input id="show-official-rating" type="checkbox">官方 Rating</label>
+          <label><input id="show-rating-breakdown" type="checkbox">B15/B35</label>
+          <label><input id="show-achievement" type="checkbox">達成率</label>
+          <label><input id="show-chart-rating" type="checkbox">單曲 Rating</label>
+          <label><input id="show-level" type="checkbox">譜面等級</label>
+          <label><input id="show-bucket-rank" type="checkbox">B15/B35 排名</label>
+          <label><input id="show-generated-by" type="checkbox">Mai-Score 標示</label>
+          <label><input id="timestamp-filename" type="checkbox">檔名時間</label>
+        </div>
+        <button id="reset-options" class="quiet">恢復預設</button>
+      </details>
       <p class="privacy">資料只在瀏覽器本機處理；不會上傳帳號或成績。</p>
     </main>
     <script src="popup.js"></script>

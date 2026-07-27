@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Export maimai DX International B50 with chart ratings, JSON, and a local image.",
   "action": {
     "default_title": "Mai-Score",
@@ -10,7 +10,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["downloads"],
+  "permissions": ["downloads", "storage"],
   "host_permissions": [
     "https://maimaidx-eng.com/maimai-mobile/*",
     "https://shama.dxrating.net/images/cover/v2/*"

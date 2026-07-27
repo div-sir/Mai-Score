@@ -52,6 +52,10 @@ export interface CollectionResult {
   schema: "mai-score/v1";
   exportedAt: string;
   source: string;
+  connection?: {
+    id: string;
+    protocolVersion: number;
+  };
   player: PlayerProfile;
   records: ResolvedScore[];
   b15Rating: number;

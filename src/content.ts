@@ -1,4 +1,5 @@
 import { parseCurrentFrame, parseProfile, parseRatingTarget } from "./lib/parser";
+import { CONNECTION_PROTOCOL_VERSION, isCollectRequest } from "./lib/connections";
 import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
 
 const ROOT = "https://maimaidx-eng.com/maimai-mobile";
@@ -17,6 +18,8 @@ async function fetchDocument(path: string, label: string): Promise<Document> {
 async function resolveViaBackground(records: ParsedScore[]): Promise<ResolvedScore[]> {
   const response = await chrome.runtime.sendMessage({
     type: "MAI_SCORE_RESOLVE",
+    protocolVersion: CONNECTION_PROTOCOL_VERSION,
+    connectionId: "dxnet-intl",
     records
   }) as { ok: true; records: ResolvedScore[] } | { ok: false; error: string } | undefined;
   if (!response) throw new Error("譜面資料服務沒有回應，請重新載入擴充功能。");
@@ -41,6 +44,10 @@ async function collect(): Promise<CollectionResult> {
     schema: "mai-score/v1",
     exportedAt: new Date().toISOString(),
     source: `${ROOT}/home/ratingTargetMusic/`,
+    connection: {
+      id: "dxnet-intl",
+      protocolVersion: CONNECTION_PROTOCOL_VERSION
+    },
     player,
     records,
     b15Rating,
@@ -51,7 +58,7 @@ async function collect(): Promise<CollectionResult> {
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "MAI_SCORE_COLLECT") return;
+  if (!isCollectRequest(message) || message.connectionId !== "dxnet-intl") return;
   collect().then((data) => sendResponse({ ok: true, data })).catch((error: unknown) => {
     sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
   });

@@ -10,6 +10,9 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
 - Exports a richer `mai-score/v1` JSON document.
 - Generates a 2000 × 2550 PNG locally with Night and Light themes.
+- Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
+- Persists image choices for timestamp, timezone, watermark, accent color, scale, assets, and score fields.
+- Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Does not transmit login details or score data to a third-party server.
 
 ## Install from source
@@ -37,6 +40,14 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+### Image customization in v0.2.0
+
+Open **圖片自訂** in the popup to choose a layout and theme, add a visible timestamp or watermark, select standard/high-resolution output, and hide individual profile or chart fields. These choices are kept locally for the next export.
+
+The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, transport, URL matcher, and capabilities without changing the dxrating or image exporters.
+
+See [Connection adapters](docs/connection-adapters.md) for the extension contract and security boundaries.
 
 ### “Failed to fetch” in v0.1.0
 

@@ -5,8 +5,9 @@ import { describe, expect, it } from "vitest";
 describe("extension package", () => {
   it("registers the background resolver", async () => {
     const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
-    expect(manifest.version).toBe("0.1.1");
+    expect(manifest.version).toBe("0.2.0");
     expect(manifest.background.service_worker).toBe("background.js");
+    expect(manifest.permissions).toContain("storage");
     expect(manifest.web_accessible_resources).toBeUndefined();
   });
 
