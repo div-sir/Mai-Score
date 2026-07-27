@@ -8,10 +8,12 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 - Calculates chart rating from international internal levels.
 - Captures player name, title, icon, equipped frame, course rank, class rank, stars, and official rating where available.
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
-- Exports a richer `mai-score/v1` JSON document.
-- Generates a 2000 × 2550 PNG locally with Night and Light themes.
+- Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
+- Generates PNG locally with Night, Light, and maimai themes.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Persists image choices for timestamp, timezone, watermark, accent color, scale, assets, and score fields.
+- Uses one explicit export selector for PNG, dxrating JSON, full JSON, or Rhythm Record JSON.
+- Opens [Mai-Score Studio](https://mai-score-studio.solilium.chatgpt.site) for live preview and mobile-friendly image editing.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Does not transmit login details or score data to a third-party server.
 
@@ -41,13 +43,13 @@ npm run typecheck
 npm run build
 ```
 
-### Image customization in v0.2.0
+### Studio and export selection in v0.3.0
 
-Open **圖片自訂** in the popup to choose a layout and theme, add a visible timestamp or watermark, select standard/high-resolution output, and hide individual profile or chart fields. These choices are kept locally for the next export.
+Choose the output in **匯出內容**. PNG keeps the built-in image controls; JSON outputs do not show irrelevant image settings. Open **網頁預覽 Studio** to download the current full JSON and launch the live editor. The Studio loads that file locally, previews Classic, Compact, and Landscape designs, and exports PNG or SVG without uploading the score document.
 
-The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, transport, URL matcher, and capabilities without changing the dxrating or image exporters.
+The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 
-See [Connection adapters](docs/connection-adapters.md) for the extension contract and security boundaries.
+See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), and [Connection adapters](docs/connection-adapters.md) for the workflow, shared record contract, and security boundaries.
 
 ### “Failed to fetch” in v0.1.0
 

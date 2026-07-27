@@ -17,12 +17,19 @@
         <div><span>已解析</span><strong id="resolved">—</strong></div>
       </section>
       <button id="collect" class="primary">抓取 B50</button>
-      <div class="actions">
-        <button id="png" disabled>匯出 PNG</button>
-        <button id="dxjson" disabled>dxrating JSON</button>
-        <button id="fulljson" disabled>完整 JSON</button>
+      <div class="export-picker">
+        <label>匯出內容
+          <select id="export-format">
+            <option value="png">PNG 圖片</option>
+            <option value="dxrating">dxrating JSON</option>
+            <option value="full">Mai-Score 完整 JSON</option>
+            <option value="rhythm">Rhythm Record JSON</option>
+          </select>
+        </label>
+        <button id="export" disabled>匯出</button>
+        <button id="studio" class="studio-button">網頁預覽 Studio</button>
       </div>
-      <details class="customize" open>
+      <details id="image-customize" class="customize" open>
         <summary>圖片自訂</summary>
         <div class="control-grid">
           <label>排版

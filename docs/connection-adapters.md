@@ -12,7 +12,8 @@ Each descriptor in `src/lib/connections.ts` declares:
 - a user-facing label;
 - a transport (`content-script`, `file`, or `api`);
 - URL prefixes used for automatic selection;
-- profile, asset, and B50 capabilities.
+- profile, asset, B50, and record-history capabilities;
+- whether the adapter is active or only reserved for a future integration.
 
 ## Adding a source
 
@@ -30,4 +31,4 @@ Keep credentials inside their owning browser or extension context. Adapters shou
 - `file`: user-selected JSON exports, with schema validation before normalization.
 - `api`: explicit opt-in integrations using a dedicated background handler.
 
-The first implementation is `dxnet-intl`. Export formats must not special-case that ID unless the target format itself requires source-specific behavior.
+The active implementation is `dxnet-intl`. Reserved adapters are `rhythm-record-file`, `popn-konami`, `sdvx-konami`, and `ddr-konami`; they cannot receive collection messages until an authenticated, user-approved transport is implemented. Export formats must not special-case a connection ID unless the target format itself requires source-specific behavior.

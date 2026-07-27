@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CONNECTIONS,
   CONNECTION_PROTOCOL_VERSION,
   connectionForUrl,
   createCollectRequest,
@@ -17,5 +18,22 @@ describe("connection registry", () => {
     expect(request.protocolVersion).toBe(CONNECTION_PROTOCOL_VERSION);
     expect(isCollectRequest(request)).toBe(true);
     expect(isCollectRequest({ ...request, protocolVersion: 99 })).toBe(false);
+  });
+
+  it("reserves adapters for shared rhythm-game records", () => {
+    const planned = CONNECTIONS.filter((connection) => connection.status === "planned");
+    expect(planned.map((connection) => connection.id)).toEqual([
+      "rhythm-record-file",
+      "popn-konami",
+      "sdvx-konami",
+      "ddr-konami"
+    ]);
+    expect(planned.map((connection) => connection.game)).toEqual([
+      "maimai-dx",
+      "popn-music",
+      "sound-voltex",
+      "dance-dance-revolution"
+    ]);
+    expect(isCollectRequest(createCollectRequest("sdvx-konami"))).toBe(false);
   });
 });

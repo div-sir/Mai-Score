@@ -1,5 +1,5 @@
 import { connectionForUrl, createCollectRequest } from "./lib/connections";
-import { toDxratingJson, toFullJson } from "./lib/export";
+import { toDxratingJson, toFullJson, toRhythmRecordJson } from "./lib/export";
 import {
   DEFAULT_IMAGE_OPTIONS,
   normalizeImageOptions,
@@ -10,11 +10,12 @@ import { renderB50Document } from "./lib/render";
 import type { CollectionResult } from "./lib/types";
 
 const OPTIONS_KEY = "imageOptions";
+const STUDIO_URL = "https://mai-score-studio.solilium.chatgpt.site";
 let result: CollectionResult | null = null;
 let imageOptions: ImageOptions = { ...DEFAULT_IMAGE_OPTIONS };
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const status = $("status");
-const buttons = ["png", "dxjson", "fulljson"].map((id) => $<HTMLButtonElement>(id));
+const exportButton = $<HTMLButtonElement>("export");
 
 function setStatus(text: string, kind = "") {
   status.textContent = text;
@@ -161,6 +162,38 @@ async function svgToPng(svg: string, width: number, height: number, scale: numbe
   }
 }
 
+async function exportPng() {
+  if (!result) return;
+  const generatedAt = new Date();
+  setStatus("正在準備素材並繪製 PNG…");
+  imageOptions = readOptions();
+  const coverNames = imageOptions.showCovers
+    ? [...new Set(result.records.flatMap((record) => record.imageName ? [record.imageName] : []))]
+    : [];
+  const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
+    name,
+    await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
+  ] as const);
+  const covers = Object.fromEntries(
+    coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
+  );
+  const [icon, frame] = await Promise.all([
+    imageOptions.showIcon ? fetchDataUrl(result.player.iconUrl) : undefined,
+    imageOptions.showFrame ? fetchDataUrl(result.player.frameUrl) : undefined
+  ]);
+  const rendered = renderB50Document(result, imageOptions, { icon, frame, covers }, generatedAt, navigator.language);
+  const blob = await svgToPng(rendered.svg, rendered.width, rendered.height, imageOptions.scale);
+  const safePlayer = result.player.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
+  const timestamp = imageOptions.timestampFilename ? `-${timestampForFilename(generatedAt)}` : "";
+  downloadBlob(`mai-score-${safePlayer}-${imageOptions.layout}${timestamp}.png`, blob);
+  setStatus(`PNG 已產生：${rendered.width * imageOptions.scale} × ${rendered.height * imageOptions.scale}`, "ok");
+}
+
+function updateExportControls() {
+  const isPng = $<HTMLSelectElement>("export-format").value === "png";
+  $<HTMLDetailsElement>("image-customize").hidden = !isPng;
+}
+
 $<HTMLButtonElement>("collect").addEventListener("click", async () => {
   setStatus("正在抓取個人資料、frame 與 B50…");
   try {
@@ -172,7 +205,7 @@ $<HTMLButtonElement>("collect").addEventListener("click", async () => {
     $("official-rating").textContent = String(result.player.rating);
     $("b50-rating").textContent = String(result.b50Rating);
     $("resolved").textContent = `${result.records.length - result.warnings.length}/50`;
-    buttons.forEach((button) => { button.disabled = false; });
+    exportButton.disabled = false;
     setStatus(
       result.warnings.length
         ? `${connection.label}：有 ${result.warnings.length} 首歌無法比對。`
@@ -184,42 +217,42 @@ $<HTMLButtonElement>("collect").addEventListener("click", async () => {
   }
 });
 
-$("dxjson").addEventListener("click", () =>
-  result && downloadText("mai-score-dxrating.json", toDxratingJson(result), "application/json"));
-$("fulljson").addEventListener("click", () =>
-  result && downloadText("mai-score-full.json", toFullJson(result), "application/json"));
-
-$("png").addEventListener("click", async () => {
+$<HTMLButtonElement>("export").addEventListener("click", async () => {
   if (!result) return;
-  const generatedAt = new Date();
-  setStatus("正在準備素材並繪製 PNG…");
   try {
-    imageOptions = readOptions();
-    const coverNames = imageOptions.showCovers
-      ? [...new Set(result.records.flatMap((record) => record.imageName ? [record.imageName] : []))]
-      : [];
-    const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
-      name,
-      await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
-    ] as const);
-    const covers = Object.fromEntries(
-      coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
-    );
-    const [icon, frame] = await Promise.all([
-      imageOptions.showIcon ? fetchDataUrl(result.player.iconUrl) : undefined,
-      imageOptions.showFrame ? fetchDataUrl(result.player.frameUrl) : undefined
-    ]);
-    const rendered = renderB50Document(result, imageOptions, { icon, frame, covers }, generatedAt, navigator.language);
-    const blob = await svgToPng(rendered.svg, rendered.width, rendered.height, imageOptions.scale);
-    const safePlayer = result.player.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
-    const timestamp = imageOptions.timestampFilename ? `-${timestampForFilename(generatedAt)}` : "";
-    downloadBlob(`mai-score-${safePlayer}-${imageOptions.layout}${timestamp}.png`, blob);
-    setStatus(`PNG 已產生：${rendered.width * imageOptions.scale} × ${rendered.height * imageOptions.scale}`, "ok");
+    switch ($<HTMLSelectElement>("export-format").value) {
+      case "png":
+        await exportPng();
+        break;
+      case "dxrating":
+        downloadText("mai-score-dxrating.json", toDxratingJson(result), "application/json");
+        setStatus("dxrating JSON 已準備下載。", "ok");
+        break;
+      case "full":
+        downloadText("mai-score-full.json", toFullJson(result), "application/json");
+        setStatus("Mai-Score 完整 JSON 已準備下載。", "ok");
+        break;
+      case "rhythm":
+        downloadText("mai-score-rhythm-record.json", toRhythmRecordJson(result), "application/json");
+        setStatus("Rhythm Record JSON 已準備下載。", "ok");
+        break;
+      default:
+        throw new Error("未知的匯出格式。");
+    }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   }
 });
 
+$<HTMLButtonElement>("studio").addEventListener("click", () => {
+  if (result) {
+    downloadText("mai-score-full.json", toFullJson(result), "application/json");
+    setStatus("已下載完整 JSON；請在 Studio 選擇此檔案。", "ok");
+  }
+  void chrome.tabs.create({ url: STUDIO_URL });
+});
+
+$<HTMLSelectElement>("export-format").addEventListener("change", updateExportControls);
 $(".customize").addEventListener("change", () => void persistOptions());
 $<HTMLInputElement>("watermark").addEventListener("input", () => void persistOptions());
 $<HTMLButtonElement>("reset-options").addEventListener("click", () => {
@@ -229,3 +262,4 @@ $<HTMLButtonElement>("reset-options").addEventListener("click", () => {
 });
 
 void initializeOptions();
+updateExportControls();
