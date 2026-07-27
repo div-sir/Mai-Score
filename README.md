@@ -5,12 +5,15 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 ## Features
 
 - Reads B15 + B35 from the official `ratingTargetMusic` page.
+- Reads only the first two official target sections (New B15 and Old B35); rating candidates are excluded from the total.
 - Calculates chart rating from international internal levels.
 - Captures player name, title, icon, equipped frame, course rank, class rank, stars, and official rating where available.
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
 - Generates PNG locally with Night, Light, and maimai themes.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
+- Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
+- Supports English (default), Traditional Chinese, and Japanese in the popup, Studio, timestamps, and exported image labels.
 - Keeps image choices for timestamp, timezone, watermark, accent color, assets, and score fields in the Studio.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score-studio.solilium.chatgpt.site) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
@@ -43,11 +46,13 @@ npm run typecheck
 npm run build
 ```
 
-### Automatic Studio handoff in v0.3.2
+### Automatic Studio handoff in v0.4.0
 
 After collection, choose **在網頁預覽並調整**. The extension stores the result behind a random, single-use transfer token for up to five minutes, opens Studio with the token and extension ID in the URL fragment, and removes the staged result as soon as Studio receives it. The score document is not placed in the URL or sent to the Studio server.
 
 The handoff also embeds the equipped frame, icon, and resolved song covers as image data. This lets the browser preview and PNG export render authenticated DX NET assets without uploading them or depending on cross-origin image requests.
+
+Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
 Studio is intentionally a compact preview tool: data controls, style controls, the live B50 preview, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **直接匯出**.
 

@@ -24,3 +24,15 @@ export function calculateChartRating(
   const base = Math.floor(ratingCoefficient(capped) * internalLevel * capped / 100);
   return base + (/^ap\+?$/i.test(comboFlag ?? "") ? 1 : 0);
 }
+
+export function calculateB50Breakdown(
+  records: ReadonlyArray<{ bucket: "b15" | "b35"; chartRating?: number }>
+): { b15Rating: number; b35Rating: number; b50Rating: number } {
+  const sum = (bucket: "b15" | "b35", limit: number) => records
+    .filter((record) => record.bucket === bucket)
+    .slice(0, limit)
+    .reduce((total, record) => total + (record.chartRating ?? 0), 0);
+  const b15Rating = sum("b15", 15);
+  const b35Rating = sum("b35", 35);
+  return { b15Rating, b35Rating, b50Rating: b15Rating + b35Rating };
+}

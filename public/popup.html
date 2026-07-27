@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,29 +8,34 @@
   </head>
   <body>
     <main>
-      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p>International B50 exporter</p></div></header>
-      <div id="status" class="status">請先登入 maimai DX NET 國際版。</div>
+      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p data-i18n="subtitle">International B50 exporter</p></div></header>
+      <label class="language-picker"><span>Language</span><select id="language">
+        <option value="en">English</option>
+        <option value="zh-Hant">繁體中文</option>
+        <option value="ja">日本語</option>
+      </select></label>
+      <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
       <section id="summary" class="summary" hidden>
-        <div><span>玩家</span><strong id="player">—</strong></div>
-        <div><span>官方 Rating</span><strong id="official-rating">—</strong></div>
-        <div><span>B50 合計</span><strong id="b50-rating">—</strong></div>
-        <div><span>已解析</span><strong id="resolved">—</strong></div>
+        <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
+        <div><span data-i18n="officialRating">Official Rating</span><strong id="official-rating">—</strong></div>
+        <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>
+        <div><span data-i18n="resolved">Resolved</span><strong id="resolved">—</strong></div>
       </section>
-      <button id="collect" class="primary">抓取 B50</button>
-      <button id="studio" class="studio-button" disabled>在網頁預覽並調整</button>
+      <button id="collect" class="primary" data-i18n="collect">Collect B50</button>
+      <button id="studio" class="studio-button" disabled data-i18n="studio">Preview and customize online</button>
       <details class="direct-export">
-        <summary>直接匯出</summary>
+        <summary data-i18n="directExport">Direct export</summary>
         <div class="export-picker">
           <select id="export-format" aria-label="直接匯出格式">
-            <option value="png">快速 PNG（預設樣式）</option>
+            <option value="png" data-i18n="quickPng">Quick PNG (default style)</option>
             <option value="dxrating">dxrating JSON</option>
             <option value="full">Mai-Score 完整 JSON</option>
             <option value="rhythm">Rhythm Record JSON</option>
           </select>
-          <button id="export" disabled>下載</button>
+          <button id="export" disabled data-i18n="download">Download</button>
         </div>
       </details>
-      <p class="privacy">資料只在瀏覽器本機處理；網頁預覽使用一次性交換碼。</p>
+      <p class="privacy" data-i18n="privacy">Data is processed locally; Studio uses a single-use transfer token.</p>
     </main>
     <script src="popup.js"></script>
   </body>

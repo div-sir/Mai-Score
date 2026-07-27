@@ -1,4 +1,5 @@
 import type { CollectionResult } from "./types";
+import type { PopupLanguage } from "./i18n";
 
 export const STUDIO_URL = "https://mai-score-studio.solilium.chatgpt.site";
 export const STUDIO_TRANSFER_TTL_MS = 5 * 60 * 1000;
@@ -13,6 +14,7 @@ export interface StudioTransferAssets {
 export interface StudioTransfer {
   data: CollectionResult;
   assets: StudioTransferAssets;
+  language: PopupLanguage;
   expiresAt: number;
 }
 

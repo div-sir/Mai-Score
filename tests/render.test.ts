@@ -27,14 +27,16 @@ const result: CollectionResult = {
 
 describe("B50 image templates", () => {
   it.each([
-    ["classic", 2000, 2550],
-    ["compact", 1600, 1900],
-    ["landscape", 3000, 1600]
+    ["classic", 2000, 2650],
+    ["compact", 1600, 1990],
+    ["landscape", 3000, 1840]
   ] as const)("renders %s at its native dimensions", (layout, width, height) => {
     const rendered = renderB50Document(result, { ...DEFAULT_IMAGE_OPTIONS, layout });
     expect(rendered).toMatchObject({ width, height });
     expect(rendered.svg).toContain(`viewBox="0 0 ${width} ${height}"`);
     expect(rendered.svg.match(/B(?:15|35) #\d+/g)).toHaveLength(50);
+    expect(rendered.svg).toContain("NEW CHARTS · BEST 15");
+    expect(rendered.svg).toContain("OLD CHARTS · BEST 35");
   });
 
   it("applies watermark, timestamp, and visibility settings", () => {

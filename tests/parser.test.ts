@@ -25,17 +25,25 @@ describe("international DX NET parser", () => {
     expect(frame).toContain("/img/Frame/frame.png");
   });
 
-  it("parses score cards and assigns B15 before B35", () => {
-    const cards = Array.from({ length: 16 }, (_, i) => `
+  it("parses only the two rating target sections and excludes candidates", () => {
+    const section = (count: number, prefix: string) => Array.from({ length: count }, (_, i) => `
       <div class="music_expert_score_back pointer w_450 m_15 p_3 f_0">
         <img class="music_kind_icon" src="/maimai-mobile/img/music_dx.png">
-        <div class="music_lv_block">13</div><div class="music_name_block">Song ${i}</div>
+        <div class="music_lv_block">13</div><div class="music_name_block">${prefix} ${i}</div>
         <div class="music_score_block">99.5000%</div>
       </div>`).join("");
-    const scores = parseRatingTarget(doc(cards));
-    expect(scores).toHaveLength(16);
+    const scores = parseRatingTarget(doc(`
+      <div class="see_through_block"></div>
+      <div class="screw_block">New targets</div>${section(15, "New")}
+      <div class="screw_block">Old targets</div>${section(35, "Old")}
+      <div class="screw_block">New candidates</div>${section(10, "Candidate new")}
+      <div class="screw_block">Old candidates</div>${section(10, "Candidate old")}
+    `));
+    expect(scores).toHaveLength(50);
     expect(scores[14].bucket).toBe("b15");
     expect(scores[15].bucket).toBe("b35");
-    expect(scores[0]).toMatchObject({ type: "dx", difficulty: "expert", achievementRate: 99.5 });
+    expect(scores[0]).toMatchObject({ title: "New 0", type: "dx", difficulty: "expert", achievementRate: 99.5 });
+    expect(scores[49].title).toBe("Old 34");
+    expect(scores.some((score) => score.title.startsWith("Candidate"))).toBe(false);
   });
 });

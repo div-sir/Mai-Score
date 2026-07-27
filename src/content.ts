@@ -1,5 +1,6 @@
 import { parseCurrentFrame, parseProfile, parseRatingTarget } from "./lib/parser";
 import { CONNECTION_PROTOCOL_VERSION, isCollectRequest } from "./lib/connections";
+import { calculateB50Breakdown } from "./lib/rating";
 import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
 
 const ROOT = "https://maimaidx-eng.com/maimai-mobile";
@@ -35,11 +36,15 @@ async function collect(): Promise<CollectionResult> {
   ]);
   const player = parseProfile(home);
   player.frameUrl = parseCurrentFrame(frame);
-  const records = await resolveViaBackground(parseRatingTarget(ratingTarget));
-  if (records.length < 50) throw new Error(`只找到 ${records.length} 筆成績，預期為 50 筆。`);
+  const parsed = parseRatingTarget(ratingTarget);
+  const parsedB15 = parsed.filter((record) => record.bucket === "b15");
+  const parsedB35 = parsed.filter((record) => record.bucket === "b35");
+  if (parsedB15.length !== 15 || parsedB35.length !== 35) {
+    throw new Error(`Expected 15 new and 35 old rating targets, found ${parsedB15.length} and ${parsedB35.length}.`);
+  }
+  const records = await resolveViaBackground([...parsedB15, ...parsedB35]);
   const warnings = records.flatMap((record) => record.warning ? [record.warning] : []);
-  const b15Rating = records.filter((x) => x.bucket === "b15").reduce((sum, x) => sum + (x.chartRating ?? 0), 0);
-  const b35Rating = records.filter((x) => x.bucket === "b35").reduce((sum, x) => sum + (x.chartRating ?? 0), 0);
+  const { b15Rating, b35Rating, b50Rating } = calculateB50Breakdown(records);
   return {
     schema: "mai-score/v1",
     exportedAt: new Date().toISOString(),
@@ -52,7 +57,7 @@ async function collect(): Promise<CollectionResult> {
     records,
     b15Rating,
     b35Rating,
-    b50Rating: b15Rating + b35Rating,
+    b50Rating,
     warnings
   };
 }

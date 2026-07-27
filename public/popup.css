@@ -6,6 +6,8 @@ header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
 header img{width:44px}
 h1{font-size:20px;margin:0}
 header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
+.language-picker{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 12px;color:#8f9abf;font-size:11px}
+.language-picker select{min-width:130px;padding:6px 8px;font-size:11px}
 .status{padding:10px;border-radius:10px;background:#191e36;color:#bbc4e1;font-size:13px;margin-bottom:12px}
 .status.error{background:#3a1c2b;color:#ffb5c8}
 .status.ok{background:#12372f;color:#a9f5d6}

@@ -34,7 +34,12 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
         sendResponse({ ok: false, error: "預覽資料已過期，請回到 Mai-Score 再按一次網頁預覽。" });
         return;
       }
-      sendResponse({ ok: true, data: transfer.data, assets: transfer.assets });
+      sendResponse({
+        ok: true,
+        data: transfer.data,
+        assets: transfer.assets,
+        language: transfer.language
+      });
     })
     .catch((error: unknown) => sendResponse({
       ok: false,

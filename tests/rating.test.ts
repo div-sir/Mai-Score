@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateChartRating, ratingCoefficient } from "../src/lib/rating";
+import { calculateB50Breakdown, calculateChartRating, ratingCoefficient } from "../src/lib/rating";
 
 describe("maimai chart rating", () => {
   it("uses the exact achievement breakpoints", () => {
@@ -12,5 +12,17 @@ describe("maimai chart rating", () => {
     expect(calculateChartRating(15, 100.6)).toBe(calculateChartRating(15, 100.5));
     expect(calculateChartRating(15, 100.5, "ap")).toBe(calculateChartRating(15, 100.5) + 1);
     expect(calculateChartRating(15, 100.5, "ap+")).toBe(calculateChartRating(15, 100.5) + 1);
+  });
+
+  it("sums only the best 15 new and 35 old charts", () => {
+    const records = [
+      ...Array.from({ length: 20 }, () => ({ bucket: "b15" as const, chartRating: 300 })),
+      ...Array.from({ length: 50 }, () => ({ bucket: "b35" as const, chartRating: 290 }))
+    ];
+    expect(calculateB50Breakdown(records)).toEqual({
+      b15Rating: 4500,
+      b35Rating: 10150,
+      b50Rating: 14650
+    });
   });
 });

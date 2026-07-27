@@ -84,7 +84,7 @@ export function normalizeImageOptions(value: unknown): ImageOptions {
   };
 }
 
-export function formatImageTimestamp(date: Date, options: ImageOptions, locale = "zh-TW"): string {
+export function formatImageTimestamp(date: Date, options: ImageOptions, locale = "en"): string {
   if (options.timestampMode === "off") return "";
   const format: Intl.DateTimeFormatOptions = {
     dateStyle: "medium",

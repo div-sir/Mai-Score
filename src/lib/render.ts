@@ -37,28 +37,73 @@ interface LayoutSpec {
   achievementSize: number;
   stripHeight: number;
   headerHeight: number;
+  sectionGap: number;
 }
 
 const layouts: Record<ImageLayout, LayoutSpec> = {
   classic: {
-    width: 2000, height: 2550, columns: 5, marginX: 44, startY: 350,
+    width: 2000, height: 2650, columns: 5, marginX: 44, startY: 370,
     gapX: 24, gapY: 25, cardWidth: 358, cardHeight: 190, cardRadius: 18,
     padding: 14, coverSize: 112, titleSize: 21, metaSize: 14,
-    achievementSize: 27, stripHeight: 36, headerHeight: 286
+    achievementSize: 27, stripHeight: 36, headerHeight: 286, sectionGap: 60
   },
   compact: {
-    width: 1600, height: 1900, columns: 5, marginX: 28, startY: 280,
+    width: 1600, height: 1990, columns: 5, marginX: 28, startY: 300,
     gapX: 14, gapY: 14, cardWidth: 297, cardHeight: 142, cardRadius: 14,
     padding: 10, coverSize: 72, titleSize: 17, metaSize: 11,
-    achievementSize: 21, stripHeight: 28, headerHeight: 222
+    achievementSize: 21, stripHeight: 28, headerHeight: 222, sectionGap: 48
   },
   landscape: {
-    width: 3000, height: 1600, columns: 10, marginX: 34, startY: 340,
+    width: 3000, height: 1840, columns: 10, marginX: 34, startY: 360,
     gapX: 12, gapY: 16, cardWidth: 282, cardHeight: 210, cardRadius: 16,
     padding: 12, coverSize: 84, titleSize: 17, metaSize: 11,
-    achievementSize: 23, stripHeight: 34, headerHeight: 275
+    achievementSize: 23, stripHeight: 34, headerHeight: 275, sectionGap: 60
   }
 };
+
+interface RenderCopy {
+  officialRating: string;
+  newBreakdown: string;
+  oldBreakdown: string;
+  newSection: string;
+  oldSection: string;
+  charts: string;
+  generated: string;
+}
+
+function renderCopy(locale: string): RenderCopy {
+  if (locale.toLowerCase().startsWith("zh")) {
+    return {
+      officialRating: "官方 Rating",
+      newBreakdown: "新曲 B15",
+      oldBreakdown: "舊曲 B35",
+      newSection: "新曲區 · BEST 15",
+      oldSection: "舊曲區 · BEST 35",
+      charts: "首",
+      generated: "由 Mai-Score 在本機產生"
+    };
+  }
+  if (locale.toLowerCase().startsWith("ja")) {
+    return {
+      officialRating: "公式 Rating",
+      newBreakdown: "新曲 B15",
+      oldBreakdown: "旧曲 B35",
+      newSection: "新曲枠 · BEST 15",
+      oldSection: "旧曲枠 · BEST 35",
+      charts: "譜面",
+      generated: "Mai-Score でローカル生成"
+    };
+  }
+  return {
+    officialRating: "Official Rating",
+    newBreakdown: "New B15",
+    oldBreakdown: "Old B35",
+    newSection: "NEW CHARTS · BEST 15",
+    oldSection: "OLD CHARTS · BEST 35",
+    charts: "charts",
+    generated: "Generated locally by Mai-Score"
+  };
+}
 
 const difficultyColors: Record<string, string> = {
   basic: "#36c985",
@@ -122,16 +167,18 @@ function bucketIndex(records: ResolvedScore[], recordIndex: number): number {
 function renderCard(
   record: ResolvedScore,
   index: number,
+  sectionIndex: number,
+  sectionStartY: number,
   records: ResolvedScore[],
   spec: LayoutSpec,
   options: ImageOptions,
   palette: typeof palettes[ImageTheme],
   asset?: string
 ): string {
-  const column = index % spec.columns;
-  const row = Math.floor(index / spec.columns);
+  const column = sectionIndex % spec.columns;
+  const row = Math.floor(sectionIndex / spec.columns);
   const x = spec.marginX + column * (spec.cardWidth + spec.gapX);
-  const y = spec.startY + row * (spec.cardHeight + spec.gapY);
+  const y = sectionStartY + row * (spec.cardHeight + spec.gapY);
   const pad = spec.padding;
   const reservesCover = options.showCovers;
   const hasCover = reservesCover && Boolean(asset);
@@ -176,7 +223,8 @@ function header(
   spec: LayoutSpec,
   options: ImageOptions,
   palette: typeof palettes[ImageTheme],
-  assets: RenderAssets
+  assets: RenderAssets,
+  copy: RenderCopy
 ): string {
   const margin = Math.max(24, Math.round(spec.width * .014));
   const panelX = margin;
@@ -198,10 +246,10 @@ function header(
   ${options.showIcon && assets.icon ? `<image href="${assets.icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
   ${options.showPlayerTitle ? `<text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(result.player.title)}</text>` : ""}
   <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(result.player.name)}</text>
-  ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">Official Rating ${result.player.rating}</text>` : ""}
+  ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">${copy.officialRating} ${result.player.rating}</text>` : ""}
   <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">BEST 50</text>
   <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${result.b50Rating}</text>
-  ${options.showRatingBreakdown ? `<text x="${scoreX}" y="${ratingY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" fill="${palette.muted}">B15 ${result.b15Rating} + B35 ${result.b35Rating}</text>` : ""}`;
+  ${options.showRatingBreakdown ? `<text x="${scoreX}" y="${ratingY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" fill="${palette.muted}">${copy.newBreakdown} ${result.b15Rating} + ${copy.oldBreakdown} ${result.b35Rating}</text>` : ""}`;
 }
 
 export function renderB50Document(
@@ -209,14 +257,19 @@ export function renderB50Document(
   options: ImageOptions,
   assets: RenderAssets = {},
   generatedAt = new Date(),
-  locale = "zh-TW"
+  locale = "en"
 ): RenderedImage {
   const spec = layouts[options.layout];
   const palette = palettes[options.theme];
+  const copy = renderCopy(locale);
   const ordered = [...result.records].sort((a, b) => a.bucket === b.bucket ? 0 : a.bucket === "b15" ? -1 : 1);
+  const newRecords = ordered.filter((record) => record.bucket === "b15").slice(0, 15);
+  const oldRecords = ordered.filter((record) => record.bucket === "b35").slice(0, 35);
+  const newRows = Math.ceil(newRecords.length / spec.columns);
+  const oldStartY = spec.startY + newRows * (spec.cardHeight + spec.gapY) + spec.sectionGap;
   const timestamp = formatImageTimestamp(generatedAt, options, locale);
   const footerY = spec.height - 28;
-  const footerLeft = options.watermark || (options.showGeneratedBy ? "Generated locally by Mai-Score" : "");
+  const footerLeft = options.watermark || (options.showGeneratedBy ? copy.generated : "");
   const footerRight = [
     timestamp,
     result.connection?.id,
@@ -234,11 +287,33 @@ export function renderB50Document(
       <stop stop-color="${options.accentColor}"/><stop offset="1" stop-color="${alpha(options.accentColor, .18)}"/>
     </linearGradient>
   </defs>
-  ${header(result, spec, options, palette, assets)}
-  <rect x="${spec.marginX}" y="${spec.startY - 25}" width="${spec.width - spec.marginX * 2}" height="5" rx="2.5" fill="url(#accent)"/>
-  ${ordered.map((record, index) => renderCard(
+  ${header(result, spec, options, palette, assets, copy)}
+  <g>
+    <rect x="${spec.marginX}" y="${spec.startY - 46}" width="${spec.width - spec.marginX * 2}" height="34" rx="10" fill="${alpha(options.accentColor, .16)}"/>
+    <text x="${spec.marginX + 14}" y="${spec.startY - 22}" font-size="18" font-weight="850">${copy.newSection}</text>
+    <text x="${spec.width - spec.marginX - 14}" y="${spec.startY - 22}" text-anchor="end" font-size="16" fill="${palette.muted}">${newRecords.length} ${copy.charts} · ${result.b15Rating}</text>
+  </g>
+  <g>
+    <rect x="${spec.marginX}" y="${oldStartY - 46}" width="${spec.width - spec.marginX * 2}" height="34" rx="10" fill="${alpha(options.accentColor, .11)}"/>
+    <text x="${spec.marginX + 14}" y="${oldStartY - 22}" font-size="18" font-weight="850">${copy.oldSection}</text>
+    <text x="${spec.width - spec.marginX - 14}" y="${oldStartY - 22}" text-anchor="end" font-size="16" fill="${palette.muted}">${oldRecords.length} ${copy.charts} · ${result.b35Rating}</text>
+  </g>
+  ${newRecords.map((record, sectionIndex) => renderCard(
     record,
-    index,
+    sectionIndex,
+    sectionIndex,
+    spec.startY,
+    ordered,
+    spec,
+    options,
+    palette,
+    record.imageName ? assets.covers?.[record.imageName] : undefined
+  )).join("")}
+  ${oldRecords.map((record, sectionIndex) => renderCard(
+    record,
+    newRecords.length + sectionIndex,
+    sectionIndex,
+    oldStartY,
     ordered,
     spec,
     options,

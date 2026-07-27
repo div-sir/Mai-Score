@@ -33,8 +33,37 @@ function difficultyFrom(card: Element): Difficulty | null {
 }
 
 export function parseRatingTarget(doc: Document): ParsedScore[] {
-  const cards = [...doc.querySelectorAll(".pointer.w_450.m_15.p_3.f_0")];
-  return cards.flatMap((card, index) => {
+  const cardSelector = ".pointer.w_450.m_15.p_3.f_0";
+  const anchor = doc.querySelector("div.see_through_block");
+  const sections: Element[][] = [];
+  let sibling = anchor?.nextElementSibling ?? null;
+
+  while (sibling && sections.length < 2) {
+    if (sibling.matches("div.screw_block")) {
+      const cards: Element[] = [];
+      sibling = sibling.nextElementSibling;
+      while (sibling?.matches(cardSelector)) {
+        cards.push(sibling);
+        sibling = sibling.nextElementSibling;
+      }
+      sections.push(cards);
+      continue;
+    }
+    sibling = sibling.nextElementSibling;
+  }
+
+  const allCards = [...doc.querySelectorAll(cardSelector)];
+  const targetGroups = sections.length === 2 && sections[0].length >= 15 && sections[1].length >= 35
+    ? [
+        { bucket: "b15" as const, cards: sections[0].slice(0, 15) },
+        { bucket: "b35" as const, cards: sections[1].slice(0, 35) }
+      ]
+    : [
+        { bucket: "b15" as const, cards: allCards.slice(0, 15) },
+        { bucket: "b35" as const, cards: allCards.slice(15, 50) }
+      ];
+
+  return targetGroups.flatMap(({ bucket, cards }) => cards.flatMap((card) => {
     const difficulty = difficultyFrom(card);
     const title = card.querySelector(".music_name_block")?.textContent?.trim();
     const achievementRate = Number(card.querySelector(".music_score_block")?.textContent?.replace("%", "").trim());
@@ -46,11 +75,11 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
       title, type, difficulty,
       displayedLevel: card.querySelector(".music_lv_block")?.textContent?.trim() ?? "",
       achievementRate,
-      bucket: index < 15 ? "b15" : "b35",
+      bucket,
       comboFlag: icons.find((x) => /music_icon_(ap|app)/.test(x))?.match(/music_icon_(app|ap)/)?.[1]?.replace("app", "ap+"),
       syncFlag: icons.find((x) => /music_icon_(fs|fsp|fsd|fsdp)/.test(x))?.match(/music_icon_(fsdp|fsd|fsp|fs)/)?.[1]?.replace("fsdp", "fsd+").replace("fsp", "fs+")
     }];
-  });
+  }));
 }
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {
