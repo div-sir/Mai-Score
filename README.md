@@ -15,7 +15,7 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), Traditional Chinese, and Japanese in the popup, Studio, timestamps, and exported image labels.
 - Keeps image choices for timestamp, timezone, watermark, accent color, assets, and score fields in the Studio.
-- Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score-studio.solilium.chatgpt.site) with the result already loaded.
+- Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Does not transmit login details or score data to a third-party server.
@@ -46,11 +46,13 @@ npm run typecheck
 npm run build
 ```
 
-### Automatic Studio handoff in v0.4.0
+### Automatic Studio handoff in v0.5.0
 
 After collection, choose **在網頁預覽並調整**. The extension stores the result behind a random, single-use transfer token for up to five minutes, opens Studio with the token and extension ID in the URL fragment, and removes the staged result as soon as Studio receives it. The score document is not placed in the URL or sent to the Studio server.
 
 The handoff also embeds the equipped frame, icon, and resolved song covers as image data. This lets the browser preview and PNG export render authenticated DX NET assets without uploading them or depending on cross-origin image requests.
+
+Studio is public at `mai-score.milifix.com` and does not require an account. After a successful transfer or JSON import, the latest B50 and its images are stored in that browser's IndexedDB so the preview can be restored later. Style preferences are stored separately in localStorage. No server-side score database is used, and the saved local copy can be cleared from Studio.
 
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 

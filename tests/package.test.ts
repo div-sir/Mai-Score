@@ -5,11 +5,11 @@ import { describe, expect, it } from "vitest";
 describe("extension package", () => {
   it("registers the background resolver", async () => {
     const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
-    expect(manifest.version).toBe("0.4.0");
+    expect(manifest.version).toBe("0.5.0");
     expect(manifest.background.service_worker).toBe("background.js");
     expect(manifest.permissions).toContain("storage");
     expect(manifest.externally_connectable.matches).toEqual([
-      "https://mai-score-studio.solilium.chatgpt.site/*"
+      "https://mai-score.milifix.com/*"
     ]);
     expect(manifest.web_accessible_resources).toBeUndefined();
   });

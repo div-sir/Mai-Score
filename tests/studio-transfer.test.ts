@@ -14,8 +14,8 @@ describe("Studio transfer", () => {
   });
 
   it("accepts only the deployed Studio origin", () => {
-    expect(isStudioSender("https://mai-score-studio.solilium.chatgpt.site/")).toBe(true);
-    expect(isStudioSender("https://mai-score-studio.solilium.chatgpt.site.fake.example/")).toBe(false);
+    expect(isStudioSender("https://mai-score.milifix.com/")).toBe(true);
+    expect(isStudioSender("https://mai-score.milifix.com.fake.example/")).toBe(false);
     expect(isStudioSender("https://example.com/")).toBe(false);
   });
 });
