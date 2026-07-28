@@ -10,6 +10,7 @@ import {
   type PopupLanguage
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
+import { ratingTier } from "./lib/rating-tier";
 import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
@@ -54,6 +55,14 @@ async function initializeLanguage() {
 function setStatus(text: string, kind = "") {
   status.textContent = text;
   status.className = `status ${kind}`;
+}
+
+function applyRatingBadge(rating: number) {
+  const tier = ratingTier(rating);
+  const label = document.querySelector<HTMLElement>("#official-rating-badge .rating-badge-label");
+  if (!label) return;
+  label.style.background = `linear-gradient(135deg, ${tier.gradient.join(", ")})`;
+  label.style.color = tier.labelColor;
 }
 
 function downloadText(name: string, content: string, type: string) {
@@ -202,6 +211,7 @@ collectButton.addEventListener("click", async () => {
     $("summary").hidden = false;
     $("player").textContent = result.player.name;
     $("official-rating").textContent = String(result.player.rating);
+    applyRatingBadge(result.player.rating);
     // The official rating is the sum of the same 50 charts, so any gap means
     // this build disagrees with the game. Show it rather than let it pass.
     const gap = result.b50Rating - result.player.rating;

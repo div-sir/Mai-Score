@@ -51,7 +51,18 @@ describe("B50 image templates", () => {
     }, {}, new Date("2026-07-27T06:30:45.000Z"), "en-US");
     expect(rendered.svg).toContain("&lt;private&gt;");
     expect(rendered.svg).toContain("UTC");
-    expect(rendered.svg).not.toContain("Official Rating");
+    expect(rendered.svg).not.toContain("ratingTierGradient");
     expect(rendered.svg).not.toContain("0.1234%");
+  });
+
+  it("draws the official rating as a tier-coloured badge, not plain text", () => {
+    const goldPlayer: CollectionResult = { ...result, player: { ...result.player, rating: 14699 } };
+    const rendered = renderB50Document(goldPlayer, { ...DEFAULT_IMAGE_OPTIONS, showOfficialRating: true });
+    expect(rendered.svg).toContain("ratingTierGradient");
+    expect(rendered.svg).toContain(">14699<");
+    expect(rendered.svg).toContain(">RATING<");
+    // 14699 falls in the gold band; its gradient colours must actually appear.
+    expect(rendered.svg).toContain("#ffe9a8");
+    expect(rendered.svg).toContain("#e8b23d");
   });
 });

@@ -5,6 +5,7 @@ import {
   type ImageOptions,
   type ImageTheme
 } from "./image-options";
+import { ratingTier } from "./rating-tier";
 import type { CollectionResult, ResolvedScore } from "./types";
 
 export interface RenderAssets {
@@ -62,7 +63,6 @@ const layouts: Record<ImageLayout, LayoutSpec> = {
 };
 
 interface RenderCopy {
-  officialRating: string;
   newBreakdown: string;
   oldBreakdown: string;
   newSection: string;
@@ -74,7 +74,6 @@ interface RenderCopy {
 function renderCopy(locale: string): RenderCopy {
   if (locale.toLowerCase().startsWith("zh")) {
     return {
-      officialRating: "官方 Rating",
       newBreakdown: "新曲 B15",
       oldBreakdown: "舊曲 B35",
       newSection: "新曲區 · BEST 15",
@@ -85,7 +84,6 @@ function renderCopy(locale: string): RenderCopy {
   }
   if (locale.toLowerCase().startsWith("ja")) {
     return {
-      officialRating: "公式 Rating",
       newBreakdown: "新曲 B15",
       oldBreakdown: "旧曲 B35",
       newSection: "新曲枠 · BEST 15",
@@ -95,7 +93,6 @@ function renderCopy(locale: string): RenderCopy {
     };
   }
   return {
-    officialRating: "Official Rating",
     newBreakdown: "New B15",
     oldBreakdown: "Old B35",
     newSection: "NEW CHARTS · BEST 15",
@@ -141,6 +138,29 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
 
 const alpha = (hex: string, opacity: number) =>
   `${hex}${Math.round(Math.max(0, Math.min(1, opacity)) * 255).toString(16).padStart(2, "0")}`;
+
+// A compact two-tone pill echoing the in-game DELUXE RATING badge: a
+// tier-coloured label zone fused into a dark number zone. Self-contained
+// (its <defs> can sit anywhere in the document per the SVG spec) so callers
+// only need an anchor point and a height.
+function ratingBadge(x: number, yCenter: number, rating: number, height: number): string {
+  const tier = ratingTier(rating);
+  const labelWidth = height * 2.35;
+  const numberWidth = String(rating).length * height * 0.58 + height * 0.85;
+  const y = yCenter - height / 2;
+  const stops = tier.gradient.map((color, index) =>
+    `<stop offset="${tier.gradient.length > 1 ? Math.round(index / (tier.gradient.length - 1) * 100) : 0}%" stop-color="${color}"/>`
+  ).join("");
+
+  return `
+  <defs><linearGradient id="ratingTierGradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient></defs>
+  <g transform="translate(${x} ${y})">
+    <rect x="0" y="0" width="${labelWidth + height / 2}" height="${height}" rx="${height / 2}" fill="url(#ratingTierGradient)" stroke="#00000030" stroke-width="1.5"/>
+    <rect x="${labelWidth - height / 2}" y="0" width="${numberWidth}" height="${height}" rx="${height / 2}" fill="#1c1c1c"/>
+    <text x="${labelWidth / 2}" y="${height * 0.63}" text-anchor="middle" font-size="${Math.round(height * 0.32)}" font-weight="800" letter-spacing="0.5" style="fill:${tier.labelColor}">RATING</text>
+    <text x="${labelWidth - height / 2 + numberWidth / 2}" y="${height * 0.71}" text-anchor="middle" font-size="${Math.round(height * 0.5)}" font-weight="900" style="fill:#ffffff">${rating}</text>
+  </g>`;
+}
 
 function textUnits(value: string): number {
   return [...value].reduce((sum, character) => sum + (/[\u0000-\u00ff]/.test(character) ? 0.56 : 1), 0);
@@ -246,7 +266,7 @@ function header(
   ${options.showIcon && assets.icon ? `<image href="${assets.icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
   ${options.showPlayerTitle ? `<text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(result.player.title)}</text>` : ""}
   <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(result.player.name)}</text>
-  ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">${copy.officialRating} ${result.player.rating}</text>` : ""}
+  ${options.showOfficialRating ? ratingBadge(textX, ratingY - (options.layout === "compact" ? 10 : 12), result.player.rating, options.layout === "compact" ? 30 : 36) : ""}
   <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">BEST 50</text>
   <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${result.b50Rating}</text>
   ${options.showRatingBreakdown ? `<text x="${scoreX}" y="${ratingY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" fill="${palette.muted}">${copy.newBreakdown} ${result.b15Rating} + ${copy.oldBreakdown} ${result.b35Rating}</text>` : ""}`;
