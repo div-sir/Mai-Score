@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version tag to release, e.g. v0.5.0
+        required: true
 
 permissions:
   contents: write
@@ -22,11 +27,21 @@ jobs:
       - run: npm run sync-data
       - run: npm run verify
 
+      - name: Resolve version tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Package extension
-        run: (cd dist && zip -r "../mai-score-${GITHUB_REF_NAME}.zip" .)
+        run: (cd dist && zip -r "../mai-score-${{ steps.version.outputs.tag }}.zip" .)
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           files: mai-score-*.zip
           generate_release_notes: true
