@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mai-Score</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p data-i18n="subtitle">International B50 exporter</p></div></header>
+      <label class="language-picker"><span>Language</span><select id="language">
+        <option value="en">English</option>
+        <option value="zh-Hant">繁體中文</option>
+        <option value="ja">日本語</option>
+      </select></label>
+      <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
+      <section id="summary" class="summary" hidden>
+        <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
+        <div><span data-i18n="officialRating">Official Rating</span><strong id="official-rating">—</strong></div>
+        <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>
+        <div><span data-i18n="resolved">Resolved</span><strong id="resolved">—</strong></div>
+      </section>
+      <button id="collect" class="primary" data-i18n="collect">Collect B50</button>
+      <button id="studio" class="studio-button" disabled data-i18n="studio">Preview and customize online</button>
+      <details class="direct-export">
+        <summary data-i18n="directExport">Direct export</summary>
+        <div class="export-picker">
+          <select id="export-format" aria-label="直接匯出格式">
+            <option value="png" data-i18n="quickPng">Quick PNG (default style)</option>
+            <option value="dxrating">dxrating JSON</option>
+            <option value="full">Mai-Score 完整 JSON</option>
+            <option value="rhythm">Rhythm Record JSON</option>
+          </select>
+          <button id="export" disabled data-i18n="download">Download</button>
+        </div>
+      </details>
+      <p class="privacy" data-i18n="privacy">Data is processed locally; Studio uses a single-use transfer token.</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

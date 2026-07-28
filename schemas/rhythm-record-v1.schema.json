@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mai-score:schema:rhythm-record:v1",
+  "title": "Mai-Score Rhythm Record v1",
+  "description": "A game-neutral envelope for rhythm-game score records. Game-specific fields remain namespaced in gameSpecific.",
+  "type": "object",
+  "required": ["schema", "generatedAt", "source", "records"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "mai-score/rhythm-record/v1"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "player": {
+      "$ref": "#/$defs/player"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "summaries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/summary"
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["game", "connectionId"],
+      "additionalProperties": false,
+      "properties": {
+        "game": {
+          "enum": [
+            "maimai-dx",
+            "popn-music",
+            "sound-voltex",
+            "dance-dance-revolution"
+          ]
+        },
+        "connectionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "region": {
+          "type": "string"
+        },
+        "gameVersion": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "displayName": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number"
+        },
+        "identifiers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "assets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "required": ["recordId", "song", "chart", "result"],
+      "additionalProperties": false,
+      "properties": {
+        "recordId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "playedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "song": {
+          "$ref": "#/$defs/song"
+        },
+        "chart": {
+          "$ref": "#/$defs/chart"
+        },
+        "result": {
+          "$ref": "#/$defs/result"
+        },
+        "grouping": {
+          "$ref": "#/$defs/grouping"
+        },
+        "gameSpecific": {
+          "type": "object",
+          "description": "Namespaced escape hatch for fields that should not be forced into another game's scoring model.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "song": {
+      "type": "object",
+      "required": ["id", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "artist": {
+          "type": "string"
+        },
+        "jacketId": {
+          "type": "string"
+        },
+        "jacketUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "chart": {
+      "type": "object",
+      "required": ["id", "difficulty"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "difficulty": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "levelValue": {
+          "type": "number"
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rawScore": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "achievementRate": {
+          "type": "number",
+          "minimum": 0
+        },
+        "grade": {
+          "type": "string"
+        },
+        "clearStatus": {
+          "type": "string"
+        },
+        "combo": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rating": {
+          "$ref": "#/$defs/rating"
+        },
+        "judgments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "rating": {
+      "type": "object",
+      "required": ["value", "system"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "system": {
+          "type": "string"
+        }
+      }
+    },
+    "grouping": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bucket": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["system"],
+      "additionalProperties": false,
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "groups": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}
