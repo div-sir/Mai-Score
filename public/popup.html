@@ -17,7 +17,15 @@
       <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
       <section id="summary" class="summary" hidden>
         <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
-        <div><span data-i18n="officialRating">Official Rating</span><strong id="official-rating">—</strong></div>
+        <div><span data-i18n="officialRating">Official Rating</span>
+          <div class="rating-badge-row">
+            <div class="rating-badge" id="official-rating-badge">
+              <span class="rating-badge-label">RATING</span>
+              <span class="rating-badge-value" id="official-rating">—</span>
+            </div>
+            <span class="rating-badge-stars" id="official-rating-stars"></span>
+          </div>
+        </div>
         <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>
         <div><span data-i18n="resolved">Resolved</span><strong id="resolved">—</strong></div>
       </section>
