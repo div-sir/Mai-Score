@@ -55,6 +55,7 @@ export interface CollectionResult {
   connection?: {
     id: string;
     protocolVersion: number;
+    region?: string;
   };
   player: PlayerProfile;
   records: ResolvedScore[];

@@ -31,8 +31,10 @@ export default function Privacy() {
         <h2>What the extension reads</h2>
         <p>
           When you click <strong>Collect B50</strong>, the extension requests your Best-50
-          pages from <code>maimaidx-eng.com</code> using the session you are already signed
-          in to, and reads:
+          pages from whichever maimai DX NET you are signed in to
+          &mdash; <code>maimaidx-eng.com</code> (International) or{" "}
+          <code>maimaidx.jp</code> (Japan) &mdash; using the session you already have open,
+          and reads:
         </p>
         <ul>
           <li>your in-game player name and official rating</li>
@@ -41,8 +43,8 @@ export default function Privacy() {
         <p>
           The extension does not read your SEGA password, payment details, or any page other
           than the score pages it needs. It never transmits your DX NET session cookie
-          anywhere; the cookie is attached by the browser to requests aimed at{" "}
-          <code>maimaidx-eng.com</code> and nowhere else.
+          anywhere; the cookie is attached by the browser to requests aimed at that same
+          site and nowhere else.
         </p>
       </section>
 
@@ -111,7 +113,7 @@ export default function Privacy() {
         <ul>
           <li><strong>storage</strong> — save your language preference and the single-use Studio handoff.</li>
           <li><strong>downloads</strong> — save the image or JSON file you asked to export.</li>
-          <li><strong>maimaidx-eng.com</strong> — read your own score pages.</li>
+          <li><strong>maimaidx-eng.com</strong> and <strong>maimaidx.jp</strong> — read your own score pages, International or Japan.</li>
           <li><strong>shama.dxrating.net</strong> — fetch song cover art for the export.</li>
         </ul>
       </section>

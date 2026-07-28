@@ -111,7 +111,8 @@ it.
 | --- | --- |
 | `storage` | Save the language preference, and hand collected data to Studio under a single-use session token. |
 | `downloads` | Write the PNG, SVG, or JSON file the user asked to export. |
-| `maimaidx-eng.com` | Read the user's own Best 50 pages — the data being exported. |
+| `maimaidx-eng.com` | Read the user's own Best 50 pages (International) — the data being exported. |
+| `maimaidx.jp` | Same, for players signed in to the Japan-domestic site instead. |
 | `shama.dxrating.net` | Fetch song cover art so exported images include it. |
 
 **Remote code:** none. Everything executed by the extension ships in the package.
@@ -132,6 +133,7 @@ request logs. Collected data never reaches the server on the extension path.
 - [ ] Fill in every permission justification above
 - [ ] Publish unlisted first, then switch to public once the listing reads right
 - [ ] Add the 繁體中文 and 日本語 listings — the extension is already trilingual
+- [ ] Test Collect against a real, logged-in maimaidx.jp account before relying on the JP adapter — it mirrors the international parser's assumptions but has never run against the live domestic site
 
 Reading DX NET may sit uneasily with SEGA's terms of service, and reviewers do
 sometimes weigh third-party terms. That risk does not go away, but the copy

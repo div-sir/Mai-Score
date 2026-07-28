@@ -1,19 +1,21 @@
 # Mai-Score
 
-Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX International** version. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
+Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
+
+> The Japan-domestic (`maimaidx.jp`) adapter reuses the international parser on the assumption both sites share the same page template. That assumption has not been checked against a real, logged-in domestic account — please open an issue if Collect fails there.
 
 ## Install
 
 1. Download the latest release zip from [Releases](https://github.com/div-sir/Mai-Score/releases).
 2. Unzip it.
 3. Open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select the unzipped folder.
-4. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/).
+4. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) or [maimai でらっくす NET](https://maimaidx.jp/maimai-mobile/home/).
 
 Building from source instead? See [Development](#development).
 
 ## Features
 
-- Reads B15 + B35 from the official `ratingTargetMusic` page.
+- Reads B15 + B35 from the official `ratingTargetMusic` page, on International (`maimaidx-eng.com`) or Japan-domestic (`maimaidx.jp`).
 - Reads only the first two official target sections (New B15 and Old B35); rating candidates are excluded from the total.
 - Calculates chart rating from international internal levels.
 - Captures player name, title, icon, equipped frame, course rank, class rank, stars, and official rating where available.
@@ -31,7 +33,7 @@ Building from source instead? See [Development](#development).
 
 ## Usage
 
-1. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) in the same browser.
+1. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) or [maimai でらっくす NET](https://maimaidx.jp/maimai-mobile/home/) in the same browser.
 2. Click the Mai-Score icon in the toolbar. If needed, pick your language from the dropdown at the top (**English**, **繁體中文**, or **日本語**) — this also carries over to Studio and exported images.
 3. Click **Collect B50**. The popup fetches your profile and rating-target page and shows your official rating, B50 total, and how many charts resolved against the local chart database.
 4. Choose how to use the result:

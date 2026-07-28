@@ -28,10 +28,20 @@ const syntheticResult: CollectionResult = {
 };
 
 describe("Rhythm Record v1", () => {
+  it("carries the collecting region through instead of assuming international", () => {
+    const jpResult: CollectionResult = {
+      ...syntheticResult,
+      source: "https://maimaidx.jp/maimai-mobile/home/ratingTargetMusic/",
+      connection: { id: "dxnet-jp", protocolVersion: 1, region: "jp" }
+    };
+    expect(toRhythmRecord(jpResult).source).toMatchObject({ connectionId: "dxnet-jp", region: "jp" });
+  });
+
   it("normalizes a maimai collection without service credentials", () => {
     const exported = toRhythmRecord(syntheticResult);
     expect(exported.schema).toBe(RHYTHM_RECORD_SCHEMA);
     expect(exported.source.game).toBe("maimai-dx");
+    expect(exported.source.region).toBe("intl");
     expect(exported.records[0]).toMatchObject({
       recordId: "test-song__dxrt__dx__dxrt__master__1",
       song: { id: "test-song", title: "TEST SONG" },
