@@ -491,7 +491,10 @@ export default function Studio() {
           </button>
           <button className="preset-button" onClick={copyPreset}>{copy.copyStyle}</button>
           <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
-          <p className="privacy-note">{copy.privacy}</p>
+          <p className="privacy-note">
+            {copy.privacy}{" "}
+            <a href="/privacy">{copy.privacyLink}</a>
+          </p>
         </aside>
 
         <section className="preview-panel">
