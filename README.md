@@ -24,7 +24,7 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 
 ### From a release (recommended)
 
-1. Download the latest `mai-score-vX.Y.Z.zip` from [Releases](https://github.com/div-sir/Mai-Score/releases).
+1. Download the latest `mai-score.zip` from [Releases](https://github.com/div-sir/Mai-Score/releases).
 2. Unzip it.
 3. Open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select the unzipped folder.
 4. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/).
