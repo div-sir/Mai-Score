@@ -4,6 +4,7 @@ import type { RhythmGameId } from "./rhythm-record";
 
 export type ConnectionId =
   | "dxnet-intl"
+  | "dxnet-jp"
   | "rhythm-record-file"
   | "popn-konami"
   | "sdvx-konami"
@@ -17,6 +18,10 @@ export interface ConnectionDescriptor {
   transport: ConnectionTransport;
   status: "active" | "planned";
   matches: readonly string[];
+  // Only meaningful for adapters that are regional variants of the same
+  // service (dxnet-intl vs dxnet-jp); carried into exported records so a
+  // Rhythm Record document can say which region it came from.
+  region?: string;
   capabilities: {
     profile: boolean;
     assets: boolean;
@@ -38,6 +43,22 @@ export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
   transport: "content-script",
   status: "active",
   matches: ["https://maimaidx-eng.com/maimai-mobile/"],
+  region: "intl",
+  capabilities: { profile: true, assets: true, best50: true, records: true }
+}, {
+  id: "dxnet-jp",
+  game: "maimai-dx",
+  label: "maimai でらっくす NET",
+  transport: "content-script",
+  status: "active",
+  matches: ["https://maimaidx.jp/maimai-mobile/"],
+  region: "jp",
+  // Unverified against a live, logged-in maimaidx.jp page — mirrors the
+  // international adapter's page structure on the assumption both regions
+  // share the same SEGA template. If the domestic site's markup differs,
+  // parser.ts throws its usual "couldn't find player data" style errors
+  // rather than silently returning wrong data, but that assumption itself
+  // has not been checked against the real site.
   capabilities: { profile: true, assets: true, best50: true, records: true }
 }, {
   id: "rhythm-record-file",

@@ -25,6 +25,7 @@
   "permissions": ["downloads", "storage"],
   "host_permissions": [
     "https://maimaidx-eng.com/maimai-mobile/*",
+    "https://maimaidx.jp/maimai-mobile/*",
     "https://shama.dxrating.net/images/cover/v2/*"
   ],
   "externally_connectable": {
@@ -32,7 +33,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://maimaidx-eng.com/maimai-mobile/*"],
+      "matches": [
+        "https://maimaidx-eng.com/maimai-mobile/*",
+        "https://maimaidx.jp/maimai-mobile/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

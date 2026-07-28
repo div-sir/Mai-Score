@@ -2,7 +2,8 @@
 // the only paths the extension can produce asset URLs for.
 const allowedPrefixes: ReadonlyArray<readonly [string, string]> = [
   ["shama.dxrating.net", "/images/cover/v2/"],
-  ["maimaidx-eng.com", "/maimai-mobile/"]
+  ["maimaidx-eng.com", "/maimai-mobile/"],
+  ["maimaidx.jp", "/maimai-mobile/"]
 ];
 
 const isAllowed = (target: URL) => allowedPrefixes.some(

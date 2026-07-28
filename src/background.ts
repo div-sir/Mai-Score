@@ -1,5 +1,5 @@
 import { resolveScores } from "./lib/resolver";
-import { CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
+import { CONNECTIONS, CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
 import {
   consumeStudioTransfer,
   isStudioImportRequest,
@@ -7,10 +7,19 @@ import {
 } from "./lib/studio-transfer";
 import type { ParsedScore } from "./lib/types";
 
+// The chart database is shared across every maimai DX region — a song's
+// internal level doesn't change with which DX NET a player logged into — so
+// this accepts resolve requests from any active content-script connection
+// for the game rather than one hardcoded region.
+function isResolvableConnection(connectionId: unknown): boolean {
+  return CONNECTIONS.some((connection) =>
+    connection.id === connectionId && connection.status === "active" && connection.transport === "content-script");
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== "MAI_SCORE_RESOLVE"
     || message.protocolVersion !== CONNECTION_PROTOCOL_VERSION
-    || message.connectionId !== "dxnet-intl") return;
+    || !isResolvableConnection(message.connectionId)) return;
   resolveScores(message.records as ParsedScore[])
     .then((records) => sendResponse({ ok: true, records }))
     .catch((error: unknown) => {

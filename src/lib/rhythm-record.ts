@@ -71,7 +71,7 @@ export function toRhythmRecord(result: CollectionResult): RhythmRecordEnvelope {
     source: {
       game: "maimai-dx",
       connectionId: result.connection?.id ?? "dxnet-intl",
-      region: "intl",
+      region: result.connection?.region ?? "intl",
       url: result.source
     },
     player: {

@@ -13,6 +13,13 @@ describe("connection registry", () => {
     expect(connectionForUrl("https://example.com/")).toBeUndefined();
   });
 
+  it("selects the Japan-domestic DX NET adapter without matching the international one", () => {
+    const jp = connectionForUrl("https://maimaidx.jp/maimai-mobile/home/");
+    expect(jp?.id).toBe("dxnet-jp");
+    expect(jp?.region).toBe("jp");
+    expect(connectionForUrl("https://maimaidx.jp/maimai-mobile/home/")?.id).not.toBe("dxnet-intl");
+  });
+
   it("versions collection messages for future adapters", () => {
     const request = createCollectRequest("dxnet-intl");
     expect(request.protocolVersion).toBe(CONNECTION_PROTOCOL_VERSION);

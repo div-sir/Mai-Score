@@ -25,6 +25,27 @@ describe("international DX NET parser", () => {
     expect(frame).toContain("/img/Frame/frame.png");
   });
 
+  it("resolves asset URLs against an explicit base, not a hardcoded region", () => {
+    // content.ts derives base from window.location for whichever DX NET
+    // region actually loaded it; parser.ts must honor that base rather than
+    // falling back to its international-only default.
+    const jpDoc = new JSDOM(`
+      <div class="basic_block"><img class="w_112 f_l" src="/maimai-mobile/img/Icon/a.png"></div>
+      <div class="name_block">DIV</div><div class="rating_block">13,127</div>
+    `, { url: "https://maimaidx.jp/maimai-mobile/home/" }).window.document;
+
+    const profile = parseProfile(jpDoc, "https://maimaidx.jp/maimai-mobile/home/");
+    expect(profile.iconUrl).toBe("https://maimaidx.jp/maimai-mobile/img/Icon/a.png");
+
+    const jpFrameDoc = new JSDOM(`
+      <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
+        <img src="/maimai-mobile/img/Frame/frame.png">
+      </div></div>
+    `, { url: "https://maimaidx.jp/maimai-mobile/collection/frame" }).window.document;
+    const frame = parseCurrentFrame(jpFrameDoc, "https://maimaidx.jp/maimai-mobile/collection/frame");
+    expect(frame).toBe("https://maimaidx.jp/maimai-mobile/img/Frame/frame.png");
+  });
+
   it("parses only the two rating target sections and excludes candidates", () => {
     const section = (count: number, prefix: string) => Array.from({ length: count }, (_, i) => `
       <div class="music_expert_score_back pointer w_450 m_15 p_3 f_0">

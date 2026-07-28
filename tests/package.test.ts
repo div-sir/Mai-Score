@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import { CONNECTIONS } from "../src/lib/connections";
 
 describe("extension package", () => {
   it("registers the background resolver", async () => {
@@ -26,6 +27,24 @@ describe("extension package", () => {
       // Chrome rejects SVG here, so assert the shipped file really is a PNG.
       const header = await readFile(`public/${path}`);
       expect(header.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    }
+  });
+
+  it("grants a host permission and content script for every active DX NET region", async () => {
+    // connections.ts and manifest.json name the same hosts independently —
+    // nothing generates one from the other — so a region added to one and
+    // forgotten in the other would inject on the wrong pages or, worse,
+    // silently lack the permission to read them at all.
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    const activeMatches = CONNECTIONS
+      .filter((connection) => connection.status === "active" && connection.transport === "content-script")
+      .flatMap((connection) => connection.matches);
+
+    expect(activeMatches.length).toBeGreaterThan(0);
+    for (const prefix of activeMatches) {
+      const wildcard = `${prefix}*`;
+      expect(manifest.host_permissions).toContain(wildcard);
+      expect(manifest.content_scripts[0].matches).toContain(wildcard);
     }
   });
 
