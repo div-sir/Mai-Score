@@ -25,4 +25,30 @@ describe("maimai chart rating", () => {
       b50Rating: 14650
     });
   });
+
+  it("takes the highest rated charts when records are not in rank order", () => {
+    const records = [
+      { bucket: "b15" as const, chartRating: 1 },
+      ...Array.from({ length: 15 }, () => ({ bucket: "b15" as const, chartRating: 300 })),
+      { bucket: "b35" as const, chartRating: 1 },
+      ...Array.from({ length: 35 }, () => ({ bucket: "b35" as const, chartRating: 290 }))
+    ];
+    expect(calculateB50Breakdown(records)).toEqual({
+      b15Rating: 4500,
+      b35Rating: 10150,
+      b50Rating: 14650
+    });
+  });
+
+  it("treats a missing chart rating as zero", () => {
+    const records = [
+      ...Array.from({ length: 15 }, () => ({ bucket: "b15" as const })),
+      ...Array.from({ length: 35 }, () => ({ bucket: "b35" as const, chartRating: 290 }))
+    ];
+    expect(calculateB50Breakdown(records)).toEqual({
+      b15Rating: 0,
+      b35Rating: 10150,
+      b50Rating: 10150
+    });
+  });
 });

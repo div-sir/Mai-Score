@@ -52,16 +52,18 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
     sibling = sibling.nextElementSibling;
   }
 
-  const allCards = [...doc.querySelectorAll(cardSelector)];
-  const targetGroups = sections.length === 2 && sections[0].length >= 15 && sections[1].length >= 35
-    ? [
-        { bucket: "b15" as const, cards: sections[0].slice(0, 15) },
-        { bucket: "b35" as const, cards: sections[1].slice(0, 35) }
-      ]
-    : [
-        { bucket: "b15" as const, cards: allCards.slice(0, 15) },
-        { bucket: "b35" as const, cards: allCards.slice(15, 50) }
-      ];
+  // The candidate sections further down the page use the same card selector, so
+  // the buckets must come from the first two screw_block sections. Guessing by
+  // position instead would silently mis-file real targets if the page changes.
+  if (sections.length !== 2 || sections[0].length < 15 || sections[1].length < 35) {
+    const found = sections.map((cards) => cards.length).join(" / ") || "0";
+    throw new Error(`無法辨識 DX NET 的 B50 版面（找到 ${sections.length} 個區塊，各 ${found} 筆），請回報以便更新解析規則。`);
+  }
+
+  const targetGroups = [
+    { bucket: "b15" as const, cards: sections[0].slice(0, 15) },
+    { bucket: "b35" as const, cards: sections[1].slice(0, 35) }
+  ];
 
   return targetGroups.flatMap(({ bucket, cards }) => cards.flatMap((card) => {
     const difficulty = difficultyFrom(card);

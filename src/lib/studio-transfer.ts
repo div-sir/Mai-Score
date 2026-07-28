@@ -33,6 +33,28 @@ export function isStudioImportRequest(value: unknown): value is StudioImportRequ
     && /^[0-9a-f-]{36}$/i.test(message.token);
 }
 
+export interface StudioTransferStore {
+  get(key: string): Promise<Record<string, unknown>>;
+  remove(key: string): Promise<void>;
+}
+
+/**
+ * Reads a staged transfer and spends its token. The stored entry is removed
+ * before the expiry check, so a token is single-use even when it is stale.
+ * Returns undefined when the token is unknown, already spent, or expired.
+ */
+export async function consumeStudioTransfer(
+  store: StudioTransferStore,
+  token: string,
+  now = Date.now()
+): Promise<StudioTransfer | undefined> {
+  const key = studioTransferKey(token);
+  const stored = await store.get(key);
+  await store.remove(key);
+  const transfer = stored[key] as StudioTransfer | undefined;
+  return transfer && transfer.expiresAt > now ? transfer : undefined;
+}
+
 export function isStudioSender(url?: string): boolean {
   if (!url) return false;
   try {

@@ -1,10 +1,9 @@
 import { resolveScores } from "./lib/resolver";
 import { CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
 import {
+  consumeStudioTransfer,
   isStudioImportRequest,
-  isStudioSender,
-  studioTransferKey,
-  type StudioTransfer
+  isStudioSender
 } from "./lib/studio-transfer";
 import type { ParsedScore } from "./lib/types";
 
@@ -25,12 +24,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   if (!isStudioSender(sender.url) || !isStudioImportRequest(message)) return;
-  const key = studioTransferKey(message.token);
-  chrome.storage.session.get(key)
-    .then(async (stored) => {
-      const transfer = stored[key] as StudioTransfer | undefined;
-      await chrome.storage.session.remove(key);
-      if (!transfer || transfer.expiresAt <= Date.now()) {
+  consumeStudioTransfer(chrome.storage.session, message.token)
+    .then((transfer) => {
+      if (!transfer) {
         sendResponse({ ok: false, error: "預覽資料已過期，請回到 Mai-Score 再按一次網頁預覽。" });
         return;
       }

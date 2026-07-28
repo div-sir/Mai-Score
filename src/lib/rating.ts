@@ -28,10 +28,14 @@ export function calculateChartRating(
 export function calculateB50Breakdown(
   records: ReadonlyArray<{ bucket: "b15" | "b35"; chartRating?: number }>
 ): { b15Rating: number; b35Rating: number; b50Rating: number } {
+  // Sort before truncating: records may come from an imported Rhythm Record
+  // document rather than the rank-ordered DX NET page.
   const sum = (bucket: "b15" | "b35", limit: number) => records
     .filter((record) => record.bucket === bucket)
+    .map((record) => record.chartRating ?? 0)
+    .sort((a, b) => b - a)
     .slice(0, limit)
-    .reduce((total, record) => total + (record.chartRating ?? 0), 0);
+    .reduce((total, rating) => total + rating, 0);
   const b15Rating = sum("b15", 15);
   const b35Rating = sum("b35", 35);
   return { b15Rating, b35Rating, b50Rating: b15Rating + b35Rating };

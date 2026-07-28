@@ -97,14 +97,23 @@ function parseMaiScore(input: unknown): StudioData {
   });
 }
 
+const chartRatingOf = (record: StudioRecord) =>
+  Number.isFinite(Number(record.chartRating)) ? Number(record.chartRating) : 0;
+
 function normalizeB50(data: StudioData): StudioData {
-  const b15 = data.records.filter((record) => record.bucket === "b15").slice(0, 15);
-  const b35 = data.records.filter((record) => record.bucket === "b35").slice(0, 35);
+  // Imported files are not required to be in rank order, so take the highest
+  // rated charts rather than whichever ones happen to come first.
+  const topOf = (bucket: "b15" | "b35", limit: number) => data.records
+    .filter((record) => record.bucket === bucket)
+    .sort((a, b) => chartRatingOf(b) - chartRatingOf(a))
+    .slice(0, limit);
+  const b15 = topOf("b15", 15);
+  const b35 = topOf("b35", 35);
   if (b15.length !== 15 || b35.length !== 35) {
     throw new Error(`Expected 15 new and 35 old charts, found ${b15.length} and ${b35.length}.`);
   }
   const sum = (records: StudioRecord[]) => records.reduce(
-    (total, record) => total + (Number.isFinite(Number(record.chartRating)) ? Number(record.chartRating) : 0),
+    (total, record) => total + chartRatingOf(record),
     0
   );
   const b15Rating = sum(b15);
