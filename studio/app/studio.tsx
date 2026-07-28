@@ -4,10 +4,13 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
 import {
+  clearStudioHistory,
   clearStudioSnapshot,
+  listStudioHistory,
   loadStudioSnapshot,
   saveStudioSnapshot
 } from "../lib/local-store";
+import { diffHistory, type HistoryEntry } from "../lib/history";
 import { SAMPLE_DATA } from "../lib/sample";
 import {
   DEFAULT_OPTIONS,
@@ -215,6 +218,7 @@ export default function Studio() {
   const [origin, setOrigin] = useState("");
   // Resolved after mount: navigator is not available while server-rendering.
   const [canShare, setCanShare] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
@@ -224,6 +228,7 @@ export default function Studio() {
     setOrigin(window.location.origin);
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
+    listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
     const hash = new URLSearchParams(window.location.hash.slice(1));
     let savedLanguage: LanguageId = "en";
     try {
@@ -269,6 +274,7 @@ export default function Studio() {
               generatedAt: timestamp,
               language: received.language
             });
+            if (!cancelled) setHistory(await listStudioHistory());
           } catch {
             if (!cancelled) setMessage(studioCopy(received.language).localSaveFailed);
           }
@@ -342,6 +348,7 @@ export default function Studio() {
           generatedAt: timestamp,
           language: options.language
         });
+        setHistory(await listStudioHistory());
       } catch {
         setMessage(copy.localSaveFailed);
       }
@@ -440,6 +447,8 @@ export default function Studio() {
     if (!window.confirm(copy.clearConfirm)) return;
     try {
       await clearStudioSnapshot();
+      await clearStudioHistory();
+      setHistory([]);
       setData(SAMPLE_DATA);
       setAssets({ covers: {} });
       setSource(copy.demoSource);
@@ -523,6 +532,41 @@ export default function Studio() {
           <button className="export-button" disabled={busy} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
+          <details className="history-panel">
+            <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
+            {history.length === 0
+              ? <p className="history-empty">{copy.historyEmpty}</p>
+              : (
+                <ol className="history-list">
+                  {history.map((point, index) => {
+                    const previous = history[index + 1];
+                    const diff = previous ? diffHistory(previous, point) : undefined;
+                    return (
+                      <li key={point.generatedAt}>
+                        <div className="history-head">
+                          <time dateTime={point.generatedAt}>
+                            {new Date(point.generatedAt).toLocaleDateString(options.language)}
+                          </time>
+                          <strong>{point.b50Rating}</strong>
+                          {diff && diff.ratingDelta !== 0 && (
+                            <span className={diff.ratingDelta > 0 ? "delta up" : "delta down"}>
+                              {diff.ratingDelta > 0 ? "+" : ""}{diff.ratingDelta}
+                            </span>
+                          )}
+                        </div>
+                        {diff && (diff.entered.length > 0 || diff.changed.length > 0) && (
+                          <div className="history-detail">
+                            {diff.entered.length > 0 && <span>{copy.historyEntered(diff.entered.length)}</span>}
+                            {diff.left.length > 0 && <span>{copy.historyLeft(diff.left.length)}</span>}
+                            {diff.changed.length > 0 && <span>{copy.historyImproved(diff.changed.length)}</span>}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+          </details>
           {canShare && (
             <button className="share-button" disabled={busy} onClick={shareImage}>
               {copy.share}

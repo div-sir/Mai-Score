@@ -36,6 +36,11 @@ export interface StudioCopy {
   privacyLink: string;
   share: string;
   shared: string;
+  history: string;
+  historyEmpty: string;
+  historyEntered: (count: number) => string;
+  historyLeft: (count: number) => string;
+  historyImproved: (count: number) => string;
   livePreview: string;
   off: string;
   date: string;
@@ -89,6 +94,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     privacyLink: "Privacy policy",
     share: "Share image",
     shared: "Shared.",
+    history: "History",
+    historyEmpty: "No history yet. Collect again later to see what changed.",
+    historyEntered: (count) => `${count} new`,
+    historyLeft: (count) => `${count} dropped`,
+    historyImproved: (count) => `${count} improved`,
     livePreview: "Live preview",
     off: "Off",
     date: "Date",
@@ -141,6 +151,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     privacyLink: "隱私權政策",
     share: "分享圖片",
     shared: "已分享。",
+    history: "歷史紀錄",
+    historyEmpty: "尚無歷史紀錄。之後再收集一次就能看到變化。",
+    historyEntered: (count) => `新進 ${count}`,
+    historyLeft: (count) => `掉出 ${count}`,
+    historyImproved: (count) => `進步 ${count}`,
     livePreview: "即時預覽",
     off: "關閉",
     date: "日期",
@@ -193,6 +208,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     privacyLink: "プライバシーポリシー",
     share: "画像を共有",
     shared: "共有しました。",
+    history: "履歴",
+    historyEmpty: "履歴はまだありません。次回の取得から変化を確認できます。",
+    historyEntered: (count) => `新規 ${count}`,
+    historyLeft: (count) => `圏外 ${count}`,
+    historyImproved: (count) => `更新 ${count}`,
     livePreview: "ライブプレビュー",
     off: "オフ",
     date: "日付",

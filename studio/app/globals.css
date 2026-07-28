@@ -84,3 +84,15 @@ button:disabled{cursor:not-allowed;opacity:.5}
   .legal-page{padding:32px 18px 56px}
   .legal-page h1{font-size:23px}
 }
+.history-panel{margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.history-panel summary{padding:11px 0;color:#c8d0de;font-size:11px;cursor:pointer}
+.history-empty{margin:0 0 12px;color:#717d93;font-size:10px;line-height:1.5}
+.history-list{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:9px}
+.history-list li{border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:#171e2d}
+.history-head{display:flex;align-items:baseline;gap:8px}
+.history-head time{color:var(--muted);font-size:10px}
+.history-head strong{margin-left:auto;font-size:13px}
+.history-head .delta{font-size:10px;font-weight:700;min-width:34px;text-align:right}
+.delta.up{color:var(--green)}
+.delta.down{color:#d99aa8}
+.history-detail{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;color:#8994a8;font-size:9px}
