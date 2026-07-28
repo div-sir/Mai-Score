@@ -2,6 +2,15 @@
 
 Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX International** version. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
+## Install
+
+1. Download the latest `mai-score-vX.Y.Z.zip` from [Releases](https://github.com/div-sir/Mai-Score/releases).
+2. Unzip it.
+3. Open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select the unzipped folder.
+4. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/).
+
+Building from source instead? See [Development](#development).
+
 ## Features
 
 - Reads B15 + B35 from the official `ratingTargetMusic` page.
@@ -19,27 +28,6 @@ Mai-Score is a privacy-first Chrome/Edge extension for the **maimai DX Internati
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Does not transmit login details or score data to a third-party server.
-
-## Install
-
-### From a release (recommended)
-
-1. Download the latest `mai-score.zip` from [Releases](https://github.com/div-sir/Mai-Score/releases).
-2. Unzip it.
-3. Open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select the unzipped folder.
-4. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/).
-
-### From source
-
-Requires Node.js 22 or newer.
-
-```sh
-npm install
-npm run sync-data
-npm run verify
-```
-
-Then open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select the generated `dist` directory. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/), then click the Mai-Score icon.
 
 ## Usage
 
@@ -60,11 +48,17 @@ The exporter intentionally uses the official Rating Target page's first 15 / rem
 
 ## Development
 
+Requires Node.js 22 or newer.
+
 ```sh
+npm install
+npm run sync-data
 npm test
 npm run typecheck
 npm run build
 ```
+
+`npm run build` writes the unpacked extension to `dist/` — open `chrome://extensions` (or `edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select that directory.
 
 ### Releases
 
