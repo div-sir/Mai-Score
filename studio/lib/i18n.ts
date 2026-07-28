@@ -34,6 +34,8 @@ export interface StudioCopy {
   clearConfirm: string;
   privacy: string;
   privacyLink: string;
+  share: string;
+  shared: string;
   livePreview: string;
   off: string;
   date: string;
@@ -85,6 +87,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     clearConfirm: "Remove the saved B50 and images from this browser?",
     privacy: "B50 data and images are stored only in this browser. No account or cloud database is used.",
     privacyLink: "Privacy policy",
+    share: "Share image",
+    shared: "Shared.",
     livePreview: "Live preview",
     off: "Off",
     date: "Date",
@@ -135,6 +139,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     clearConfirm: "要從此瀏覽器移除已儲存的 B50 與圖片嗎？",
     privacy: "B50 與圖片只儲存在此瀏覽器，不使用帳號或雲端資料庫。",
     privacyLink: "隱私權政策",
+    share: "分享圖片",
+    shared: "已分享。",
     livePreview: "即時預覽",
     off: "關閉",
     date: "日期",
@@ -185,6 +191,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     clearConfirm: "このブラウザに保存した B50 と画像を削除しますか？",
     privacy: "B50 と画像はこのブラウザ内だけに保存されます。アカウントやクラウド DB は使用しません。",
     privacyLink: "プライバシーポリシー",
+    share: "画像を共有",
+    shared: "共有しました。",
     livePreview: "ライブプレビュー",
     off: "オフ",
     date: "日付",
