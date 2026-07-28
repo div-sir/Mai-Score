@@ -1,9 +1,17 @@
+// Official maimai DX single-chart rating:
+//   floor(internal level x min(achievement, 100.5) x coefficient / 100)
+//
+// One coefficient per achievement band, keyed by the bottom of the band. The
+// table previously also carried entries at 79.9999, 96.9999, 98.9999, 99.9999
+// and 100.4999 — the *tops* of bands — whose values came from a different
+// coefficient convention. Because DX NET reports achievement to four decimals,
+// those values are reachable, and they awarded a higher coefficient at the top
+// of a band than the band itself.
 const COEFFICIENTS: ReadonlyArray<readonly [number, number]> = [
   [0, 0], [10, 1.6], [20, 3.2], [30, 4.8], [40, 6.4], [50, 8],
-  [60, 9.6], [70, 11.2], [75, 12], [79.9999, 12.8], [80, 13.6],
-  [90, 15.2], [94, 16.8], [96.9999, 17.6], [97, 20], [98, 20.3],
-  [98.9999, 20.6], [99, 20.8], [99.5, 21.1], [99.9999, 21.4],
-  [100, 21.6], [100.4999, 22.2], [100.5, 22.4]
+  [60, 9.6], [70, 11.2], [75, 12], [80, 13.6], [90, 15.2],
+  [94, 16.8], [97, 20], [98, 20.3], [99, 20.8], [99.5, 21.1],
+  [100, 21.6], [100.5, 22.4]
 ];
 
 export function ratingCoefficient(achievementRate: number): number {
@@ -15,14 +23,16 @@ export function ratingCoefficient(achievementRate: number): number {
   return coefficient;
 }
 
+// Achievement alone determines the rating. maimai DX has no full-combo or
+// all-perfect bonus — that is a CHUNITHM mechanic — so an AP used to add one
+// point per chart here that the official rating never counted, leaving the
+// Mai-Score total above the game's by the number of AP charts in the B50.
 export function calculateChartRating(
   internalLevel: number,
-  achievementRate: number,
-  comboFlag?: string
+  achievementRate: number
 ): number {
   const capped = Math.min(100.5, Math.max(0, achievementRate));
-  const base = Math.floor(ratingCoefficient(capped) * internalLevel * capped / 100);
-  return base + (/^ap\+?$/i.test(comboFlag ?? "") ? 1 : 0);
+  return Math.floor(ratingCoefficient(capped) * internalLevel * capped / 100);
 }
 
 export function calculateB50Breakdown(
