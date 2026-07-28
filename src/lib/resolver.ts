@@ -37,7 +37,7 @@ export async function resolveScores(records: ParsedScore[]): Promise<ResolvedSco
       internalLevelValue: sheet.internalLevelValue,
       version: sheet.version,
       imageName: sheet.imageName,
-      chartRating: calculateChartRating(sheet.internalLevelValue, record.achievementRate, record.comboFlag)
+      chartRating: calculateChartRating(sheet.internalLevelValue, record.achievementRate)
     };
   });
 }

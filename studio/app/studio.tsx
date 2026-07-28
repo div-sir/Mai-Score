@@ -4,10 +4,13 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
 import {
+  clearStudioHistory,
   clearStudioSnapshot,
+  listStudioHistory,
   loadStudioSnapshot,
   saveStudioSnapshot
 } from "../lib/local-store";
+import { diffHistory, type HistoryEntry } from "../lib/history";
 import { SAMPLE_DATA } from "../lib/sample";
 import {
   DEFAULT_OPTIONS,
@@ -213,6 +216,9 @@ export default function Studio() {
   const [source, setSource] = useState(studioCopy("en").demoSource);
   const [busy, setBusy] = useState(false);
   const [origin, setOrigin] = useState("");
+  // Resolved after mount: navigator is not available while server-rendering.
+  const [canShare, setCanShare] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
@@ -221,6 +227,8 @@ export default function Studio() {
     let cancelled = false;
     setOrigin(window.location.origin);
     setGeneratedAt(new Date().toISOString());
+    setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
+    listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
     const hash = new URLSearchParams(window.location.hash.slice(1));
     let savedLanguage: LanguageId = "en";
     try {
@@ -266,6 +274,7 @@ export default function Studio() {
               generatedAt: timestamp,
               language: received.language
             });
+            if (!cancelled) setHistory(await listStudioHistory());
           } catch {
             if (!cancelled) setMessage(studioCopy(received.language).localSaveFailed);
           }
@@ -339,6 +348,7 @@ export default function Studio() {
           generatedAt: timestamp,
           language: options.language
         });
+        setHistory(await listStudioHistory());
       } catch {
         setMessage(copy.localSaveFailed);
       }
@@ -358,37 +368,68 @@ export default function Studio() {
     setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
 
+  async function renderExport(): Promise<{ blob: Blob; filename: string }> {
+    const finalRendered = renderStudioSvg(data, options, origin, new Date(), assets);
+    const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
+    if (exportFormat === "svg") {
+      return {
+        blob: new Blob([finalRendered.svg], { type: "image/svg+xml" }),
+        filename: `${base}.svg`
+      };
+    }
+    const image = new Image();
+    const url = URL.createObjectURL(new Blob([finalRendered.svg], { type: "image/svg+xml" }));
+    try {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("Preview image decoding failed."));
+        image.src = url;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = finalRendered.width;
+      canvas.height = finalRendered.height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Could not create the image canvas.");
+      context.drawImage(image, 0, 0);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error("PNG encoding failed.")), "image/png")
+      );
+      return { blob, filename: `${base}.png` };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   async function exportImage() {
     setBusy(true);
     try {
-      const finalRendered = renderStudioSvg(data, options, origin, new Date(), assets);
-      if (exportFormat === "svg") {
-        download(new Blob([finalRendered.svg], { type: "image/svg+xml" }), `mai-score-${safeName(data.player.name)}-${options.layout}.svg`);
-      } else {
-        const image = new Image();
-        const url = URL.createObjectURL(new Blob([finalRendered.svg], { type: "image/svg+xml" }));
-        try {
-          await new Promise<void>((resolve, reject) => {
-            image.onload = () => resolve();
-            image.onerror = () => reject(new Error("Preview image decoding failed."));
-            image.src = url;
-          });
-          const canvas = document.createElement("canvas");
-          canvas.width = finalRendered.width;
-          canvas.height = finalRendered.height;
-          const context = canvas.getContext("2d");
-          if (!context) throw new Error("Could not create the image canvas.");
-          context.drawImage(image, 0, 0);
-          const blob = await new Promise<Blob>((resolve, reject) =>
-            canvas.toBlob((result) => result ? resolve(result) : reject(new Error("PNG encoding failed.")), "image/png")
-          );
-          download(blob, `mai-score-${safeName(data.player.name)}-${options.layout}.png`);
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-      }
+      const { blob, filename } = await renderExport();
+      download(blob, filename);
       setMessage(copy.downloadReady(exportFormat.toUpperCase()));
     } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // On a phone this replaces download-then-find-it-in-the-gallery-then-upload
+  // with a single hop into the target app.
+  async function shareImage() {
+    setBusy(true);
+    try {
+      const { blob, filename } = await renderExport();
+      const file = new File([blob], filename, { type: blob.type });
+      if (!navigator.canShare?.({ files: [file] })) {
+        download(blob, filename);
+        setMessage(copy.downloadReady(exportFormat.toUpperCase()));
+        return;
+      }
+      await navigator.share({ files: [file], title: `${data.player.name} — Best 50` });
+      setMessage(copy.shared);
+    } catch (error) {
+      // Dismissing the share sheet rejects; that is not a failure worth showing.
+      if (error instanceof DOMException && error.name === "AbortError") return;
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
@@ -406,6 +447,8 @@ export default function Studio() {
     if (!window.confirm(copy.clearConfirm)) return;
     try {
       await clearStudioSnapshot();
+      await clearStudioHistory();
+      setHistory([]);
       setData(SAMPLE_DATA);
       setAssets({ covers: {} });
       setSource(copy.demoSource);
@@ -489,6 +532,46 @@ export default function Studio() {
           <button className="export-button" disabled={busy} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
+          <details className="history-panel">
+            <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
+            {history.length === 0
+              ? <p className="history-empty">{copy.historyEmpty}</p>
+              : (
+                <ol className="history-list">
+                  {history.map((point, index) => {
+                    const previous = history[index + 1];
+                    const diff = previous ? diffHistory(previous, point) : undefined;
+                    return (
+                      <li key={point.generatedAt}>
+                        <div className="history-head">
+                          <time dateTime={point.generatedAt}>
+                            {new Date(point.generatedAt).toLocaleDateString(options.language)}
+                          </time>
+                          <strong>{point.b50Rating}</strong>
+                          {diff && diff.ratingDelta !== 0 && (
+                            <span className={diff.ratingDelta > 0 ? "delta up" : "delta down"}>
+                              {diff.ratingDelta > 0 ? "+" : ""}{diff.ratingDelta}
+                            </span>
+                          )}
+                        </div>
+                        {diff && (diff.entered.length > 0 || diff.changed.length > 0) && (
+                          <div className="history-detail">
+                            {diff.entered.length > 0 && <span>{copy.historyEntered(diff.entered.length)}</span>}
+                            {diff.left.length > 0 && <span>{copy.historyLeft(diff.left.length)}</span>}
+                            {diff.changed.length > 0 && <span>{copy.historyImproved(diff.changed.length)}</span>}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+          </details>
+          {canShare && (
+            <button className="share-button" disabled={busy} onClick={shareImage}>
+              {copy.share}
+            </button>
+          )}
           <button className="preset-button" onClick={copyPreset}>{copy.copyStyle}</button>
           <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
           <p className="privacy-note">

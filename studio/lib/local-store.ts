@@ -1,8 +1,10 @@
+import { type HistoryEntry, sortHistory, toHistoryEntry } from "./history";
 import type { LanguageId, StudioAssets, StudioData } from "./types";
 
 const DB_NAME = "mai-score-studio";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "snapshots";
+const HISTORY_STORE = "history";
 const LATEST_KEY = "latest";
 
 export interface StudioSnapshot {
@@ -21,6 +23,11 @@ function openDatabase(): Promise<IDBDatabase> {
       const database = request.result;
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         database.createObjectStore(STORE_NAME);
+      }
+      // Added in v2. Existing users keep their latest snapshot and simply
+      // start accumulating history from their next collection.
+      if (!database.objectStoreNames.contains(HISTORY_STORE)) {
+        database.createObjectStore(HISTORY_STORE, { keyPath: "generatedAt" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -55,11 +62,57 @@ export async function loadStudioSnapshot(): Promise<StudioSnapshot | undefined> 
 export async function saveStudioSnapshot(snapshot: Omit<StudioSnapshot, "savedAt">): Promise<void> {
   const database = await openDatabase();
   try {
-    const transaction = database.transaction(STORE_NAME, "readwrite");
+    const savedAt = new Date().toISOString();
+    // Both stores in one transaction: a snapshot and its point on the timeline
+    // commit together or not at all.
+    const transaction = database.transaction([STORE_NAME, HISTORY_STORE], "readwrite");
     transaction.objectStore(STORE_NAME).put(
-      { ...snapshot, savedAt: new Date().toISOString() } satisfies StudioSnapshot,
+      { ...snapshot, savedAt } satisfies StudioSnapshot,
       LATEST_KEY
     );
+    transaction.objectStore(HISTORY_STORE).put(
+      toHistoryEntry(snapshot.data, snapshot.source, snapshot.language, savedAt)
+    );
+    await complete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+export async function appendStudioHistory(entry: HistoryEntry): Promise<void> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(HISTORY_STORE, "readwrite");
+    // Keyed on generatedAt, so re-opening the same collection overwrites its
+    // own entry rather than adding a duplicate point to the timeline.
+    transaction.objectStore(HISTORY_STORE).put(entry);
+    await complete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+export async function listStudioHistory(): Promise<HistoryEntry[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(HISTORY_STORE, "readonly");
+    const request = transaction.objectStore(HISTORY_STORE).getAll();
+    const result = await new Promise<HistoryEntry[]>((resolve, reject) => {
+      request.onsuccess = () => resolve((request.result as HistoryEntry[]) ?? []);
+      request.onerror = () => reject(request.error ?? new Error("Could not read local history."));
+    });
+    await complete(transaction);
+    return sortHistory(result);
+  } finally {
+    database.close();
+  }
+}
+
+export async function clearStudioHistory(): Promise<void> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(HISTORY_STORE, "readwrite");
+    transaction.objectStore(HISTORY_STORE).clear();
     await complete(transaction);
   } finally {
     database.close();

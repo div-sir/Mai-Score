@@ -193,15 +193,22 @@ collectButton.addEventListener("click", async () => {
     $("summary").hidden = false;
     $("player").textContent = result.player.name;
     $("official-rating").textContent = String(result.player.rating);
-    $("b50-rating").textContent = String(result.b50Rating);
+    // The official rating is the sum of the same 50 charts, so any gap means
+    // this build disagrees with the game. Show it rather than let it pass.
+    const gap = result.b50Rating - result.player.rating;
+    $("b50-rating").textContent = gap === 0
+      ? String(result.b50Rating)
+      : `${result.b50Rating} (${gap > 0 ? "+" : ""}${gap})`;
     $("resolved").textContent = `${result.records.length - result.warnings.length}/50`;
     exportButton.disabled = false;
     studioButton.disabled = false;
     setStatus(
-      result.warnings.length
-        ? t("unmatched", connection.label, result.warnings.length)
-        : t("collected"),
-      result.warnings.length ? "" : "ok"
+      gap !== 0
+        ? t("ratingGap", `${gap > 0 ? "+" : ""}${gap}`, result.warnings.length)
+        : result.warnings.length
+          ? t("unmatched", connection.label, result.warnings.length)
+          : t("collected"),
+      gap === 0 && !result.warnings.length ? "ok" : ""
     );
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");

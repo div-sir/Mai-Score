@@ -25,6 +25,9 @@ const COPY: Record<PopupLanguage, Copy> = {
     fetching: "Collecting profile, frame, New B15, and Old B35…",
     collected: "Collection complete. You can open Studio.",
     unmatched: (label, count) => `${label}: ${count} charts could not be matched.`,
+    ratingGap: (delta, unresolved) => unresolved
+      ? `B50 is ${delta} vs the official rating — ${unresolved} chart(s) could not be matched, so they count as 0.`
+      : `B50 is ${delta} vs the official rating. The local chart database may be out of date; run npm run sync-data.`,
     preparingPng: "Preparing quick PNG…",
     pngReady: "Quick PNG is ready.",
     preparingAssets: "Preparing frame, icon, and song jackets…",
@@ -56,6 +59,9 @@ const COPY: Record<PopupLanguage, Copy> = {
     fetching: "正在抓取個人資料、frame、新曲 B15 與舊曲 B35…",
     collected: "抓取完成，可以開啟 Studio。",
     unmatched: (label, count) => `${label}：有 ${count} 首歌無法比對。`,
+    ratingGap: (delta, unresolved) => unresolved
+      ? `B50 與官方 rating 相差 ${delta} —— 有 ${unresolved} 首無法比對，以 0 計算。`
+      : `B50 與官方 rating 相差 ${delta}。本機譜面資料庫可能已過期，請執行 npm run sync-data。`,
     preparingPng: "正在準備快速 PNG…",
     pngReady: "快速 PNG 已準備下載。",
     preparingAssets: "正在準備 frame、icon 與歌曲封面…",
@@ -87,6 +93,9 @@ const COPY: Record<PopupLanguage, Copy> = {
     fetching: "プロフィール、フレーム、新曲 B15、旧曲 B35 を取得中…",
     collected: "取得完了。Studio を開けます。",
     unmatched: (label, count) => `${label}: ${count} 譜面を照合できませんでした。`,
+    ratingGap: (delta, unresolved) => unresolved
+      ? `B50 と公式レートの差は ${delta} です。${unresolved} 譜面が照合できず 0 として計算されています。`
+      : `B50 と公式レートの差は ${delta} です。ローカル譜面データベースが古い可能性があります（npm run sync-data）。`,
     preparingPng: "クイック PNG を準備中…",
     pngReady: "クイック PNG の準備が完了しました。",
     preparingAssets: "フレーム、アイコン、ジャケットを準備中…",
