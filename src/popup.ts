@@ -1,3 +1,4 @@
+import { isCollectProgressMessage } from "./lib/collect-progress";
 import { connectionForUrl, createCollectRequest } from "./lib/connections";
 import { toDxratingJson, toFullJson, toRhythmRecordJson } from "./lib/export";
 import { DEFAULT_IMAGE_OPTIONS, timestampForFilename } from "./lib/image-options";
@@ -178,6 +179,14 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
     )
   };
 }
+
+// Live progress from the content script's fetches. Guarded on the busy class
+// so a stray message from a stale run (or a previous popup instance) can't
+// overwrite the final result once collection has finished.
+chrome.runtime.onMessage.addListener((message) => {
+  if (!isCollectProgressMessage(message) || !collectButton.classList.contains("busy")) return;
+  setStatus(message.stage === "matching" ? t("matchingCharts") : t("fetchProgress", message.done ?? 0, message.total ?? 3));
+});
 
 collectButton.addEventListener("click", async () => {
   // Collecting fetches three DX NET pages; without this guard a double-click
