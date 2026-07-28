@@ -42,7 +42,7 @@ Nothing is sent anywhere in this flow except the one-time, five-minute Studio tr
 
 ## Data and compatibility
 
-The compact international chart dataset is generated from [gekichumai/dxrating](https://github.com/gekichumai/dxrating) `dxdata`. Run `npm run sync-data` after game/data updates. Sheet IDs use dxrating's canonical `songId__dxrt__type__dxrt__difficulty` format.
+The compact international chart dataset is generated from [gekichumai/dxrating](https://github.com/gekichumai/dxrating) `dxdata`, which is itself based on data from [zetaraku/arcade-songs](https://github.com/zetaraku/arcade-songs). Run `npm run sync-data` after game/data updates. Sheet IDs use dxrating's canonical `songId__dxrt__type__dxrt__difficulty` format. See [`public/THIRD_PARTY_NOTICES.md`](public/THIRD_PARTY_NOTICES.md) for both projects' MIT license text, reproduced as required by that license and shipped in every build under `THIRD_PARTY_NOTICES.md`.
 
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
 
@@ -84,7 +84,7 @@ See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), 
 
 Version 0.1.0 tried to load the compressed chart database directly from a content script, which Chrome blocks unless the file is exposed to the page. Version 0.1.1 loads it inside the extension service worker instead. After updating, reload the extension from `chrome://extensions` and refresh DX NET once.
 
-This project is not affiliated with SEGA. maimai is a trademark of SEGA. dxrating and its data are used under their respective MIT-licensed project terms.
+This project is not affiliated with SEGA. maimai is a trademark of SEGA. dxrating, arcade-songs, and their data are used under their respective MIT-licensed project terms.
 
 ## License
 
