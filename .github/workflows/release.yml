@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+      - run: npm run sync-data
+      - run: npm run verify
+
+      - name: Package extension
+        run: (cd dist && zip -r "../mai-score-${GITHUB_REF_NAME}.zip" .)
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mai-score-*.zip
+          generate_release_notes: true
