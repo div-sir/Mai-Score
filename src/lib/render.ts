@@ -5,7 +5,7 @@ import {
   type ImageOptions,
   type ImageTheme
 } from "./image-options";
-import { ratingTier } from "./rating-tier";
+import { ratingStars, ratingTier } from "./rating-tier";
 import type { CollectionResult, ResolvedScore } from "./types";
 
 export interface RenderAssets {
@@ -139,17 +139,36 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
 const alpha = (hex: string, opacity: number) =>
   `${hex}${Math.round(Math.max(0, Math.min(1, opacity)) * 255).toString(16).padStart(2, "0")}`;
 
+// 5-point star centred at (cx, cy) with outer radius r, points up.
+function starPolygon(cx: number, cy: number, r: number): string {
+  const points: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? r : r * 0.42;
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    points.push(`${(cx + radius * Math.cos(angle)).toFixed(1)},${(cy + radius * Math.sin(angle)).toFixed(1)}`);
+  }
+  return `<polygon points="${points.join(" ")}" fill="#ffd54a" stroke="#00000040" stroke-width="1"/>`;
+}
+
 // A compact two-tone pill echoing the in-game DELUXE RATING badge: a
-// tier-coloured label zone fused into a dark number zone. Self-contained
-// (its <defs> can sit anywhere in the document per the SVG spec) so callers
-// only need an anchor point and a height.
+// tier-coloured label zone fused into a dark number zone, with 0-4 stars
+// after it for tiers that carry a sub-rank (gold and up, per the official
+// table). Self-contained (its <defs> can sit anywhere in the document per
+// the SVG spec) so callers only need an anchor point and a height.
 function ratingBadge(x: number, yCenter: number, rating: number, height: number): string {
   const tier = ratingTier(rating);
+  const stars = ratingStars(rating);
   const labelWidth = height * 2.35;
   const numberWidth = String(rating).length * height * 0.58 + height * 0.85;
   const y = yCenter - height / 2;
   const stops = tier.gradient.map((color, index) =>
     `<stop offset="${tier.gradient.length > 1 ? Math.round(index / (tier.gradient.length - 1) * 100) : 0}%" stop-color="${color}"/>`
+  ).join("");
+  const starRadius = height * 0.19;
+  const starGap = starRadius * 2.6;
+  const starsStartX = labelWidth - height / 2 + numberWidth + starRadius + height * 0.18;
+  const starMarkup = Array.from({ length: stars }, (_, index) =>
+    starPolygon(starsStartX + index * starGap, height / 2, starRadius)
   ).join("");
 
   return `
@@ -159,6 +178,7 @@ function ratingBadge(x: number, yCenter: number, rating: number, height: number)
     <rect x="${labelWidth - height / 2}" y="0" width="${numberWidth}" height="${height}" rx="${height / 2}" fill="#1c1c1c"/>
     <text x="${labelWidth / 2}" y="${height * 0.63}" text-anchor="middle" font-size="${Math.round(height * 0.32)}" font-weight="800" letter-spacing="0.5" style="fill:${tier.labelColor}">RATING</text>
     <text x="${labelWidth - height / 2 + numberWidth / 2}" y="${height * 0.71}" text-anchor="middle" font-size="${Math.round(height * 0.5)}" font-weight="900" style="fill:#ffffff">${rating}</text>
+    ${starMarkup}
   </g>`;
 }
 

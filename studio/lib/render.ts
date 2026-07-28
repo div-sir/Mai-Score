@@ -1,4 +1,4 @@
-import { ratingTier } from "./rating-tier";
+import { ratingStars, ratingTier } from "./rating-tier";
 import type { LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
 
 interface Spec {
@@ -29,15 +29,33 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
 }[character]!));
 const alpha = (hex: string, opacity: number) => `${hex}${Math.round(opacity * 255).toString(16).padStart(2, "0")}`;
 
-// Kept identical to src/lib/render.ts's ratingBadge — same shape, same
-// reasoning (self-contained <defs>, no id collision since one badge per doc).
+// Kept identical to src/lib/render.ts's starPolygon/ratingBadge — same
+// shape, same reasoning (self-contained <defs>, no id collision since one
+// badge per doc).
+function starPolygon(cx: number, cy: number, r: number): string {
+  const points: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const radius = i % 2 === 0 ? r : r * 0.42;
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    points.push(`${(cx + radius * Math.cos(angle)).toFixed(1)},${(cy + radius * Math.sin(angle)).toFixed(1)}`);
+  }
+  return `<polygon points="${points.join(" ")}" fill="#ffd54a" stroke="#00000040" stroke-width="1"/>`;
+}
+
 function ratingBadge(x: number, yCenter: number, rating: number, height: number): string {
   const tier = ratingTier(rating);
+  const stars = ratingStars(rating);
   const labelWidth = height * 2.35;
   const numberWidth = String(rating).length * height * 0.58 + height * 0.85;
   const y = yCenter - height / 2;
   const stops = tier.gradient.map((color, index) =>
     `<stop offset="${tier.gradient.length > 1 ? Math.round(index / (tier.gradient.length - 1) * 100) : 0}%" stop-color="${color}"/>`
+  ).join("");
+  const starRadius = height * 0.19;
+  const starGap = starRadius * 2.6;
+  const starsStartX = labelWidth - height / 2 + numberWidth + starRadius + height * 0.18;
+  const starMarkup = Array.from({ length: stars }, (_, index) =>
+    starPolygon(starsStartX + index * starGap, height / 2, starRadius)
   ).join("");
 
   return `
@@ -47,6 +65,7 @@ function ratingBadge(x: number, yCenter: number, rating: number, height: number)
     <rect x="${labelWidth - height / 2}" y="0" width="${numberWidth}" height="${height}" rx="${height / 2}" fill="#1c1c1c"/>
     <text x="${labelWidth / 2}" y="${height * 0.63}" text-anchor="middle" font-size="${Math.round(height * 0.32)}" font-weight="800" letter-spacing="0.5" style="fill:${tier.labelColor}">RATING</text>
     <text x="${labelWidth - height / 2 + numberWidth / 2}" y="${height * 0.71}" text-anchor="middle" font-size="${Math.round(height * 0.5)}" font-weight="900" style="fill:#ffffff">${rating}</text>
+    ${starMarkup}
   </g>`;
 }
 

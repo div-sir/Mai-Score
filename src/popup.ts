@@ -10,7 +10,7 @@ import {
   type PopupLanguage
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
-import { ratingTier } from "./lib/rating-tier";
+import { ratingStars, ratingTier } from "./lib/rating-tier";
 import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
@@ -60,9 +60,12 @@ function setStatus(text: string, kind = "") {
 function applyRatingBadge(rating: number) {
   const tier = ratingTier(rating);
   const label = document.querySelector<HTMLElement>("#official-rating-badge .rating-badge-label");
-  if (!label) return;
-  label.style.background = `linear-gradient(135deg, ${tier.gradient.join(", ")})`;
-  label.style.color = tier.labelColor;
+  if (label) {
+    label.style.background = `linear-gradient(135deg, ${tier.gradient.join(", ")})`;
+    label.style.color = tier.labelColor;
+  }
+  const stars = document.getElementById("official-rating-stars");
+  if (stars) stars.textContent = "★".repeat(ratingStars(rating));
 }
 
 function downloadText(name: string, content: string, type: string) {

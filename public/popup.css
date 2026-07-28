@@ -15,9 +15,11 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .summary div{background:#151a30;border:1px solid #252c4b;border-radius:10px;padding:9px}
 .summary span{display:block;color:#8f9abf;font-size:11px}
 .summary strong{font-size:16px}
-.rating-badge{display:inline-flex;align-items:stretch;margin-top:3px;border-radius:999px;background:#1c1c1c;overflow:hidden}
+.rating-badge-row{display:flex;align-items:center;gap:4px;margin-top:3px}
+.rating-badge{display:inline-flex;align-items:stretch;border-radius:999px;background:#1c1c1c;overflow:hidden}
 .rating-badge-label{display:flex;align-items:center;margin:2px 0 2px 2px;padding:0 8px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#e8b23d);color:#5a3d00;font-size:9px;font-weight:800;letter-spacing:.4px;white-space:nowrap}
 .rating-badge-value{display:flex;align-items:center;padding:0 10px;color:#ffffff;font-size:15px;font-weight:800}
+.rating-badge-stars{color:#ffd54a;font-size:11px;letter-spacing:1px}
 button,select{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650;transition:background-color .12s ease,border-color .12s ease,filter .12s ease}
 button{cursor:pointer}
 button:hover:not(:disabled){filter:brightness(1.12);border-color:#4a5588}

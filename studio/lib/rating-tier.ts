@@ -1,15 +1,20 @@
 // Kept identical to src/lib/rating-tier.ts (the extension has no shared
 // package with Studio to import this from). See that file for the same
-// verification note: confirmed only against one data point (14699 -> gold);
-// every other band boundary is carried over from memory, not re-checked
-// against the live game.
+// verification note: 13000+ is confirmed against the official in-game
+// rating table; below 13000 is community-documented guesswork, unverified.
 export interface RatingTier {
   name: string;
   gradient: readonly string[];
   labelColor: string;
 }
 
-const TIERS: ReadonlyArray<{ min: number; tier: RatingTier }> = [
+interface TierEntry {
+  min: number;
+  tier: RatingTier;
+  stars?: { step: number; max: number };
+}
+
+const TIERS: readonly TierEntry[] = [
   { min: 0, tier: { name: "white", gradient: ["#f2f2f2", "#c7c7c7"], labelColor: "#333333" } },
   { min: 1000, tier: { name: "blue", gradient: ["#8fd8ff", "#2f8fd6"], labelColor: "#ffffff" } },
   { min: 2000, tier: { name: "green", gradient: ["#9be898", "#3fae43"], labelColor: "#ffffff" } },
@@ -17,17 +22,28 @@ const TIERS: ReadonlyArray<{ min: number; tier: RatingTier }> = [
   { min: 7000, tier: { name: "red", gradient: ["#ff9a86", "#e2412a"], labelColor: "#ffffff" } },
   { min: 10000, tier: { name: "purple", gradient: ["#dcaaff", "#9a3fd6"], labelColor: "#ffffff" } },
   { min: 12000, tier: { name: "bronze", gradient: ["#d9a468", "#96602c"], labelColor: "#ffffff" } },
-  { min: 13000, tier: { name: "silver", gradient: ["#f1f3f6", "#a9b3bd"], labelColor: "#3a3a3a" } },
-  { min: 14000, tier: { name: "gold", gradient: ["#ffe9a8", "#e8b23d"], labelColor: "#5a3d00" } },
-  { min: 15000, tier: { name: "platinum", gradient: ["#f4fbff", "#bfe6ef"], labelColor: "#1f4a55" } },
-  { min: 16000, tier: { name: "rainbow", gradient: ["#ff8fd6", "#ffd97a", "#8fe08a", "#7ad1ff", "#c79bff"], labelColor: "#2a2a2a" } }
+  { min: 13000, tier: { name: "silver", gradient: ["#bfe4ff", "#4a9fd9"], labelColor: "#ffffff" } },
+  { min: 14000, tier: { name: "gold", gradient: ["#ffe27a", "#e8942f"], labelColor: "#5a3200" }, stars: { step: 250, max: 2 } },
+  { min: 14500, tier: { name: "platinum", gradient: ["#fff2c2", "#f2c96a"], labelColor: "#5a3d00" }, stars: { step: 250, max: 2 } },
+  { min: 15000, tier: { name: "rainbow", gradient: ["#ff8fd6", "#ffd97a", "#8fe08a", "#7ad1ff", "#c79bff"], labelColor: "#2a2a2a" }, stars: { step: 250, max: 4 } },
+  { min: 16000, tier: { name: "rainbow-extreme", gradient: ["#ff5fa8", "#ffd23d", "#4de07a", "#3fb6ff", "#a862ff"], labelColor: "#ffffff" }, stars: { step: 250, max: 4 } }
 ];
 
-export function ratingTier(rating: number): RatingTier {
-  let selected = TIERS[0].tier;
-  for (const { min, tier } of TIERS) {
-    if (rating < min) break;
-    selected = tier;
+function entryFor(rating: number): TierEntry {
+  let selected = TIERS[0];
+  for (const entry of TIERS) {
+    if (rating < entry.min) break;
+    selected = entry;
   }
   return selected;
+}
+
+export function ratingTier(rating: number): RatingTier {
+  return entryFor(rating).tier;
+}
+
+export function ratingStars(rating: number): number {
+  const entry = entryFor(rating);
+  if (!entry.stars) return 0;
+  return Math.min(entry.stars.max, Math.floor((rating - entry.min) / entry.stars.step) + 1);
 }
