@@ -15,12 +15,23 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .summary div{background:#151a30;border:1px solid #252c4b;border-radius:10px;padding:9px}
 .summary span{display:block;color:#8f9abf;font-size:11px}
 .summary strong{font-size:16px}
-button,select{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650}
+button,select{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650;transition:background-color .12s ease,border-color .12s ease,filter .12s ease}
 button{cursor:pointer}
-button:disabled{opacity:.4;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(1.12);border-color:#4a5588}
+select:hover{border-color:#4a5588}
+button:active:not(:disabled){filter:brightness(.95)}
+button:disabled{opacity:.4;cursor:not-allowed;filter:none}
+:focus-visible{outline:2px solid #65e0ff;outline-offset:2px}
 .primary,.studio-button{width:100%;border:0}
 .primary{background:linear-gradient(135deg,#24bde8,#7667ff)}
 .studio-button{margin-top:8px;background:#edf1ff;color:#11172a}
+.busy{position:relative;color:transparent!important}
+.busy::after{content:"";position:absolute;inset:0;margin:auto;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .busy::after{animation-duration:2s}
+}
 .direct-export{margin-top:10px;border:1px solid #252c4b;border-radius:10px;background:#11162a}
 .direct-export summary{padding:10px 12px;color:#9aa5c8;font-size:12px;cursor:pointer}
 .export-picker{display:grid;grid-template-columns:1fr auto;gap:7px;padding:0 10px 10px}

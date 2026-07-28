@@ -23,6 +23,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const status = $("status");
 const exportButton = $<HTMLButtonElement>("export");
 const studioButton = $<HTMLButtonElement>("studio");
+const collectButton = $<HTMLButtonElement>("collect");
 const languageSelect = $<HTMLSelectElement>("language");
 let language: PopupLanguage = DEFAULT_LANGUAGE;
 
@@ -178,7 +179,12 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
   };
 }
 
-$<HTMLButtonElement>("collect").addEventListener("click", async () => {
+collectButton.addEventListener("click", async () => {
+  // Collecting fetches three DX NET pages; without this guard a double-click
+  // starts a second run whose result races the first.
+  if (collectButton.disabled) return;
+  collectButton.disabled = true;
+  collectButton.classList.add("busy");
   setStatus(t("fetching"));
   try {
     const { response, connection } = await collect();
@@ -199,6 +205,9 @@ $<HTMLButtonElement>("collect").addEventListener("click", async () => {
     );
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
+  } finally {
+    collectButton.disabled = false;
+    collectButton.classList.remove("busy");
   }
 });
 
