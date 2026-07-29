@@ -1,6 +1,7 @@
 import { CONNECTION_PROTOCOL_VERSION } from "./connections";
 import {
   DriveAuthError,
+  deleteAppDataFile,
   findAppDataFile,
   readAppDataFile,
   writeAppDataFile,
@@ -8,6 +9,7 @@ import {
 } from "./drive-appdata";
 
 export const DRIVE_HISTORY_FILE = "mai-score-history.json";
+export const DRIVE_DELETE_CONFIRMATION = "DELETE_MAI_SCORE_CLOUD_HISTORY";
 
 // The extension relays an opaque string; only Studio parses it. Bounded so a
 // runaway payload cannot be pushed into the user's Drive quota, and so a
@@ -27,10 +29,17 @@ export interface DrivePushRequest {
   payload: string;
 }
 
-export type DriveSyncRequest = DrivePullRequest | DrivePushRequest;
+export interface DriveDeleteRequest {
+  type: "MAI_SCORE_DRIVE_DELETE";
+  protocolVersion: number;
+  /** Defense in depth: deletion is rejected without the exact intent marker. */
+  confirmation: typeof DRIVE_DELETE_CONFIRMATION;
+}
+
+export type DriveSyncRequest = DrivePullRequest | DrivePushRequest | DriveDeleteRequest;
 
 export type DriveSyncResponse =
-  | { ok: true; payload?: string; modifiedTime?: string }
+  | { ok: true; payload?: string; modifiedTime?: string; deleted?: boolean }
   // "needs-auth" is distinct from a generic failure: it is the one outcome
   // Studio can act on, by sending the user to the popup to grant access,
   // since interactive consent cannot be raised from a background worker.
@@ -45,14 +54,30 @@ export function createDrivePushRequest(payload: string): DrivePushRequest {
   return { type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: CONNECTION_PROTOCOL_VERSION, payload };
 }
 
+export function createDriveDeleteRequest(): DriveDeleteRequest {
+  return {
+    type: "MAI_SCORE_DRIVE_DELETE",
+    protocolVersion: CONNECTION_PROTOCOL_VERSION,
+    confirmation: DRIVE_DELETE_CONFIRMATION
+  };
+}
+
 export function isDriveSyncRequest(value: unknown): value is DriveSyncRequest {
   if (!value || typeof value !== "object") return false;
   // Deliberately untyped fields: this validates an arbitrary cross-origin
   // message, so narrowing to one variant up front would make the other
   // variant's check look impossible to the compiler.
-  const message = value as { type?: unknown; protocolVersion?: unknown; payload?: unknown };
+  const message = value as {
+    type?: unknown;
+    protocolVersion?: unknown;
+    payload?: unknown;
+    confirmation?: unknown;
+  };
   if (message.protocolVersion !== CONNECTION_PROTOCOL_VERSION) return false;
   if (message.type === "MAI_SCORE_DRIVE_PULL") return true;
+  if (message.type === "MAI_SCORE_DRIVE_DELETE") {
+    return message.confirmation === DRIVE_DELETE_CONFIRMATION;
+  }
   return message.type === "MAI_SCORE_DRIVE_PUSH"
     && typeof message.payload === "string"
     && payloadBytes(message.payload) <= MAX_SYNC_PAYLOAD_BYTES;
@@ -79,6 +104,13 @@ export async function performDriveSync(
       // Nothing synced yet is a normal first run, not a failure.
       if (!existing) return { ok: true };
       return { ok: true, payload: await readAppDataFile(context, existing.id), modifiedTime: existing.modifiedTime };
+    }
+
+    if (request.type === "MAI_SCORE_DRIVE_DELETE") {
+      // Idempotent deletion: an already-empty app-data folder is success.
+      if (!existing) return { ok: true, deleted: false };
+      await deleteAppDataFile(context, existing.id);
+      return { ok: true, deleted: true };
     }
 
     const written = await writeAppDataFile(context, DRIVE_HISTORY_FILE, request.payload, existing?.id);
