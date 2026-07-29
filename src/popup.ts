@@ -12,10 +12,11 @@ import {
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
 import {
-  DRIVE_ENABLED_STORAGE_KEY,
   connectDrive,
   disconnectDrive,
   driveConnection,
+  driveEnabled,
+  setDriveEnabled,
   type AuthDeps
 } from "./lib/drive-auth";
 import {
@@ -90,8 +91,7 @@ function renderDriveState(connected: boolean) {
 }
 
 async function refreshDriveState() {
-  const stored = await chrome.storage.local.get(DRIVE_ENABLED_STORAGE_KEY);
-  if (stored[DRIVE_ENABLED_STORAGE_KEY] !== true) {
+  if (!await driveEnabled(chrome.storage.local)) {
     renderDriveState(false);
     return;
   }
@@ -106,7 +106,8 @@ driveConnectButton.addEventListener("click", async () => {
     // Cancelling is a choice, not a failure — say so plainly and leave the
     // panel in its disconnected state rather than showing an error.
     if (outcome.ok) {
-      await chrome.storage.local.set({ [DRIVE_ENABLED_STORAGE_KEY]: true });
+      await setDriveEnabled(chrome.storage.local, true);
+      setStatus(t("driveConnectedDone"), "ok");
     } else {
       setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
     }
@@ -124,7 +125,7 @@ driveDisconnectButton.addEventListener("click", async () => {
   try {
     // Disable Drive before touching remote authorization. This preference
     // prevents Chrome from silently reissuing a token on the next popup open.
-    await chrome.storage.local.set({ [DRIVE_ENABLED_STORAGE_KEY]: false });
+    await setDriveEnabled(chrome.storage.local, false);
     await disconnectDrive(authDeps);
     renderDriveState(false);
     setStatus(t("driveDisconnectedDone"), "ok");
@@ -370,10 +371,15 @@ languageSelect.addEventListener("change", () => {
   language = languageSelect.value as PopupLanguage;
   applyLanguage();
   void chrome.storage.local.set({ [LANGUAGE_STORAGE_KEY]: language });
+  void refreshDriveState();
   if (!result) setStatus(t("login"));
 });
 
-void initializeLanguage();
-// Never interactive on open: the panel reflects existing state, and consent
-// is only ever raised by the user pressing Connect.
-void refreshDriveState();
+async function initializePopup() {
+  await initializeLanguage();
+  // Never interactive on open: the panel reflects existing state, and consent
+  // is only ever raised by the user pressing Connect.
+  await refreshDriveState();
+}
+
+void initializePopup();
