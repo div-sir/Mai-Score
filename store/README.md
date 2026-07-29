@@ -111,14 +111,16 @@ it.
 | --- | --- |
 | `storage` | Save the language preference, and hand collected data to Studio under a single-use session token. |
 | `downloads` | Write the PNG, SVG, or JSON file the user asked to export. |
+| `identity` | Ask for Google consent only when the user explicitly connects Drive history sync, obtain a scoped token, and revoke it on disconnect. |
 | `maimaidx-eng.com` | Read the user's own Best 50 pages (International) — the data being exported. |
 | `maimaidx.jp` | Same, for players signed in to the Japan-domestic site instead. |
 | `shama.dxrating.net` | Fetch song cover art so exported images include it. |
+| `www.googleapis.com` | Read and update Mai-Score's single history document inside the user's private Drive `appDataFolder`. |
+| `oauth2.googleapis.com` | Revoke the Google grant when the user chooses Disconnect. |
 
 **Remote code:** none. Everything executed by the extension ships in the package.
 
-**Data use.** Declare that scores are read and handled locally, and that nothing
-is sold or transferred. The one server-side detail worth disclosing accurately:
+**Data use.** Declare that scores are read and handled locally by default and are never sold. If the user explicitly enables Google Drive sync, history is transferred only to that user's hidden Drive `appDataFolder` under the `drive.appdata` scope; Mai-Score does not operate a score database. Disconnect revokes access but does not currently delete an existing cloud copy. The other server-side detail worth disclosing accurately:
 when a JSON file is loaded into Studio manually, cover images are proxied through
 `/api/asset`, so the server sees which covers were requested along with normal
 request logs. Collected data never reaches the server on the extension path.
@@ -134,6 +136,11 @@ request logs. Collected data never reaches the server on the extension path.
 - [ ] Publish unlisted first, then switch to public once the listing reads right
 - [ ] Add the 繁體中文 and 日本語 listings — the extension is already trilingual
 - [ ] Test Collect against a real, logged-in maimaidx.jp account before relying on the JP adapter — it mirrors the international parser's assumptions but has never run against the live domestic site
+- [ ] Test Drive create, pull, merge, update, disconnect, and reauthorization against Google's real API
+- [ ] Publish the Drive-aware privacy policy before distributing a Drive-enabled build
+- [ ] Register the Web Store extension ID with its own production OAuth client
+- [ ] Complete Google's verification for the sensitive `drive.appdata` scope
+- [ ] Add a cloud-history deletion control, or clearly document the manual deletion path before public release
 
 Reading DX NET may sit uneasily with SEGA's terms of service, and reviewers do
 sometimes weigh third-party terms. That risk does not go away, but the copy
