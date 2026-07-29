@@ -1,6 +1,20 @@
 export const REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke";
 export const DRIVE_ENABLED_STORAGE_KEY = "maiScoreDriveEnabled";
 
+export interface DrivePreferenceStorage {
+  get(key: string): Promise<Record<string, unknown>>;
+  set(items: Record<string, unknown>): Promise<void>;
+}
+
+export async function driveEnabled(storage: DrivePreferenceStorage): Promise<boolean> {
+  const stored = await storage.get(DRIVE_ENABLED_STORAGE_KEY);
+  return stored[DRIVE_ENABLED_STORAGE_KEY] === true;
+}
+
+export async function setDriveEnabled(storage: DrivePreferenceStorage, enabled: boolean): Promise<void> {
+  await storage.set({ [DRIVE_ENABLED_STORAGE_KEY]: enabled });
+}
+
 export type DriveConnection = "connected" | "disconnected";
 
 /** The slice of chrome.identity this module uses, injected so it can be tested. */
