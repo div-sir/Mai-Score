@@ -6,6 +6,7 @@ export type DriveConnection = "connected" | "disconnected";
 export interface IdentityApi {
   getAuthToken(details: { interactive: boolean }, callback: (token?: string) => void): void;
   removeCachedAuthToken(details: { token: string }, callback: () => void): void;
+  clearAllCachedAuthTokens(callback: () => void): void;
 }
 
 export interface AuthDeps {
@@ -24,8 +25,8 @@ function requestToken(deps: AuthDeps, interactive: boolean): Promise<string | un
   });
 }
 
-function dropCachedToken(deps: AuthDeps, token: string): Promise<void> {
-  return new Promise((resolve) => deps.identity.removeCachedAuthToken({ token }, resolve));
+function clearIdentityState(deps: AuthDeps): Promise<void> {
+  return new Promise((resolve) => deps.identity.clearAllCachedAuthTokens(resolve));
 }
 
 /** Whether a grant already exists, asked for without prompting. */
@@ -34,31 +35,38 @@ export async function driveConnection(deps: AuthDeps): Promise<DriveConnection> 
 }
 
 /**
- * Raises Google's consent screen. Must be called from a user gesture in a
- * page context — a background worker has no gesture to attach it to, which
- * is why sync reports "needs-auth" and leaves this to the popup.
+ * Raises Google's consent screen when Chrome needs one. The Identity API uses
+ * the Google account associated with the current Chrome profile.
  */
 export async function connectDrive(deps: AuthDeps): Promise<{ ok: true } | { ok: false; error: string }> {
   const token = await requestToken(deps, true);
-  // The user closing or refusing the consent window is not an error worth
-  // dressing up; it just leaves the connection off.
   return token ? { ok: true } : { ok: false, error: "cancelled" };
 }
 
 /**
- * Revokes the grant at Google, then drops Chrome's cached copy. Order
- * matters: the token is needed to revoke it, and clearing the cache alone
- * would leave the grant live on the account, while revoking alone would
- * leave Chrome handing back a dead token.
+ * Revokes the Google grant and always clears Chrome Identity's cached tokens
+ * and account preferences. A failed remote revoke is reported to the caller,
+ * while the local browser is still disconnected immediately.
  */
 export async function disconnectDrive(deps: AuthDeps): Promise<void> {
   const token = await requestToken(deps, false);
-  if (!token) return;
+  let revokeError: Error | undefined;
+
   try {
-    await deps.fetch(`${REVOKE_ENDPOINT}?token=${encodeURIComponent(token)}`, { method: "POST" });
-  } catch {
-    // Still drop the local token: leaving a cached credential behind after
-    // the user asked to disconnect is worse than a missed remote revoke.
+    if (token) {
+      const response = await deps.fetch(`${REVOKE_ENDPOINT}?token=${encodeURIComponent(token)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      });
+      if (!response.ok) {
+        revokeError = new Error(`Google authorization revocation failed (${response.status}).`);
+      }
+    }
+  } catch (error) {
+    revokeError = error instanceof Error ? error : new Error(String(error));
+  } finally {
+    await clearIdentityState(deps);
   }
-  await dropCachedToken(deps, token);
+
+  if (revokeError) throw revokeError;
 }
