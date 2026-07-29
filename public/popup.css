@@ -47,7 +47,8 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:none}
 .export-picker button{min-width:82px;background:#171e38}
 .drive-panel{margin-top:8px;border:1px solid #252c4b;border-radius:10px;background:#11162a}
 .drive-panel summary{padding:10px 12px;color:#9aa5c8;font-size:12px;cursor:pointer}
-.drive-state{margin:0 12px 8px;color:#8f9abf;font-size:11px;line-height:1.5}
+.drive-state{margin:0 12px 5px;color:#8f9abf;font-size:11px;line-height:1.5}
+.drive-account-hint{margin:0 12px 9px;color:#69758e;font-size:9px;line-height:1.45}
 .drive-panel button{width:calc(100% - 24px);margin:0 12px 10px}
 .danger-button{border-color:#56303a;background:transparent;color:#d99aa8}
 .privacy{text-align:center;margin-top:14px}
