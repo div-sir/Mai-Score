@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "July 28, 2026";
+const UPDATED = "July 29, 2026";
 
 export default function Privacy() {
   return (
@@ -21,9 +21,11 @@ export default function Privacy() {
         <h2>Summary</h2>
         <p>
           Mai-Score reads your own maimai DX NET score page so you can export it as an image
-          or a JSON file. Your scores are processed in your browser. There is no Mai-Score
-          account, no analytics, and no advertising. The one case where a request reaches our
-          server is song cover art, described under <em>Cover art</em> below.
+          or a JSON file. Your scores are processed in your browser and remain local by default.
+          If you explicitly connect Google Drive, your Studio history can be synchronized to
+          your private Drive app-data folder. There is no Mai-Score account, no analytics, and
+          no advertising. The one case where a request reaches our server is song cover art,
+          described under <em>Cover art</em> below.
         </p>
       </section>
 
@@ -63,12 +65,23 @@ export default function Privacy() {
             session storage is cleared when the browser closes.
           </li>
           <li>
-            <strong>In Studio</strong>, your most recent snapshot is saved in your
-            browser&rsquo;s IndexedDB so the page survives a reload. It stays on your device,
-            and <strong>Clear local data</strong> in Studio deletes it.
+            <strong>In Studio</strong>, your most recent snapshot and history are saved in your
+            browser&rsquo;s IndexedDB so the page survives a reload. They stay on your device,
+            and <strong>Clear local data</strong> in Studio deletes the local copy.
+          </li>
+          <li>
+            <strong>Optional Google Drive sync</strong> runs only after you choose to connect
+            Google. The extension requests the limited <code>drive.appdata</code> scope and
+            stores one history document in the hidden app-data folder of your own Drive. Studio
+            never receives your OAuth token, and the extension passes the history document
+            without interpreting it. Google processes and stores this copy under your Google
+            account and its privacy terms.
           </li>
         </ul>
-        <p>We do not operate a database of user scores, and we cannot see your scores.</p>
+        <p>
+          We do not operate a database of user scores, and the optional Drive copy does not pass
+          through or remain on a Mai-Score server.
+        </p>
       </section>
 
       <section>
@@ -101,7 +114,7 @@ export default function Privacy() {
       <section>
         <h2>What we do not do</h2>
         <ul>
-          <li>We do not sell or transfer your data to third parties.</li>
+          <li>We do not sell your data. History is transferred to Google only when you explicitly enable Drive sync.</li>
           <li>We do not use your data for advertising, profiling, or credit assessment.</li>
           <li>We do not use your data for anything unrelated to exporting your B50.</li>
           <li>We do not run analytics or tracking scripts in the extension or in Studio.</li>
@@ -113,17 +126,23 @@ export default function Privacy() {
         <ul>
           <li><strong>storage</strong> — save your language preference and the single-use Studio handoff.</li>
           <li><strong>downloads</strong> — save the image or JSON file you asked to export.</li>
+          <li><strong>identity</strong> — request Google consent, obtain the limited Drive token, and revoke it when you disconnect.</li>
           <li><strong>maimaidx-eng.com</strong> and <strong>maimaidx.jp</strong> — read your own score pages, International or Japan.</li>
           <li><strong>shama.dxrating.net</strong> — fetch song cover art for the export.</li>
+          <li><strong>www.googleapis.com</strong> — synchronize the optional history document in Drive app data.</li>
+          <li><strong>oauth2.googleapis.com</strong> — revoke the Google grant when you disconnect.</li>
         </ul>
       </section>
 
       <section>
         <h2>Removing your data</h2>
         <p>
-          Use <strong>Clear local data</strong> in Studio to delete the saved snapshot, and
-          uninstall the extension to remove its stored preference. Because nothing is kept on
-          our servers, there is no account to delete and no deletion request to file.
+          Use <strong>Clear local data</strong> in Studio to delete local snapshots and history,
+          and uninstall the extension to remove its stored preferences. Choosing
+          <strong>Disconnect Google Drive</strong> revokes the extension&rsquo;s grant and
+          clears Chrome&rsquo;s cached token. It does not currently delete a history file that
+          was already written to Drive app data. Because nothing is kept on Mai-Score servers,
+          there is no Mai-Score account or server-side score database to delete.
         </p>
       </section>
 
