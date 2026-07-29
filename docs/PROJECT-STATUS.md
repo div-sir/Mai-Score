@@ -4,8 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of extension version `0.6.0`, branch
-`claude/mai-score-progress-jvh3o7`. 106 tests, 16 test files.
+Accurate as of extension version `0.7.0` on `main`, after PR #12 was merged on July 29, 2026. The latest packaged release remains `v0.6.0`; Drive sync is merged but unreleased. 106 tests, 16 test files.
 
 ## What this is
 
@@ -13,10 +12,9 @@ A Chrome/Edge MV3 extension that reads a player's own maimai DX NET Best 50
 page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 `mai-score.milifix.com` that previews and restyles the export.
 
-## Shipped and merged to `main`
+## Released in v0.6.0 and merged to `main`
 
-Released as `v0.6.0` (GitHub Release with a packaged zip; the release workflow
-runs on a `v*` tag or `workflow_dispatch`).
+The packaged public release is `v0.6.0` (GitHub Release with a zip; the release workflow runs on a `v*` tag or `workflow_dispatch`). The current `main` branch targets the unreleased `v0.7.0` and also contains the Drive work described below.
 
 | Area | State |
 | --- | --- |
@@ -45,10 +43,9 @@ The popup now shows the signed difference beside the B50 total when it
 disagrees with the official rating, so any remaining gap is visible instead of
 silent.
 
-## In flight — PR #12, not yet merged
+## Merged after v0.6.0 — PR #12, not yet released
 
-Google Drive sync for history. Five commits on
-`claude/mai-score-progress-jvh3o7`.
+Google Drive history sync was merged to `main` in PR #12 on July 29, 2026. It is present in the v0.7.0 development tree but must not be treated as publicly shipped until the real-service, policy, OAuth, and store work below is complete.
 
 ### Architecture, and why
 
@@ -160,11 +157,8 @@ tracking.
 
 ### 2. Finish the Drive story before shipping it
 
-- `store/README.md`'s permission table does **not** yet list `identity`,
-  `www.googleapis.com`, or `oauth2.googleapis.com`. Update before submitting.
-- The privacy policy does not mention Drive sync at all. It currently states
-  scores never leave the device, which stops being true once sync is enabled.
-  **This must be updated before Drive sync ships**, not after.
+- The source privacy policy and store permission documentation were updated in the v0.7.0 documentation-alignment change. Confirm those pages are actually deployed before distributing a Drive-enabled build.
+- Add a user-facing way to delete the synced history file. Disconnect currently revokes the grant and clears Chrome's cached token, but does not delete an existing `appDataFolder` copy.
 - `drive.appdata` is a Google-classified sensitive scope. Publishing to users
   beyond the Cloud Console test-user list requires OAuth verification: the
   privacy policy URL, a demo video, and a review that can take weeks.
