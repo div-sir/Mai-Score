@@ -88,7 +88,7 @@ See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), 
 
 The unreleased v0.7.0 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
 
-Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. It is not ready for a public release until real Drive API behaviour has been tested, the privacy/store disclosures are published, a production Web Store OAuth client is registered, and Google's sensitive-scope verification is complete.
+Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio provides a separately confirmed **Delete cloud history** action that permanently deletes this file without touching local IndexedDB history; Disconnect remains an OAuth-only operation. Drive sync is not ready for a public release until real API behaviour has been tested, the privacy/store disclosures are published, a production Web Store OAuth client is registered, and Google's sensitive-scope verification is complete.
 
 ### “Failed to fetch” in v0.1.0
 
