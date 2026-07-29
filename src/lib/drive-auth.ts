@@ -1,4 +1,5 @@
 export const REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke";
+export const DRIVE_ENABLED_STORAGE_KEY = "maiScoreDriveEnabled";
 
 export type DriveConnection = "connected" | "disconnected";
 
