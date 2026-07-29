@@ -13,7 +13,13 @@ import {
 } from "../lib/local-store";
 import { diffHistory, type HistoryEntry } from "../lib/history";
 import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
-import { pullFromDrive, pushToDrive, rememberExtensionId, storedExtensionId } from "../lib/drive-client";
+import {
+  deleteFromDrive,
+  pullFromDrive,
+  pushToDrive,
+  rememberExtensionId,
+  storedExtensionId
+} from "../lib/drive-client";
 import { SAMPLE_DATA } from "../lib/sample";
 import {
   DEFAULT_OPTIONS,
@@ -224,6 +230,7 @@ export default function Studio() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [canSync, setCanSync] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [deletingCloud, setDeletingCloud] = useState(false);
   const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
@@ -500,6 +507,25 @@ export default function Studio() {
     }
   }
 
+  async function deleteCloudHistory() {
+    if (!window.confirm(copy.deleteCloudConfirm)) return;
+    setDeletingCloud(true);
+    try {
+      const outcome = await deleteFromDrive();
+      if (!outcome.ok) {
+        setMessage(outcome.reason === "needs-auth" ? copy.syncNeedsAuth
+          : outcome.reason === "no-extension" ? copy.syncNoExtension
+            : copy.syncFailed(outcome.error));
+        return;
+      }
+      setMessage(outcome.deleted ? copy.cloudDeleted : copy.cloudAlreadyEmpty);
+    } catch (error) {
+      setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+    } finally {
+      setDeletingCloud(false);
+    }
+  }
+
   async function copyPreset() {
     const url = new URL(window.location.href);
     url.hash = `preset=${encodeURIComponent(JSON.stringify(options))}`;
@@ -597,9 +623,14 @@ export default function Studio() {
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
           {canSync && (
-            <button className="sync-button" disabled={syncing || busy} onClick={syncHistory}>
-              {syncing ? copy.syncing : copy.syncNow}
-            </button>
+            <>
+              <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
+                {syncing ? copy.syncing : copy.syncNow}
+              </button>
+              <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
+                {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
+              </button>
+            </>
           )}
           <details className="history-panel">
             <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
