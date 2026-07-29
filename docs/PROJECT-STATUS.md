@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of extension version `0.7.0` on `main`, after PR #12 was merged on July 29, 2026. The latest packaged release remains `v0.6.0`; Drive sync is merged but unreleased. 106 tests, 16 test files.
+Accurate as of the `v0.7.0` release prepared on July 29, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.0`.
 
 ## What this is
 
@@ -12,9 +12,9 @@ A Chrome/Edge MV3 extension that reads a player's own maimai DX NET Best 50
 page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 `mai-score.milifix.com` that previews and restyles the export.
 
-## Released in v0.6.0 and merged to `main`
+## Released in v0.7.0
 
-The packaged public release is `v0.6.0` (GitHub Release with a zip; the release workflow runs on a `v*` tag or `workflow_dispatch`). The current `main` branch targets the unreleased `v0.7.0` and also contains the Drive work described below.
+The packaged GitHub release is `v0.7.0` (the release workflow builds and attaches the extension zip from the matching tag). It includes the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and experimental Drive work described below.
 
 | Area | State |
 | --- | --- |
@@ -43,9 +43,9 @@ The popup now shows the signed difference beside the B50 total when it
 disagrees with the official rating, so any remaining gap is visible instead of
 silent.
 
-## Merged after v0.6.0 — PR #12, not yet released
+## Experimental Google Drive sync in v0.7.0
 
-Google Drive history sync was merged to `main` in PR #12 on July 29, 2026. It is present in the v0.7.0 development tree but must not be treated as publicly shipped until the real-service, policy, OAuth, and store work below is complete.
+Google Drive history sync is included in v0.7.0 but remains experimental. Only OAuth test users approved in Google Cloud can authorize it until sensitive-scope verification and the production Web Store OAuth client are complete. The local B50, image, JSON, Studio, and IndexedDB-history flows remain available without Drive.
 
 ### Architecture, and why
 
@@ -107,10 +107,10 @@ sandbox without the real services.
    share a template. Never run against a live logged-in `maimaidx.jp`. If the
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
-3. **Real Drive API behaviour.** Every Drive call is tested against a mocked
-   `fetch`. Nothing has hit Google's servers. Follow
-   [the real-service test plan](drive-real-api-test.md) with the exact-origin
-   CI preview artifact before release.
+3. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+   complete multi-profile real-service matrix has not been recorded in the
+   repository. Follow [the real-service test plan](drive-real-api-test.md)
+   before declaring Drive generally available.
 4. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
@@ -157,10 +157,10 @@ years of weekly play, but unbounded growth is worth a decision before it
 matters, and downsampling old entries would conflict with long-range progress
 tracking.
 
-### 2. Finish the Drive story before shipping it
+### 2. Finish Drive general availability after v0.7.0
 
-- The source privacy policy and store permission documentation were updated in the v0.7.0 documentation-alignment change. Confirm those pages are actually deployed before distributing a Drive-enabled build.
-- Studio now has a separately confirmed **Delete cloud history** action. It deletes only the Drive `appDataFolder` history file and leaves local IndexedDB history intact; Disconnect remains an OAuth-only operation. Verify this destructive path against the real Drive API before release.
+- The source privacy policy and store permission documentation were updated for v0.7.0. Confirm the production policy deployment after the release merge.
+- Studio has a separately confirmed **Delete cloud history** action. It deletes only the Drive `appDataFolder` history file and leaves local IndexedDB history intact; Disconnect remains OAuth-only. Verify the complete real-service matrix before removing the experimental label.
 - `drive.appdata` is a Google-classified sensitive scope. Publishing to users
   beyond the Cloud Console test-user list requires OAuth verification: the
   privacy policy URL, a demo video, and a review that can take weeks.
