@@ -120,7 +120,7 @@ it.
 
 **Remote code:** none. Everything executed by the extension ships in the package.
 
-**Data use.** Declare that scores are read and handled locally by default and are never sold. If the user explicitly enables Google Drive sync, history is transferred only to that user's hidden Drive `appDataFolder` under the `drive.appdata` scope; Mai-Score does not operate a score database. Disconnect revokes access but does not currently delete an existing cloud copy. The other server-side detail worth disclosing accurately:
+**Data use.** Declare that scores are read and handled locally by default and are never sold. If the user explicitly enables Google Drive sync, history is transferred only to that user's hidden Drive `appDataFolder` under the `drive.appdata` scope; Mai-Score does not operate a score database. Disconnect revokes access; the separate, confirmed **Delete cloud history** action permanently removes the synced app-data file without deleting local history. The other server-side detail worth disclosing accurately:
 when a JSON file is loaded into Studio manually, cover images are proxied through
 `/api/asset`, so the server sees which covers were requested along with normal
 request logs. Collected data never reaches the server on the extension path.
@@ -140,7 +140,7 @@ request logs. Collected data never reaches the server on the extension path.
 - [ ] Publish the Drive-aware privacy policy before distributing a Drive-enabled build
 - [ ] Register the Web Store extension ID with its own production OAuth client
 - [ ] Complete Google's verification for the sensitive `drive.appdata` scope
-- [ ] Add a cloud-history deletion control, or clearly document the manual deletion path before public release
+- [x] Add a separately confirmed cloud-history deletion control that leaves local history intact
 
 Reading DX NET may sit uneasily with SEGA's terms of service, and reviewers do
 sometimes weigh third-party terms. That risk does not go away, but the copy
