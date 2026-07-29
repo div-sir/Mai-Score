@@ -3,6 +3,7 @@ import {
   APPDATA_SPACE,
   DriveAuthError,
   DriveRequestError,
+  deleteAppDataFile,
   findAppDataFile,
   readAppDataFile,
   writeAppDataFile
@@ -68,6 +69,16 @@ describe("Drive app-data client", () => {
     const content = await readAppDataFile(contextWith(fetchMock), "file-id");
     expect(content).toBe('{"entries":[]}');
     expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get("alt")).toBe("media");
+  });
+
+  it("deletes the exact app-data file and safely encodes its ID", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok({}));
+    await deleteAppDataFile(contextWith(fetchMock), "folder/id?");
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(init.method).toBe("DELETE");
+    expect(url).toContain("folder%2Fid%3F");
+    expect(init.headers.authorization).toBe("Bearer test-token");
   });
 
   it("creates a new file as multipart, parented to the app-data folder", async () => {

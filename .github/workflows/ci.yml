@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  extension:
+    name: Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run verify
+      - name: Prepare exact-origin preview build
+        run: node scripts/prepare-preview-build.mjs https://mai-score-git-agent-align-v0-7-docs-soliliums-projects.vercel.app
+      - name: Package preview extension
+        run: |
+          cd dist
+          zip -r ../mai-score-extension-preview.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mai-score-extension-preview
+          path: mai-score-extension-preview.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  studio:
+    name: Studio
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studio
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: studio/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build

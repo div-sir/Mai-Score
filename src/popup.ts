@@ -11,7 +11,14 @@ import {
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
-import { connectDrive, disconnectDrive, driveConnection, type AuthDeps } from "./lib/drive-auth";
+import {
+  connectDrive,
+  disconnectDrive,
+  driveConnection,
+  driveEnabled,
+  setDriveEnabled,
+  type AuthDeps
+} from "./lib/drive-auth";
 import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
@@ -77,11 +84,18 @@ const authDeps: AuthDeps = {
   clearLastError: () => { void chrome.runtime.lastError; }
 };
 
-async function refreshDriveState() {
-  const connected = await driveConnection(authDeps) === "connected";
+function renderDriveState(connected: boolean) {
   $("drive-state").textContent = t(connected ? "driveConnected" : "driveDisconnected");
   driveConnectButton.hidden = connected;
   driveDisconnectButton.hidden = !connected;
+}
+
+async function refreshDriveState() {
+  if (!await driveEnabled(chrome.storage.local)) {
+    renderDriveState(false);
+    return;
+  }
+  renderDriveState(await driveConnection(authDeps) === "connected");
 }
 
 driveConnectButton.addEventListener("click", async () => {
@@ -91,7 +105,12 @@ driveConnectButton.addEventListener("click", async () => {
     const outcome = await connectDrive(authDeps);
     // Cancelling is a choice, not a failure — say so plainly and leave the
     // panel in its disconnected state rather than showing an error.
-    if (!outcome.ok) setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
+    if (outcome.ok) {
+      await setDriveEnabled(chrome.storage.local, true);
+      setStatus(t("driveConnectedDone"), "ok");
+    } else {
+      setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
+    }
   } catch (error) {
     setStatus(t("driveFailed", error instanceof Error ? error.message : String(error)), "error");
   } finally {
@@ -102,11 +121,22 @@ driveConnectButton.addEventListener("click", async () => {
 
 driveDisconnectButton.addEventListener("click", async () => {
   driveDisconnectButton.disabled = true;
+  $("drive-state").textContent = t("driveDisconnecting");
   try {
+    // Disable Drive before touching remote authorization. This preference
+    // prevents Chrome from silently reissuing a token on the next popup open.
+    await setDriveEnabled(chrome.storage.local, false);
     await disconnectDrive(authDeps);
+    renderDriveState(false);
+    setStatus(t("driveDisconnectedDone"), "ok");
+  } catch (error) {
+    // Local Identity state is cleared even when Google cannot be reached. Do
+    // not immediately request a new token here, which would make Disconnect
+    // appear to have done nothing while Google's revocation is still pending.
+    renderDriveState(false);
+    setStatus(t("driveDisconnectFailed", error instanceof Error ? error.message : String(error)), "error");
   } finally {
     driveDisconnectButton.disabled = false;
-    await refreshDriveState();
   }
 });
 
@@ -341,10 +371,15 @@ languageSelect.addEventListener("change", () => {
   language = languageSelect.value as PopupLanguage;
   applyLanguage();
   void chrome.storage.local.set({ [LANGUAGE_STORAGE_KEY]: language });
+  void refreshDriveState();
   if (!result) setStatus(t("login"));
 });
 
-void initializeLanguage();
-// Never interactive on open: the panel reflects existing state, and consent
-// is only ever raised by the user pressing Connect.
-void refreshDriveState();
+async function initializePopup() {
+  await initializeLanguage();
+  // Never interactive on open: the panel reflects existing state, and consent
+  // is only ever raised by the user pressing Connect.
+  await refreshDriveState();
+}
+
+void initializePopup();

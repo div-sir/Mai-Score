@@ -4,8 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of extension version `0.6.0`, branch
-`claude/mai-score-progress-jvh3o7`. 106 tests, 16 test files.
+Accurate as of the `v0.7.0` release prepared on July 29, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.0`.
 
 ## What this is
 
@@ -13,10 +12,9 @@ A Chrome/Edge MV3 extension that reads a player's own maimai DX NET Best 50
 page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 `mai-score.milifix.com` that previews and restyles the export.
 
-## Shipped and merged to `main`
+## Released in v0.7.0
 
-Released as `v0.6.0` (GitHub Release with a packaged zip; the release workflow
-runs on a `v*` tag or `workflow_dispatch`).
+The packaged GitHub release is `v0.7.0` (the release workflow builds and attaches the extension zip from the matching tag). It includes the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and experimental Drive work described below.
 
 | Area | State |
 | --- | --- |
@@ -45,10 +43,9 @@ The popup now shows the signed difference beside the B50 total when it
 disagrees with the official rating, so any remaining gap is visible instead of
 silent.
 
-## In flight — PR #12, not yet merged
+## Experimental Google Drive sync in v0.7.0
 
-Google Drive sync for history. Five commits on
-`claude/mai-score-progress-jvh3o7`.
+Google Drive history sync is included in v0.7.0 but remains experimental. Only OAuth test users approved in Google Cloud can authorize it until sensitive-scope verification and the production Web Store OAuth client are complete. The local B50, image, JSON, Studio, and IndexedDB-history flows remain available without Drive.
 
 ### Architecture, and why
 
@@ -110,8 +107,10 @@ sandbox without the real services.
    share a template. Never run against a live logged-in `maimaidx.jp`. If the
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
-3. **Real Drive API behaviour.** Every Drive call is tested against a mocked
-   `fetch`. Nothing has hit Google's servers.
+3. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+   complete multi-profile real-service matrix has not been recorded in the
+   repository. Follow [the real-service test plan](drive-real-api-test.md)
+   before declaring Drive generally available.
 4. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
@@ -158,13 +157,10 @@ years of weekly play, but unbounded growth is worth a decision before it
 matters, and downsampling old entries would conflict with long-range progress
 tracking.
 
-### 2. Finish the Drive story before shipping it
+### 2. Finish Drive general availability after v0.7.0
 
-- `store/README.md`'s permission table does **not** yet list `identity`,
-  `www.googleapis.com`, or `oauth2.googleapis.com`. Update before submitting.
-- The privacy policy does not mention Drive sync at all. It currently states
-  scores never leave the device, which stops being true once sync is enabled.
-  **This must be updated before Drive sync ships**, not after.
+- The source privacy policy and store permission documentation were updated for v0.7.0. Confirm the production policy deployment after the release merge.
+- Studio has a separately confirmed **Delete cloud history** action. It deletes only the Drive `appDataFolder` history file and leaves local IndexedDB history intact; Disconnect remains OAuth-only. Verify the complete real-service matrix before removing the experimental label.
 - `drive.appdata` is a Google-classified sensitive scope. Publishing to users
   beyond the Cloud Console test-user list requires OAuth verification: the
   privacy policy URL, a demo video, and a review that can take weeks.

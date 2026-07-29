@@ -16,7 +16,7 @@ function extensionIdFromKey(base64Key: string): string {
 describe("extension package", () => {
   it("registers the background resolver", async () => {
     const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
-    expect(manifest.version).toBe("0.6.0");
+    expect(manifest.version).toBe("0.7.0");
     expect(manifest.background.service_worker).toBe("background.js");
     expect(manifest.permissions).toContain("storage");
     expect(manifest.externally_connectable.matches).toEqual([

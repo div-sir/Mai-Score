@@ -49,6 +49,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .preview-toolbar span{color:#78849b;font-family:ui-monospace,monospace;font-size:9px}
 .preview-stage{display:grid;min-height:0;flex:1;place-items:center;overflow:auto;padding:18px;background-color:#090d16;background-image:linear-gradient(45deg,#ffffff05 25%,transparent 25%),linear-gradient(-45deg,#ffffff05 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ffffff05 75%),linear-gradient(-45deg,transparent 75%,#ffffff05 75%);background-position:0 0,0 10px,10px -10px,-10px 0;background-size:20px 20px}
 .preview-stage img{display:block;max-width:100%;max-height:100%;border-radius:4px;box-shadow:0 18px 50px #000a}
+.empty-preview{max-width:360px;margin:0;padding:24px;color:var(--muted);font-size:13px;line-height:1.6;text-align:center}
 .preview-stage.theme-light,.preview-stage.theme-maimai{background-color:#cbd3e0}
 @media(max-width:850px){
   .topbar{align-items:flex-start;padding:12px 14px}

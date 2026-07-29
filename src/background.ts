@@ -1,6 +1,7 @@
 import { resolveScores } from "./lib/resolver";
 import { CONNECTIONS, CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
 import { isDriveSyncRequest, performDriveSync, type DriveSyncResponse } from "./lib/drive-sync";
+import { driveEnabled } from "./lib/drive-auth";
 import {
   consumeStudioTransfer,
   isStudioImportRequest,
@@ -50,6 +51,7 @@ function silentAuthToken(): Promise<string | undefined> {
 
 async function handleDriveSync(message: unknown): Promise<DriveSyncResponse> {
   if (!isDriveSyncRequest(message)) return { ok: false, reason: "error", error: "Malformed sync request." };
+  if (!await driveEnabled(chrome.storage.local)) return { ok: false, reason: "needs-auth" };
   const token = await silentAuthToken();
   if (!token) return { ok: false, reason: "needs-auth" };
   return performDriveSync({ token, fetch: globalThis.fetch }, message);

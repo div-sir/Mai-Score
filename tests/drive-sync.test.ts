@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { CONNECTION_PROTOCOL_VERSION } from "../src/lib/connections";
 import {
+  DRIVE_DELETE_CONFIRMATION,
   DRIVE_HISTORY_FILE,
   MAX_SYNC_PAYLOAD_BYTES,
+  createDriveDeleteRequest,
   createDrivePullRequest,
   createDrivePushRequest,
   isDriveSyncRequest,
@@ -11,9 +13,10 @@ import {
 } from "../src/lib/drive-sync";
 
 describe("Drive sync messages", () => {
-  it("round-trips both request kinds through the guard", () => {
+  it("round-trips all request kinds through the guard", () => {
     expect(isDriveSyncRequest(createDrivePullRequest())).toBe(true);
     expect(isDriveSyncRequest(createDrivePushRequest('{"entries":[]}'))).toBe(true);
+    expect(isDriveSyncRequest(createDriveDeleteRequest())).toBe(true);
   });
 
   it("rejects anything that is not a well-formed request", () => {
@@ -24,6 +27,13 @@ describe("Drive sync messages", () => {
     // A push with no payload, or a non-string one, must not reach Drive.
     expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: CONNECTION_PROTOCOL_VERSION })).toBe(false);
     expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: CONNECTION_PROTOCOL_VERSION, payload: { a: 1 } })).toBe(false);
+    // A destructive request needs an explicit, exact intent marker.
+    expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_DELETE", protocolVersion: CONNECTION_PROTOCOL_VERSION })).toBe(false);
+    expect(isDriveSyncRequest({
+      type: "MAI_SCORE_DRIVE_DELETE",
+      protocolVersion: CONNECTION_PROTOCOL_VERSION,
+      confirmation: "delete"
+    })).toBe(false);
   });
 
   it("does not confuse a Studio import request for a sync request", () => {
@@ -58,9 +68,16 @@ describe("protocol parity with Studio", () => {
   });
 
   it("accepts the exact message shapes Studio sends", async () => {
-    const { SYNC_PROTOCOL_VERSION } = await import("../studio/lib/drive-client");
+    const { DRIVE_DELETE_CONFIRMATION: STUDIO_DELETE_CONFIRMATION, SYNC_PROTOCOL_VERSION } =
+      await import("../studio/lib/drive-client");
     expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PULL", protocolVersion: SYNC_PROTOCOL_VERSION })).toBe(true);
     expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: SYNC_PROTOCOL_VERSION, payload: "{}" })).toBe(true);
+    expect(STUDIO_DELETE_CONFIRMATION).toBe(DRIVE_DELETE_CONFIRMATION);
+    expect(isDriveSyncRequest({
+      type: "MAI_SCORE_DRIVE_DELETE",
+      protocolVersion: SYNC_PROTOCOL_VERSION,
+      confirmation: STUDIO_DELETE_CONFIRMATION
+    })).toBe(true);
   });
 });
 
@@ -110,6 +127,25 @@ describe("performDriveSync", () => {
     expect(again.mock.calls[1][1].method).toBe("PATCH");
     // Updating in place is what stops every push adding another copy.
     expect(again.mock.calls[1][0]).toContain("existing");
+  });
+
+  it("permanently deletes an existing cloud history file", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(listing([{ id: "history/id", name: DRIVE_HISTORY_FILE }]))
+      .mockResolvedValueOnce(response({}));
+
+    expect(await performDriveSync(contextWith(fetchMock), createDriveDeleteRequest()))
+      .toEqual({ ok: true, deleted: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1][1].method).toBe("DELETE");
+    expect(fetchMock.mock.calls[1][0]).toContain("history%2Fid");
+  });
+
+  it("treats deleting an already-empty cloud history as success", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(listing([]));
+    expect(await performDriveSync(contextWith(fetchMock), createDriveDeleteRequest()))
+      .toEqual({ ok: true, deleted: false });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("reports a revoked grant as needs-auth so Studio can send the user to the popup", async () => {

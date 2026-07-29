@@ -3,10 +3,11 @@
 // here; a protocol version mismatch surfaces as a clear error from the
 // extension rather than silent misbehaviour.
 export const SYNC_PROTOCOL_VERSION = 1;
+export const DRIVE_DELETE_CONFIRMATION = "DELETE_MAI_SCORE_CLOUD_HISTORY";
 export const EXTENSION_ID_STORAGE_KEY = "mai-score-extension-id";
 
 export type DriveSyncResult =
-  | { ok: true; payload?: string; modifiedTime?: string }
+  | { ok: true; payload?: string; modifiedTime?: string; deleted?: boolean }
   | { ok: false; reason: "needs-auth" }
   | { ok: false; reason: "error"; error: string }
   | { ok: false; reason: "no-extension" };
@@ -70,4 +71,12 @@ export function pullFromDrive(): Promise<DriveSyncResult> {
 
 export function pushToDrive(payload: string): Promise<DriveSyncResult> {
   return send({ type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: SYNC_PROTOCOL_VERSION, payload });
+}
+
+export function deleteFromDrive(): Promise<DriveSyncResult> {
+  return send({
+    type: "MAI_SCORE_DRIVE_DELETE",
+    protocolVersion: SYNC_PROTOCOL_VERSION,
+    confirmation: DRIVE_DELETE_CONFIRMATION
+  });
 }

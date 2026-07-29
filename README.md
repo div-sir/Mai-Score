@@ -1,5 +1,7 @@
 # Mai-Score
 
+> The latest packaged release is **v0.7.0**. It adds customizable Studio exports, labeled New B15 / Old B35 regions, multilingual UI, local history, and optional experimental Google Drive history sync.
+
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
 > The Japan-domestic (`maimaidx.jp`) adapter reuses the international parser on the assumption both sites share the same page template. That assumption has not been checked against a real, logged-in domestic account — please open an issue if Collect fails there.
@@ -29,7 +31,7 @@ Building from source instead? See [Development](#development).
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
-- Does not transmit login details or score data to a third-party server.
+- Keeps scores local by default. If the player explicitly connects Google Drive, Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 
 ## Usage
 
@@ -40,7 +42,7 @@ Building from source instead? See [Development](#development).
    - **Preview and customize online** opens [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded, for choosing a layout/theme and exporting PNG or SVG.
    - **Direct export** (collapsed section below the buttons) downloads a quick PNG in the default style, or JSON in the dxrating, Mai-Score full, or Rhythm Record format, without leaving the popup.
 
-Nothing is sent anywhere in this flow except the one-time, five-minute Studio transfer token described below — your login and score data stay in the browser unless you explicitly export a file.
+The normal collection and Studio handoff stay inside the browser: only a random, one-time five-minute transfer token appears in the URL, never the score document. Scores leave the device only when you explicitly export/share a file or opt in to Google Drive history sync.
 
 ## Data and compatibility
 
@@ -64,7 +66,7 @@ npm run build
 
 ### Releases
 
-Pushing a tag matching `v*` (e.g. `v0.5.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset.
+Pushing a tag matching `v*` (e.g. `v0.7.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
 
 ### Automatic Studio handoff in v0.5.0
 
@@ -72,7 +74,7 @@ After collection, choose **Preview and customize online**. The extension stores 
 
 The handoff also embeds the equipped frame, icon, and resolved song covers as image data. This lets the browser preview and PNG export render authenticated DX NET assets without uploading them or depending on cross-origin image requests.
 
-Studio is public at `mai-score.milifix.com` and does not require an account. After a successful transfer or JSON import, the latest B50 and its images are stored in that browser's IndexedDB so the preview can be restored later. Style preferences are stored separately in localStorage. No server-side score database is used, and the saved local copy can be cleared from Studio.
+Studio is public at `mai-score.milifix.com` and does not require a Mai-Score account. After a successful transfer or JSON import, the latest B50 and its images are stored in that browser's IndexedDB so the preview can be restored later. Style preferences are stored separately in localStorage. No Mai-Score server-side score database is used, and the saved local copy can be cleared from Studio. In v0.7.0, an explicit Google connection can additionally synchronize history through Drive `appDataFolder`.
 
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
@@ -81,6 +83,14 @@ Studio is intentionally a compact preview tool: data controls, style controls, t
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 
 See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), and [Connection adapters](docs/connection-adapters.md) for the workflow, shared record contract, and security boundaries.
+
+### Optional Google Drive history sync in v0.7.0
+
+The v0.7.0 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
+
+Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio provides a separately confirmed **Delete cloud history** action that permanently deletes this file without touching local IndexedDB history; Disconnect remains an OAuth-only operation.
+
+Drive sync is **experimental in the v0.7.0 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
 
 ### “Failed to fetch” in v0.1.0
 

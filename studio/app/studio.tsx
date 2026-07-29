@@ -13,8 +13,13 @@ import {
 } from "../lib/local-store";
 import { diffHistory, type HistoryEntry } from "../lib/history";
 import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
-import { pullFromDrive, pushToDrive, rememberExtensionId, storedExtensionId } from "../lib/drive-client";
-import { SAMPLE_DATA } from "../lib/sample";
+import {
+  deleteFromDrive,
+  pullFromDrive,
+  pushToDrive,
+  rememberExtensionId,
+  storedExtensionId
+} from "../lib/drive-client";
 import {
   DEFAULT_OPTIONS,
   type LanguageId,
@@ -135,26 +140,28 @@ function normalizeB50(data: StudioData): StudioData {
 
 function receiveFromExtension(
   extensionId: string,
-  token: string
+  token: string,
+  language: LanguageId
 ): Promise<{ data: unknown; assets: StudioAssets; language: LanguageId }> {
+  const copy = studioCopy(language);
   const runtime = (window as unknown as { chrome?: { runtime?: ExternalRuntime } }).chrome?.runtime;
   if (!runtime?.sendMessage) {
-    return Promise.reject(new Error("Could not connect to Mai-Score. Update and reload the extension."));
+    return Promise.reject(new Error(copy.extensionUnavailable));
   }
   return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => reject(new Error("Transfer timed out. Open Studio again from the extension.")), 10000);
+    const timeout = window.setTimeout(() => reject(new Error(copy.transferTimedOut)), 10000);
     runtime.sendMessage(extensionId, { type: "MAI_SCORE_STUDIO_IMPORT", token }, (response) => {
       window.clearTimeout(timeout);
       const runtimeError = runtime.lastError?.message;
       if (runtimeError) {
-        reject(new Error("Could not connect to Mai-Score. Reload extension v0.5.0."));
+        reject(new Error(copy.extensionUnavailable));
       } else if (!response?.ok) {
-        reject(new Error(response?.error ?? "The extension returned no data."));
+        reject(new Error(response?.error ?? copy.transferEmpty));
       } else {
-        const language = response.language === "zh-Hant" || response.language === "ja"
+        const responseLanguage = response.language === "zh-Hant" || response.language === "ja"
           ? response.language
           : "en";
-        resolve({ data: response.data, assets: response.assets ?? { covers: {} }, language });
+        resolve({ data: response.data, assets: response.assets ?? { covers: {} }, language: responseLanguage });
       }
     });
   });
@@ -211,12 +218,12 @@ function safeName(value: string) {
 }
 
 export default function Studio() {
-  const [data, setData] = useState<StudioData>(SAMPLE_DATA);
+  const [data, setData] = useState<StudioData | null>(null);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
-  const [message, setMessage] = useState(studioCopy("en").demoMessage);
-  const [source, setSource] = useState(studioCopy("en").demoSource);
+  const [message, setMessage] = useState(studioCopy("en").emptyMessage);
+  const [source, setSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [origin, setOrigin] = useState("");
   // Resolved after mount: navigator is not available while server-rendering.
@@ -224,7 +231,8 @@ export default function Studio() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [canSync, setCanSync] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
+  const [deletingCloud, setDeletingCloud] = useState(false);
+  const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
 
@@ -258,11 +266,33 @@ export default function Studio() {
       setCanSync(true);
     }
 
+    const restoreSavedSnapshot = async (failure?: string): Promise<boolean> => {
+      try {
+        const stored = await loadStudioSnapshot();
+        if (!stored || cancelled) return false;
+        const normalized = normalizeB50(stored.data);
+        setData(normalized);
+        setAssets(stored.assets);
+        setSource(stored.source);
+        setGeneratedAt(stored.generatedAt);
+        setOptions((current) => ({ ...current, language: stored.language }));
+        const savedAt = new Date(stored.savedAt).toLocaleString();
+        const restoredCopy = studioCopy(stored.language);
+        setMessage(failure
+          ? restoredCopy.transferFailedRestored(failure, stored.data.player.name, savedAt)
+          : restoredCopy.restored(stored.data.player.name, savedAt));
+        return true;
+      } catch {
+        // IndexedDB can be unavailable in restricted browsing modes.
+        return false;
+      }
+    };
+
     void (async () => {
       if (extensionId && transfer) {
         setMessage(studioCopy(savedLanguage).receiving);
         try {
-          const received = await receiveFromExtension(extensionId, transfer);
+          const received = await receiveFromExtension(extensionId, transfer, savedLanguage);
           if (cancelled) return;
           const parsed = parseMaiScore(received.data);
           const timestamp = new Date().toISOString();
@@ -294,26 +324,14 @@ export default function Studio() {
           window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
         } catch (error) {
           if (cancelled) return;
-          setMessage(error instanceof Error ? error.message : String(error));
+          const failure = error instanceof Error ? error.message : String(error);
+          window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+          if (!await restoreSavedSnapshot(failure)) setMessage(failure);
         }
         return;
       }
 
-      try {
-        const stored = await loadStudioSnapshot();
-        if (!stored || cancelled) return;
-        setData(normalizeB50(stored.data));
-        setAssets(stored.assets);
-        setSource(stored.source);
-        setGeneratedAt(stored.generatedAt);
-        setOptions((current) => ({ ...current, language: stored.language }));
-        setMessage(studioCopy(stored.language).restored(
-          stored.data.player.name,
-          new Date(stored.savedAt).toLocaleString()
-        ));
-      } catch {
-        // IndexedDB can be unavailable in restricted browsing modes; demo mode remains usable.
-      }
+      await restoreSavedSnapshot();
     })();
 
     return () => {
@@ -326,16 +344,22 @@ export default function Studio() {
   }, [options]);
 
   const rendered = useMemo(
-    () => renderStudioSvg(data, options, origin, new Date(generatedAt), assets),
+    () => data ? renderStudioSvg(data, options, origin, new Date(generatedAt), assets) : null,
     [data, options, origin, generatedAt, assets]
   );
   const previewUrl = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}`,
-    [rendered.svg]
+    () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
+    [rendered]
   );
 
   const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) =>
     setOptions((current) => ({ ...current, [key]: value }));
+
+  function changeLanguage(next: LanguageId) {
+    set("language", next);
+    const nextCopy = studioCopy(next);
+    setMessage(data ? nextCopy.ready(data.player.name, data.records.length) : nextCopy.emptyMessage);
+  }
 
   async function loadFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -382,6 +406,7 @@ export default function Studio() {
   }
 
   async function renderExport(): Promise<{ blob: Blob; filename: string }> {
+    if (!data) throw new Error(copy.emptyMessage);
     const finalRendered = renderStudioSvg(data, options, origin, new Date(), assets);
     const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
     if (exportFormat === "svg") {
@@ -414,6 +439,10 @@ export default function Studio() {
   }
 
   async function exportImage() {
+    if (!data) {
+      setMessage(copy.emptyMessage);
+      return;
+    }
     setBusy(true);
     try {
       const { blob, filename } = await renderExport();
@@ -429,6 +458,10 @@ export default function Studio() {
   // On a phone this replaces download-then-find-it-in-the-gallery-then-upload
   // with a single hop into the target app.
   async function shareImage() {
+    if (!data) {
+      setMessage(copy.emptyMessage);
+      return;
+    }
     setBusy(true);
     try {
       const { blob, filename } = await renderExport();
@@ -500,6 +533,25 @@ export default function Studio() {
     }
   }
 
+  async function deleteCloudHistory() {
+    if (!window.confirm(copy.deleteCloudConfirm)) return;
+    setDeletingCloud(true);
+    try {
+      const outcome = await deleteFromDrive();
+      if (!outcome.ok) {
+        setMessage(outcome.reason === "needs-auth" ? copy.syncNeedsAuth
+          : outcome.reason === "no-extension" ? copy.syncNoExtension
+            : copy.syncFailed(outcome.error));
+        return;
+      }
+      setMessage(outcome.deleted ? copy.cloudDeleted : copy.cloudAlreadyEmpty);
+    } catch (error) {
+      setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+    } finally {
+      setDeletingCloud(false);
+    }
+  }
+
   async function copyPreset() {
     const url = new URL(window.location.href);
     url.hash = `preset=${encodeURIComponent(JSON.stringify(options))}`;
@@ -513,9 +565,9 @@ export default function Studio() {
       await clearStudioSnapshot();
       await clearStudioHistory();
       setHistory([]);
-      setData(SAMPLE_DATA);
+      setData(null);
       setAssets({ covers: {} });
-      setSource(copy.demoSource);
+      setSource("");
       setGeneratedAt(new Date().toISOString());
       setMessage(copy.localDataCleared);
     } catch (error) {
@@ -532,17 +584,11 @@ export default function Studio() {
         </div>
         <div className="data-actions">
           <div className="data-summary">
-            <span>{source}</span>
-            <strong>{data.player.name}</strong>
-            <small>Rating {data.player.rating} · B50 {data.b50Rating}</small>
+            <span>{source || copy.emptySource}</span>
+            <strong>{data?.player.name ?? "—"}</strong>
+            <small>{data ? `Rating ${data.player.rating} · B50 ${data.b50Rating}` : copy.emptyPreview}</small>
           </div>
           <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
-          <button className="secondary-button" onClick={() => {
-            setData(SAMPLE_DATA);
-            setAssets({ covers: {} });
-            setSource(copy.demoSource);
-            setMessage(copy.demoMessage);
-          }}>{copy.demo}</button>
           <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
         </div>
       </header>
@@ -557,7 +603,7 @@ export default function Studio() {
           </div>
 
           <div className="field-grid">
-            <label>{copy.language}<select value={options.language} onChange={(event) => set("language", event.target.value as StudioOptions["language"])}>
+            <label>{copy.language}<select value={options.language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
               <option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option>
             </select></label>
             <label>{copy.layout}<select value={options.layout} onChange={(event) => set("layout", event.target.value as StudioOptions["layout"])}>
@@ -593,13 +639,18 @@ export default function Studio() {
             </div>
           </details>
 
-          <button className="export-button" disabled={busy} onClick={exportImage}>
+          <button className="export-button" disabled={busy || !data} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
           {canSync && (
-            <button className="sync-button" disabled={syncing || busy} onClick={syncHistory}>
-              {syncing ? copy.syncing : copy.syncNow}
-            </button>
+            <>
+              <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
+                {syncing ? copy.syncing : copy.syncNow}
+              </button>
+              <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
+                {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
+              </button>
+            </>
           )}
           <details className="history-panel">
             <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
@@ -637,7 +688,7 @@ export default function Studio() {
               )}
           </details>
           {canShare && (
-            <button className="share-button" disabled={busy} onClick={shareImage}>
+            <button className="share-button" disabled={busy || !data} onClick={shareImage}>
               {copy.share}
             </button>
           )}
@@ -652,10 +703,12 @@ export default function Studio() {
         <section className="preview-panel">
           <div className="preview-toolbar">
             <strong>{copy.livePreview}</strong>
-            <span>{options.layout} · {rendered.width} × {rendered.height}</span>
+            <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
           </div>
           <div className={`preview-stage theme-${options.theme}`}>
-            <img src={previewUrl} alt={`${options.layout} B50 export preview`} />
+            {rendered
+              ? <img src={previewUrl} alt={`${options.layout} B50 export preview`} />
+              : <p className="empty-preview">{copy.emptyPreview}</p>}
           </div>
         </section>
       </section>
