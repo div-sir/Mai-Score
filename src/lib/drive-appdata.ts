@@ -68,6 +68,11 @@ export async function readAppDataFile(context: DriveContext, fileId: string): Pr
   return response.text();
 }
 
+/** Permanently deletes one file from the app-data folder. */
+export async function deleteAppDataFile(context: DriveContext, fileId: string): Promise<void> {
+  await driveFetch(context, `${DRIVE_FILES_API}/${encodeURIComponent(fileId)}`, { method: "DELETE" });
+}
+
 /**
  * Creates the file, or replaces its contents when `existingId` is given.
  * Create needs the metadata (to place it in appDataFolder) alongside the
