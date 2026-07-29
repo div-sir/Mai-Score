@@ -1,16 +1,16 @@
 # Google Drive real-service test plan
 
-Use this only with a Google account listed as a test user on the Mai-Score OAuth consent screen. The PR artifact is a development build, not a release candidate.
+Use this only with a Google account listed as a test user on the Mai-Score OAuth consent screen. Drive sync is experimental in v0.7.0 until this matrix and Google's production authorization requirements are complete.
 
-## Install the PR build
+## Install a test build
 
-1. Open PR #13's latest **CI** run and download the `mai-score-extension-preview` artifact.
+1. For pre-release validation, download the latest `mai-score-extension-preview` artifact from CI. For post-release validation, use the packaged v0.7.0 extension.
 2. Unzip it.
 3. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the unzipped folder.
 4. Confirm the extension ID is `bkdgjhjohcohclggjadimcamjcacfjpk`.
 5. Confirm `PREVIEW_BUILD.txt` names only the PR branch's exact Vercel preview origin.
 
-The CI artifact rewrites the bundled Studio origin and adds only that exact preview host to `externally_connectable`. The source manifest and public release remain restricted to `mai-score.milifix.com`.
+The CI artifact rewrites the bundled Studio origin and adds only that exact preview host to `externally_connectable`. Packaged releases remain restricted to `mai-score.milifix.com`.
 
 ## Test matrix
 
@@ -32,6 +32,6 @@ Record the actual time, Chrome version, Google account type (test user only — 
 | Reauthorize | Connect again, then Sync | Existing local history syncs normally with a fresh token |
 | Network/API failure | Test offline or with a deliberately interrupted request | UI reports a failure and does not clear local history |
 
-## Release gate
+## General-availability gate
 
-Do not mark v0.7.0 ready until all cases above pass against Google's real API, the updated privacy page is deployed, the Web Store extension ID has a production OAuth client, and Google has approved the sensitive `drive.appdata` scope.
+Do not remove Drive's experimental label or advertise it to general users until all cases above pass against Google's real API, the updated privacy page is deployed, the Web Store extension ID has a production OAuth client, and Google has approved the sensitive `drive.appdata` scope.
