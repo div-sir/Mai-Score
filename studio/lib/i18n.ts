@@ -2,9 +2,9 @@ import type { LanguageId } from "./types";
 
 export interface StudioCopy {
   subtitle: string;
-  demo: string;
-  demoSource: string;
-  demoMessage: string;
+  emptySource: string;
+  emptyMessage: string;
+  emptyPreview: string;
   loadJson: string;
   exportStyle: string;
   reset: string;
@@ -73,9 +73,9 @@ export interface StudioCopy {
 const COPY: Record<LanguageId, StudioCopy> = {
   en: {
     subtitle: "B50 image preview",
-    demo: "Demo",
-    demoSource: "Demo data",
-    demoMessage: "Showing demo data. Import from the extension or load a full JSON file.",
+    emptySource: "No data",
+    emptyMessage: "No B50 loaded. Open Studio from Mai-Score or load a full JSON file.",
+    emptyPreview: "Load B50 data to preview an export.",
     loadJson: "Load JSON",
     exportStyle: "Export style",
     reset: "Reset",
@@ -143,9 +143,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
   },
   "zh-Hant": {
     subtitle: "B50 圖片預覽",
-    demo: "示範",
-    demoSource: "示範資料",
-    demoMessage: "目前使用示範資料。可從擴充功能直接帶入，或載入完整 JSON。",
+    emptySource: "尚無資料",
+    emptyMessage: "尚未載入 B50。請從 Mai-Score 開啟 Studio，或載入完整 JSON。",
+    emptyPreview: "載入 B50 資料後即可預覽匯出圖片。",
     loadJson: "載入 JSON",
     exportStyle: "匯出樣式",
     reset: "重設",
@@ -213,9 +213,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
   },
   ja: {
     subtitle: "B50 画像プレビュー",
-    demo: "デモ",
-    demoSource: "デモデータ",
-    demoMessage: "デモデータを表示中です。拡張機能または完全 JSON から読み込めます。",
+    emptySource: "データなし",
+    emptyMessage: "B50 はまだ読み込まれていません。Mai-Score から Studio を開くか、完全 JSON を読み込んでください。",
+    emptyPreview: "B50 データを読み込むと書き出し画像をプレビューできます。",
     loadJson: "JSON を読み込む",
     exportStyle: "書き出しスタイル",
     reset: "リセット",
