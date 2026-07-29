@@ -77,11 +77,14 @@ const authDeps: AuthDeps = {
   clearLastError: () => { void chrome.runtime.lastError; }
 };
 
-async function refreshDriveState() {
-  const connected = await driveConnection(authDeps) === "connected";
+function renderDriveState(connected: boolean) {
   $("drive-state").textContent = t(connected ? "driveConnected" : "driveDisconnected");
   driveConnectButton.hidden = connected;
   driveDisconnectButton.hidden = !connected;
+}
+
+async function refreshDriveState() {
+  renderDriveState(await driveConnection(authDeps) === "connected");
 }
 
 driveConnectButton.addEventListener("click", async () => {
@@ -102,11 +105,19 @@ driveConnectButton.addEventListener("click", async () => {
 
 driveDisconnectButton.addEventListener("click", async () => {
   driveDisconnectButton.disabled = true;
+  $("drive-state").textContent = t("driveDisconnecting");
   try {
     await disconnectDrive(authDeps);
+    renderDriveState(false);
+    setStatus(t("driveDisconnectedDone"), "ok");
+  } catch (error) {
+    // Local Identity state is cleared even when Google cannot be reached. Do
+    // not immediately request a new token here, which would make Disconnect
+    // appear to have done nothing while Google's revocation is still pending.
+    renderDriveState(false);
+    setStatus(t("driveDisconnectFailed", error instanceof Error ? error.message : String(error)), "error");
   } finally {
     driveDisconnectButton.disabled = false;
-    await refreshDriveState();
   }
 });
 
