@@ -20,7 +20,6 @@ import {
   rememberExtensionId,
   storedExtensionId
 } from "../lib/drive-client";
-import { SAMPLE_DATA } from "../lib/sample";
 import {
   DEFAULT_OPTIONS,
   type LanguageId,
@@ -217,12 +216,12 @@ function safeName(value: string) {
 }
 
 export default function Studio() {
-  const [data, setData] = useState<StudioData>(SAMPLE_DATA);
+  const [data, setData] = useState<StudioData | null>(null);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
-  const [message, setMessage] = useState(studioCopy("en").demoMessage);
-  const [source, setSource] = useState(studioCopy("en").demoSource);
+  const [message, setMessage] = useState(studioCopy("en").emptyMessage);
+  const [source, setSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [origin, setOrigin] = useState("");
   // Resolved after mount: navigator is not available while server-rendering.
@@ -231,7 +230,7 @@ export default function Studio() {
   const [canSync, setCanSync] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [deletingCloud, setDeletingCloud] = useState(false);
-  const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
+  const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
 
@@ -319,7 +318,7 @@ export default function Studio() {
           new Date(stored.savedAt).toLocaleString()
         ));
       } catch {
-        // IndexedDB can be unavailable in restricted browsing modes; demo mode remains usable.
+        // IndexedDB can be unavailable in restricted browsing modes; the empty state remains usable.
       }
     })();
 
@@ -333,12 +332,12 @@ export default function Studio() {
   }, [options]);
 
   const rendered = useMemo(
-    () => renderStudioSvg(data, options, origin, new Date(generatedAt), assets),
+    () => data ? renderStudioSvg(data, options, origin, new Date(generatedAt), assets) : null,
     [data, options, origin, generatedAt, assets]
   );
   const previewUrl = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}`,
-    [rendered.svg]
+    () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
+    [rendered]
   );
 
   const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) =>
@@ -389,6 +388,7 @@ export default function Studio() {
   }
 
   async function renderExport(): Promise<{ blob: Blob; filename: string }> {
+    if (!data) throw new Error(copy.emptyMessage);
     const finalRendered = renderStudioSvg(data, options, origin, new Date(), assets);
     const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
     if (exportFormat === "svg") {
@@ -421,6 +421,10 @@ export default function Studio() {
   }
 
   async function exportImage() {
+    if (!data) {
+      setMessage(copy.emptyMessage);
+      return;
+    }
     setBusy(true);
     try {
       const { blob, filename } = await renderExport();
@@ -436,6 +440,10 @@ export default function Studio() {
   // On a phone this replaces download-then-find-it-in-the-gallery-then-upload
   // with a single hop into the target app.
   async function shareImage() {
+    if (!data) {
+      setMessage(copy.emptyMessage);
+      return;
+    }
     setBusy(true);
     try {
       const { blob, filename } = await renderExport();
@@ -539,9 +547,9 @@ export default function Studio() {
       await clearStudioSnapshot();
       await clearStudioHistory();
       setHistory([]);
-      setData(SAMPLE_DATA);
+      setData(null);
       setAssets({ covers: {} });
-      setSource(copy.demoSource);
+      setSource("");
       setGeneratedAt(new Date().toISOString());
       setMessage(copy.localDataCleared);
     } catch (error) {
@@ -558,17 +566,11 @@ export default function Studio() {
         </div>
         <div className="data-actions">
           <div className="data-summary">
-            <span>{source}</span>
-            <strong>{data.player.name}</strong>
-            <small>Rating {data.player.rating} · B50 {data.b50Rating}</small>
+            <span>{source || copy.emptySource}</span>
+            <strong>{data?.player.name ?? "—"}</strong>
+            <small>{data ? `Rating ${data.player.rating} · B50 ${data.b50Rating}` : copy.emptyPreview}</small>
           </div>
           <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
-          <button className="secondary-button" onClick={() => {
-            setData(SAMPLE_DATA);
-            setAssets({ covers: {} });
-            setSource(copy.demoSource);
-            setMessage(copy.demoMessage);
-          }}>{copy.demo}</button>
           <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
         </div>
       </header>
@@ -619,7 +621,7 @@ export default function Studio() {
             </div>
           </details>
 
-          <button className="export-button" disabled={busy} onClick={exportImage}>
+          <button className="export-button" disabled={busy || !data} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
           {canSync && (
@@ -668,7 +670,7 @@ export default function Studio() {
               )}
           </details>
           {canShare && (
-            <button className="share-button" disabled={busy} onClick={shareImage}>
+            <button className="share-button" disabled={busy || !data} onClick={shareImage}>
               {copy.share}
             </button>
           )}
@@ -683,10 +685,12 @@ export default function Studio() {
         <section className="preview-panel">
           <div className="preview-toolbar">
             <strong>{copy.livePreview}</strong>
-            <span>{options.layout} · {rendered.width} × {rendered.height}</span>
+            <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
           </div>
           <div className={`preview-stage theme-${options.theme}`}>
-            <img src={previewUrl} alt={`${options.layout} B50 export preview`} />
+            {rendered
+              ? <img src={previewUrl} alt={`${options.layout} B50 export preview`} />
+              : <p className="empty-preview">{copy.emptyPreview}</p>}
           </div>
         </section>
       </section>
