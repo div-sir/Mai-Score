@@ -140,9 +140,11 @@ export default function Privacy() {
           Use <strong>Clear local data</strong> in Studio to delete local snapshots and history,
           and uninstall the extension to remove its stored preferences. Choosing
           <strong>Disconnect Google Drive</strong> revokes the extension&rsquo;s grant and
-          clears Chrome&rsquo;s cached token. It does not currently delete a history file that
-          was already written to Drive app data. Because nothing is kept on Mai-Score servers,
-          there is no Mai-Score account or server-side score database to delete.
+          clears Chrome&rsquo;s cached token; it does not silently delete data. Use the separate
+          <strong>Delete cloud history</strong> action in Studio to permanently delete the
+          Mai-Score history file from Drive app data. That action does not delete local browser
+          history. Because nothing is kept on Mai-Score servers, there is no Mai-Score account
+          or server-side score database to delete.
         </p>
       </section>
 
