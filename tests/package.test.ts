@@ -1,7 +1,17 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { CONNECTIONS } from "../src/lib/connections";
+
+// Chrome derives an unpacked extension's ID from the SHA-256 of this DER
+// public key, mapping each hex nibble to a-p. Pinned so Load-unpacked keeps
+// producing the same ID (needed for the OAuth client registered against it)
+// instead of one that depends on the machine's checkout path.
+function extensionIdFromKey(base64Key: string): string {
+  const digest = createHash("sha256").update(Buffer.from(base64Key, "base64")).digest("hex");
+  return [...digest.slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join("");
+}
 
 describe("extension package", () => {
   it("registers the background resolver", async () => {
@@ -13,6 +23,12 @@ describe("extension package", () => {
       "https://mai-score.milifix.com/*"
     ]);
     expect(manifest.web_accessible_resources).toBeUndefined();
+  });
+
+  it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    expect(typeof manifest.key).toBe("string");
+    expect(extensionIdFromKey(manifest.key)).toBe("bkdgjhjohcohclggjadimcamjcacfjpk");
   });
 
   it("declares PNG icons at every size the Web Store requires", async () => {
