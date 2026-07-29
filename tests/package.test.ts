@@ -74,6 +74,23 @@ describe("extension package", () => {
     }
   });
 
+  it("grants host permissions for every Google endpoint the code calls", async () => {
+    // Without these, MV3 treats the Drive and revoke calls as ordinary
+    // cross-origin requests and CORS can block them — the whole sync feature
+    // fails at runtime while every unit test still passes.
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    const [{ DRIVE_FILES_API, DRIVE_UPLOAD_API }, { REVOKE_ENDPOINT }] = await Promise.all([
+      import("../src/lib/drive-appdata"),
+      import("../src/lib/drive-auth")
+    ]);
+
+    for (const endpoint of [DRIVE_FILES_API, DRIVE_UPLOAD_API, REVOKE_ENDPOINT]) {
+      const origin = new URL(endpoint).origin;
+      const covered = (manifest.host_permissions as string[]).some((pattern) => pattern.startsWith(`${origin}/`));
+      expect(covered, `${origin} is fetched but not in host_permissions`).toBe(true);
+    }
+  });
+
   it("contains a valid international chart database", async () => {
     const compressed = await readFile("public/data/sheets.json.gz");
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));

@@ -31,7 +31,9 @@
   "host_permissions": [
     "https://maimaidx-eng.com/maimai-mobile/*",
     "https://maimaidx.jp/maimai-mobile/*",
-    "https://shama.dxrating.net/images/cover/v2/*"
+    "https://shama.dxrating.net/images/cover/v2/*",
+    "https://www.googleapis.com/*",
+    "https://oauth2.googleapis.com/*"
   ],
   "externally_connectable": {
     "matches": ["https://mai-score.milifix.com/*"]
