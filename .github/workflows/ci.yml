@@ -28,6 +28,18 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run verify
+      - name: Prepare exact-origin preview build
+        run: node scripts/prepare-preview-build.mjs https://mai-score-git-agent-align-v0-7-docs-soliliums-projects.vercel.app
+      - name: Package preview extension
+        run: |
+          cd dist
+          zip -r ../mai-score-extension-preview.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mai-score-extension-preview
+          path: mai-score-extension-preview.zip
+          if-no-files-found: error
+          retention-days: 14
 
   studio:
     name: Studio
