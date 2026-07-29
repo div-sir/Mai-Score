@@ -158,7 +158,7 @@ tracking.
 ### 2. Finish the Drive story before shipping it
 
 - The source privacy policy and store permission documentation were updated in the v0.7.0 documentation-alignment change. Confirm those pages are actually deployed before distributing a Drive-enabled build.
-- Add a user-facing way to delete the synced history file. Disconnect currently revokes the grant and clears Chrome's cached token, but does not delete an existing `appDataFolder` copy.
+- Studio now has a separately confirmed **Delete cloud history** action. It deletes only the Drive `appDataFolder` history file and leaves local IndexedDB history intact; Disconnect remains an OAuth-only operation. Verify this destructive path against the real Drive API before release.
 - `drive.appdata` is a Google-classified sensitive scope. Publishing to users
   beyond the Cloud Console test-user list requires OAuth verification: the
   privacy policy URL, a demo video, and a review that can take weeks.
