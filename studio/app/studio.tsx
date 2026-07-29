@@ -140,26 +140,28 @@ function normalizeB50(data: StudioData): StudioData {
 
 function receiveFromExtension(
   extensionId: string,
-  token: string
+  token: string,
+  language: LanguageId
 ): Promise<{ data: unknown; assets: StudioAssets; language: LanguageId }> {
+  const copy = studioCopy(language);
   const runtime = (window as unknown as { chrome?: { runtime?: ExternalRuntime } }).chrome?.runtime;
   if (!runtime?.sendMessage) {
-    return Promise.reject(new Error("Could not connect to Mai-Score. Update and reload the extension."));
+    return Promise.reject(new Error(copy.extensionUnavailable));
   }
   return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => reject(new Error("Transfer timed out. Open Studio again from the extension.")), 10000);
+    const timeout = window.setTimeout(() => reject(new Error(copy.transferTimedOut)), 10000);
     runtime.sendMessage(extensionId, { type: "MAI_SCORE_STUDIO_IMPORT", token }, (response) => {
       window.clearTimeout(timeout);
       const runtimeError = runtime.lastError?.message;
       if (runtimeError) {
-        reject(new Error("Could not connect to Mai-Score. Reload extension v0.5.0."));
+        reject(new Error(copy.extensionUnavailable));
       } else if (!response?.ok) {
-        reject(new Error(response?.error ?? "The extension returned no data."));
+        reject(new Error(response?.error ?? copy.transferEmpty));
       } else {
-        const language = response.language === "zh-Hant" || response.language === "ja"
+        const responseLanguage = response.language === "zh-Hant" || response.language === "ja"
           ? response.language
           : "en";
-        resolve({ data: response.data, assets: response.assets ?? { covers: {} }, language });
+        resolve({ data: response.data, assets: response.assets ?? { covers: {} }, language: responseLanguage });
       }
     });
   });
@@ -264,11 +266,33 @@ export default function Studio() {
       setCanSync(true);
     }
 
+    const restoreSavedSnapshot = async (failure?: string): Promise<boolean> => {
+      try {
+        const stored = await loadStudioSnapshot();
+        if (!stored || cancelled) return false;
+        const normalized = normalizeB50(stored.data);
+        setData(normalized);
+        setAssets(stored.assets);
+        setSource(stored.source);
+        setGeneratedAt(stored.generatedAt);
+        setOptions((current) => ({ ...current, language: stored.language }));
+        const savedAt = new Date(stored.savedAt).toLocaleString();
+        const restoredCopy = studioCopy(stored.language);
+        setMessage(failure
+          ? restoredCopy.transferFailedRestored(failure, stored.data.player.name, savedAt)
+          : restoredCopy.restored(stored.data.player.name, savedAt));
+        return true;
+      } catch {
+        // IndexedDB can be unavailable in restricted browsing modes.
+        return false;
+      }
+    };
+
     void (async () => {
       if (extensionId && transfer) {
         setMessage(studioCopy(savedLanguage).receiving);
         try {
-          const received = await receiveFromExtension(extensionId, transfer);
+          const received = await receiveFromExtension(extensionId, transfer, savedLanguage);
           if (cancelled) return;
           const parsed = parseMaiScore(received.data);
           const timestamp = new Date().toISOString();
@@ -300,26 +324,14 @@ export default function Studio() {
           window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
         } catch (error) {
           if (cancelled) return;
-          setMessage(error instanceof Error ? error.message : String(error));
+          const failure = error instanceof Error ? error.message : String(error);
+          window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+          if (!await restoreSavedSnapshot(failure)) setMessage(failure);
         }
         return;
       }
 
-      try {
-        const stored = await loadStudioSnapshot();
-        if (!stored || cancelled) return;
-        setData(normalizeB50(stored.data));
-        setAssets(stored.assets);
-        setSource(stored.source);
-        setGeneratedAt(stored.generatedAt);
-        setOptions((current) => ({ ...current, language: stored.language }));
-        setMessage(studioCopy(stored.language).restored(
-          stored.data.player.name,
-          new Date(stored.savedAt).toLocaleString()
-        ));
-      } catch {
-        // IndexedDB can be unavailable in restricted browsing modes; the empty state remains usable.
-      }
+      await restoreSavedSnapshot();
     })();
 
     return () => {
@@ -342,6 +354,12 @@ export default function Studio() {
 
   const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) =>
     setOptions((current) => ({ ...current, [key]: value }));
+
+  function changeLanguage(next: LanguageId) {
+    set("language", next);
+    const nextCopy = studioCopy(next);
+    setMessage(data ? nextCopy.ready(data.player.name, data.records.length) : nextCopy.emptyMessage);
+  }
 
   async function loadFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -585,7 +603,7 @@ export default function Studio() {
           </div>
 
           <div className="field-grid">
-            <label>{copy.language}<select value={options.language} onChange={(event) => set("language", event.target.value as StudioOptions["language"])}>
+            <label>{copy.language}<select value={options.language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
               <option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option>
             </select></label>
             <label>{copy.layout}<select value={options.layout} onChange={(event) => set("layout", event.target.value as StudioOptions["layout"])}>
