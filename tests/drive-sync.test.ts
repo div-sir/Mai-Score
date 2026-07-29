@@ -48,6 +48,22 @@ describe("Drive sync messages", () => {
   });
 });
 
+describe("protocol parity with Studio", () => {
+  it("keeps Studio's restated version in step with the extension's", async () => {
+    // Studio cannot import from the extension package, so it restates the
+    // version. If they drift, every sync request is rejected by the guard
+    // and the feature silently stops working.
+    const { SYNC_PROTOCOL_VERSION } = await import("../studio/lib/drive-client");
+    expect(SYNC_PROTOCOL_VERSION).toBe(CONNECTION_PROTOCOL_VERSION);
+  });
+
+  it("accepts the exact message shapes Studio sends", async () => {
+    const { SYNC_PROTOCOL_VERSION } = await import("../studio/lib/drive-client");
+    expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PULL", protocolVersion: SYNC_PROTOCOL_VERSION })).toBe(true);
+    expect(isDriveSyncRequest({ type: "MAI_SCORE_DRIVE_PUSH", protocolVersion: SYNC_PROTOCOL_VERSION, payload: "{}" })).toBe(true);
+  });
+});
+
 const response = (body: unknown, text?: string, status = 200) => ({
   ok: status < 400,
   status,

@@ -8,9 +8,12 @@ import {
   clearStudioSnapshot,
   listStudioHistory,
   loadStudioSnapshot,
+  mergeStudioHistory,
   saveStudioSnapshot
 } from "../lib/local-store";
 import { diffHistory, type HistoryEntry } from "../lib/history";
+import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
+import { pullFromDrive, pushToDrive, rememberExtensionId, storedExtensionId } from "../lib/drive-client";
 import { SAMPLE_DATA } from "../lib/sample";
 import {
   DEFAULT_OPTIONS,
@@ -219,6 +222,8 @@ export default function Studio() {
   // Resolved after mount: navigator is not available while server-rendering.
   const [canShare, setCanShare] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [canSync, setCanSync] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [generatedAt, setGeneratedAt] = useState(SAMPLE_DATA.exportedAt);
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
@@ -229,6 +234,7 @@ export default function Studio() {
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
     listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
+    if (storedExtensionId()) setCanSync(true);
     const hash = new URLSearchParams(window.location.hash.slice(1));
     let savedLanguage: LanguageId = "en";
     try {
@@ -245,6 +251,13 @@ export default function Studio() {
 
     const extensionId = hash.get("extensionId");
     const transfer = hash.get("transfer");
+    // The handoff URL is the only place the extension's ID is ever given to
+    // Studio; sync happens long after, so keep it.
+    if (extensionId) {
+      rememberExtensionId(extensionId);
+      setCanSync(true);
+    }
+
     void (async () => {
       if (extensionId && transfer) {
         setMessage(studioCopy(savedLanguage).receiving);
@@ -436,6 +449,57 @@ export default function Studio() {
     }
   }
 
+  /**
+   * Pull, merge, push — in that order, and always all three. Pushing the
+   * merged result back is what lets a device that was offline contribute its
+   * own collections instead of being silently overwritten by whatever Drive
+   * already held.
+   */
+  async function syncHistory() {
+    setSyncing(true);
+    try {
+      const pulled = await pullFromDrive();
+      if (!pulled.ok) {
+        setMessage(pulled.reason === "needs-auth" ? copy.syncNeedsAuth
+          : pulled.reason === "no-extension" ? copy.syncNoExtension
+            : copy.syncFailed(pulled.error));
+        return;
+      }
+
+      let incoming: HistoryEntry[] = [];
+      let skipped = 0;
+      if (pulled.payload) {
+        try {
+          const parsed = parseSyncDocument(pulled.payload);
+          incoming = parsed.entries;
+          skipped = parsed.skipped;
+        } catch (error) {
+          setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+          return;
+        }
+      }
+
+      const merged = await mergeStudioHistory(incoming);
+      setHistory(merged);
+
+      const pushed = await pushToDrive(serializeSyncDocument(merged));
+      if (!pushed.ok) {
+        setMessage(pushed.reason === "needs-auth" ? copy.syncNeedsAuth
+          : pushed.reason === "no-extension" ? copy.syncNoExtension
+            : copy.syncFailed(pushed.error));
+        return;
+      }
+
+      setMessage(skipped > 0
+        ? `${copy.syncedAt(merged.length)} ${copy.syncSkipped(skipped)}`
+        : copy.syncedAt(merged.length));
+    } catch (error) {
+      setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   async function copyPreset() {
     const url = new URL(window.location.href);
     url.hash = `preset=${encodeURIComponent(JSON.stringify(options))}`;
@@ -532,6 +596,11 @@ export default function Studio() {
           <button className="export-button" disabled={busy} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
+          {canSync && (
+            <button className="sync-button" disabled={syncing || busy} onClick={syncHistory}>
+              {syncing ? copy.syncing : copy.syncNow}
+            </button>
+          )}
           <details className="history-panel">
             <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
             {history.length === 0
