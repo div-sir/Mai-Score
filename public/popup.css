@@ -12,6 +12,9 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .status.error{background:#3a1c2b;color:#ffb5c8}
 .status.ok{background:#12372f;color:#a9f5d6}
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+/* An author display rule outranks the hidden attribute's UA display:none, so
+   without this the empty summary card shows before the first collection. */
+.summary[hidden]{display:none}
 .summary div{background:#151a30;border:1px solid #252c4b;border-radius:10px;padding:9px}
 .summary span{display:block;color:#8f9abf;font-size:11px}
 .summary strong{font-size:16px}
@@ -42,4 +45,9 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:none}
 .export-picker{display:grid;grid-template-columns:1fr auto;gap:7px;padding:0 10px 10px}
 .export-picker select{min-width:0;padding:7px}
 .export-picker button{min-width:82px;background:#171e38}
+.drive-panel{margin-top:8px;border:1px solid #252c4b;border-radius:10px;background:#11162a}
+.drive-panel summary{padding:10px 12px;color:#9aa5c8;font-size:12px;cursor:pointer}
+.drive-state{margin:0 12px 8px;color:#8f9abf;font-size:11px;line-height:1.5}
+.drive-panel button{width:calc(100% - 24px);margin:0 12px 10px}
+.danger-button{border-color:#56303a;background:transparent;color:#d99aa8}
 .privacy{text-align:center;margin-top:14px}

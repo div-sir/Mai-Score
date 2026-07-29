@@ -43,6 +43,12 @@
           <button id="export" disabled data-i18n="download">Download</button>
         </div>
       </details>
+      <details class="drive-panel">
+        <summary data-i18n="driveHeading">Google Drive sync</summary>
+        <p class="drive-state" id="drive-state" data-i18n="driveDisconnected">Not connected. History stays on this device.</p>
+        <button id="drive-connect" data-i18n="driveConnect">Connect Google Drive</button>
+        <button id="drive-disconnect" class="danger-button" hidden data-i18n="driveDisconnect">Disconnect</button>
+      </details>
       <p class="privacy" data-i18n="privacy">Data is processed locally; Studio uses a single-use transfer token.</p>
     </main>
     <script src="popup.js"></script>

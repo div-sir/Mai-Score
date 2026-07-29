@@ -1,7 +1,17 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { CONNECTIONS } from "../src/lib/connections";
+
+// Chrome derives an unpacked extension's ID from the SHA-256 of this DER
+// public key, mapping each hex nibble to a-p. Pinned so Load-unpacked keeps
+// producing the same ID (needed for the OAuth client registered against it)
+// instead of one that depends on the machine's checkout path.
+function extensionIdFromKey(base64Key: string): string {
+  const digest = createHash("sha256").update(Buffer.from(base64Key, "base64")).digest("hex");
+  return [...digest.slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join("");
+}
 
 describe("extension package", () => {
   it("registers the background resolver", async () => {
@@ -13,6 +23,22 @@ describe("extension package", () => {
       "https://mai-score.milifix.com/*"
     ]);
     expect(manifest.web_accessible_resources).toBeUndefined();
+  });
+
+  it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    expect(typeof manifest.key).toBe("string");
+    expect(extensionIdFromKey(manifest.key)).toBe("bkdgjhjohcohclggjadimcamjcacfjpk");
+  });
+
+  it("requests only the Drive app-data scope, not full Drive access", async () => {
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    expect(manifest.permissions).toContain("identity");
+    expect(manifest.oauth2.client_id).toMatch(/^\d+-[0-9a-z]+\.apps\.googleusercontent\.com$/);
+    // drive.appdata is the least-privilege scope: it can only see files this
+    // app itself created, hidden from the user's own Drive view. The full
+    // "drive" or "drive.file" scopes are broader than history sync needs.
+    expect(manifest.oauth2.scopes).toEqual(["https://www.googleapis.com/auth/drive.appdata"]);
   });
 
   it("declares PNG icons at every size the Web Store requires", async () => {
@@ -45,6 +71,23 @@ describe("extension package", () => {
       const wildcard = `${prefix}*`;
       expect(manifest.host_permissions).toContain(wildcard);
       expect(manifest.content_scripts[0].matches).toContain(wildcard);
+    }
+  });
+
+  it("grants host permissions for every Google endpoint the code calls", async () => {
+    // Without these, MV3 treats the Drive and revoke calls as ordinary
+    // cross-origin requests and CORS can block them — the whole sync feature
+    // fails at runtime while every unit test still passes.
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    const [{ DRIVE_FILES_API, DRIVE_UPLOAD_API }, { REVOKE_ENDPOINT }] = await Promise.all([
+      import("../src/lib/drive-appdata"),
+      import("../src/lib/drive-auth")
+    ]);
+
+    for (const endpoint of [DRIVE_FILES_API, DRIVE_UPLOAD_API, REVOKE_ENDPOINT]) {
+      const origin = new URL(endpoint).origin;
+      const covered = (manifest.host_permissions as string[]).some((pattern) => pattern.startsWith(`${origin}/`));
+      expect(covered, `${origin} is fetched but not in host_permissions`).toBe(true);
     }
   });
 

@@ -11,6 +11,7 @@ import {
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
+import { connectDrive, disconnectDrive, driveConnection, type AuthDeps } from "./lib/drive-auth";
 import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
@@ -27,6 +28,8 @@ const exportButton = $<HTMLButtonElement>("export");
 const studioButton = $<HTMLButtonElement>("studio");
 const collectButton = $<HTMLButtonElement>("collect");
 const languageSelect = $<HTMLSelectElement>("language");
+const driveConnectButton = $<HTMLButtonElement>("drive-connect");
+const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
 let language: PopupLanguage = DEFAULT_LANGUAGE;
 
 function t(key: string, ...values: Array<string | number>) {
@@ -67,6 +70,45 @@ function applyRatingBadge(rating: number) {
   const stars = document.getElementById("official-rating-stars");
   if (stars) stars.textContent = "★".repeat(ratingStars(rating));
 }
+
+const authDeps: AuthDeps = {
+  identity: chrome.identity,
+  fetch: globalThis.fetch,
+  clearLastError: () => { void chrome.runtime.lastError; }
+};
+
+async function refreshDriveState() {
+  const connected = await driveConnection(authDeps) === "connected";
+  $("drive-state").textContent = t(connected ? "driveConnected" : "driveDisconnected");
+  driveConnectButton.hidden = connected;
+  driveDisconnectButton.hidden = !connected;
+}
+
+driveConnectButton.addEventListener("click", async () => {
+  driveConnectButton.disabled = true;
+  $("drive-state").textContent = t("driveConnecting");
+  try {
+    const outcome = await connectDrive(authDeps);
+    // Cancelling is a choice, not a failure — say so plainly and leave the
+    // panel in its disconnected state rather than showing an error.
+    if (!outcome.ok) setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
+  } catch (error) {
+    setStatus(t("driveFailed", error instanceof Error ? error.message : String(error)), "error");
+  } finally {
+    driveConnectButton.disabled = false;
+    await refreshDriveState();
+  }
+});
+
+driveDisconnectButton.addEventListener("click", async () => {
+  driveDisconnectButton.disabled = true;
+  try {
+    await disconnectDrive(authDeps);
+  } finally {
+    driveDisconnectButton.disabled = false;
+    await refreshDriveState();
+  }
+});
 
 function downloadText(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -303,3 +345,6 @@ languageSelect.addEventListener("change", () => {
 });
 
 void initializeLanguage();
+// Never interactive on open: the panel reflects existing state, and consent
+// is only ever raised by the user pressing Connect.
+void refreshDriveState();

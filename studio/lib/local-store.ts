@@ -1,4 +1,5 @@
 import { type HistoryEntry, sortHistory, toHistoryEntry } from "./history";
+import { mergeHistories } from "./history-sync";
 import type { LanguageId, StudioAssets, StudioData } from "./types";
 
 const DB_NAME = "mai-score-studio";
@@ -103,6 +104,31 @@ export async function listStudioHistory(): Promise<HistoryEntry[]> {
     });
     await complete(transaction);
     return sortHistory(result);
+  } finally {
+    database.close();
+  }
+}
+
+/**
+ * Folds incoming entries into the local history and returns the result.
+ * Read and write share one transaction so a collection saved mid-merge
+ * cannot be silently overwritten by a stale snapshot of the store.
+ */
+export async function mergeStudioHistory(incoming: readonly HistoryEntry[]): Promise<HistoryEntry[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(HISTORY_STORE, "readwrite");
+    const store = transaction.objectStore(HISTORY_STORE);
+    const request = store.getAll();
+    const existing = await new Promise<HistoryEntry[]>((resolve, reject) => {
+      request.onsuccess = () => resolve((request.result as HistoryEntry[]) ?? []);
+      request.onerror = () => reject(request.error ?? new Error("Could not read local history."));
+    });
+
+    const merged = mergeHistories(existing, incoming);
+    for (const entry of merged) store.put(entry);
+    await complete(transaction);
+    return merged;
   } finally {
     database.close();
   }

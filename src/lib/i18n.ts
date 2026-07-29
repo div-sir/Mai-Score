@@ -35,6 +35,14 @@ const COPY: Record<PopupLanguage, Copy> = {
     unmatched: (label, count) => `${label}: ${count} charts could not be matched.`,
     unexpectedTargetCounts: (b15, b35) => `Expected 15 new and 35 old rating targets, found ${b15} and ${b35}. DX NET may have changed its page layout.`,
     resolverNoResponse: "The chart database service did not respond. Please reload the extension.",
+    driveHeading: "Google Drive sync",
+    driveConnect: "Connect Google Drive",
+    driveDisconnect: "Disconnect",
+    driveConnected: "Connected. Sync your history from Studio.",
+    driveDisconnected: "Not connected. History stays on this device.",
+    driveConnecting: "Waiting for Google…",
+    driveCancelled: "Connection cancelled.",
+    driveFailed: (error) => `Could not connect: ${error}`,
     ratingGap: (delta, unresolved) => unresolved
       ? `B50 is ${delta} vs the official rating — ${unresolved} chart(s) could not be matched, so they count as 0.`
       : `B50 is ${delta} vs the official rating. The local chart database may be out of date; run npm run sync-data.`,
@@ -79,6 +87,14 @@ const COPY: Record<PopupLanguage, Copy> = {
     unmatched: (label, count) => `${label}：有 ${count} 首歌無法比對。`,
     unexpectedTargetCounts: (b15, b35) => `預期新曲 15 首、舊曲 35 首，實際找到 ${b15} 首與 ${b35} 首。DX NET 的頁面版面可能已變更。`,
     resolverNoResponse: "譜面資料服務沒有回應，請重新載入擴充功能。",
+    driveHeading: "Google 雲端硬碟同步",
+    driveConnect: "連結 Google 雲端硬碟",
+    driveDisconnect: "取消連結",
+    driveConnected: "已連結，可在 Studio 同步歷史紀錄。",
+    driveDisconnected: "未連結，歷史紀錄只留在這台裝置。",
+    driveConnecting: "等待 Google 授權…",
+    driveCancelled: "已取消連結。",
+    driveFailed: (error) => `無法連結：${error}`,
     ratingGap: (delta, unresolved) => unresolved
       ? `B50 與官方 rating 相差 ${delta} —— 有 ${unresolved} 首無法比對，以 0 計算。`
       : `B50 與官方 rating 相差 ${delta}。本機譜面資料庫可能已過期，請執行 npm run sync-data。`,
@@ -123,6 +139,14 @@ const COPY: Record<PopupLanguage, Copy> = {
     unmatched: (label, count) => `${label}: ${count} 譜面を照合できませんでした。`,
     unexpectedTargetCounts: (b15, b35) => `新曲 15 件・旧曲 35 件を想定していましたが、${b15} 件・${b35} 件でした。DX NET のページ構成が変更された可能性があります。`,
     resolverNoResponse: "譜面データベースサービスから応答がありません。拡張機能を再読み込みしてください。",
+    driveHeading: "Google ドライブ同期",
+    driveConnect: "Google ドライブと連携",
+    driveDisconnect: "連携を解除",
+    driveConnected: "連携済みです。Studio から履歴を同期できます。",
+    driveDisconnected: "未連携です。履歴はこの端末にのみ保存されます。",
+    driveConnecting: "Google の認証を待っています…",
+    driveCancelled: "連携をキャンセルしました。",
+    driveFailed: (error) => `連携できませんでした：${error}`,
     ratingGap: (delta, unresolved) => unresolved
       ? `B50 と公式レートの差は ${delta} です。${unresolved} 譜面が照合できず 0 として計算されています。`
       : `B50 と公式レートの差は ${delta} です。ローカル譜面データベースが古い可能性があります（npm run sync-data）。`,

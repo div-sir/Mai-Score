@@ -37,6 +37,14 @@ export interface StudioCopy {
   share: string;
   shared: string;
   history: string;
+  syncHeading: string;
+  syncNow: string;
+  syncing: string;
+  syncedAt: (count: number) => string;
+  syncNeedsAuth: string;
+  syncNoExtension: string;
+  syncFailed: (error: string) => string;
+  syncSkipped: (count: number) => string;
   historyEmpty: string;
   historyEntered: (count: number) => string;
   historyLeft: (count: number) => string;
@@ -95,6 +103,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "Share image",
     shared: "Shared.",
     history: "History",
+    syncHeading: "Google Drive",
+    syncNow: "Sync history",
+    syncing: "Syncing…",
+    syncedAt: (count) => `Synced. ${count} collection(s) in history.`,
+    syncNeedsAuth: "Open the Mai-Score popup and allow Google Drive access, then sync again.",
+    syncNoExtension: "Open Studio from the Mai-Score extension once, so it can connect.",
+    syncFailed: (error) => `Sync failed: ${error}`,
+    syncSkipped: (count) => `${count} unreadable entr(ies) in the synced file were ignored.`,
     historyEmpty: "No history yet. Collect again later to see what changed.",
     historyEntered: (count) => `${count} new`,
     historyLeft: (count) => `${count} dropped`,
@@ -152,6 +168,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "分享圖片",
     shared: "已分享。",
     history: "歷史紀錄",
+    syncHeading: "Google 雲端硬碟",
+    syncNow: "同步歷史紀錄",
+    syncing: "同步中…",
+    syncedAt: (count) => `已同步，歷史共 ${count} 筆收集紀錄。`,
+    syncNeedsAuth: "請開啟 Mai-Score 彈出視窗並允許 Google 雲端硬碟存取，然後再同步一次。",
+    syncNoExtension: "請先從 Mai-Score 擴充功能開啟一次 Studio，才能建立連線。",
+    syncFailed: (error) => `同步失敗：${error}`,
+    syncSkipped: (count) => `同步檔案中有 ${count} 筆無法讀取的紀錄已略過。`,
     historyEmpty: "尚無歷史紀錄。之後再收集一次就能看到變化。",
     historyEntered: (count) => `新進 ${count}`,
     historyLeft: (count) => `掉出 ${count}`,
@@ -209,6 +233,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "画像を共有",
     shared: "共有しました。",
     history: "履歴",
+    syncHeading: "Google ドライブ",
+    syncNow: "履歴を同期",
+    syncing: "同期中…",
+    syncedAt: (count) => `同期しました。履歴は ${count} 件です。`,
+    syncNeedsAuth: "Mai-Score のポップアップを開いて Google ドライブへのアクセスを許可してから、もう一度同期してください。",
+    syncNoExtension: "先に Mai-Score 拡張機能から Studio を一度開いてください。",
+    syncFailed: (error) => `同期に失敗しました：${error}`,
+    syncSkipped: (count) => `同期ファイル内の読み取れない ${count} 件は無視しました。`,
     historyEmpty: "履歴はまだありません。次回の取得から変化を確認できます。",
     historyEntered: (count) => `新規 ${count}`,
     historyLeft: (count) => `圏外 ${count}`,
