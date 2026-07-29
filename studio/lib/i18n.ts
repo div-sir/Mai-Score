@@ -66,6 +66,11 @@ export interface StudioCopy {
   localDataCleared: string;
   localSaveFailed: string;
   receiving: string;
+  ready: (name: string, records: number) => string;
+  extensionUnavailable: string;
+  transferTimedOut: string;
+  transferEmpty: string;
+  transferFailedRestored: (error: string, name: string, savedAt: string) => string;
   downloadReady: (format: string) => string;
   styleCopied: string;
 }
@@ -101,8 +106,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     download: "Download",
     processing: "Processing…",
     copyStyle: "Copy style link",
-    clearLocalData: "Clear local B50 data",
-    clearConfirm: "Remove the saved B50 and images from this browser?",
+    clearLocalData: "Clear local B50 and history",
+    clearConfirm: "Remove the saved B50, images, and all local history from this browser?",
     privacy: "B50 data stays in this browser by default. Optional Drive sync stores history in your own Google account.",
     privacyLink: "Privacy policy",
     share: "Share image",
@@ -135,9 +140,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     transferred: (name, records, covers, profileAssets) =>
       `Loaded ${name}: ${records} B50 records, ${covers} jackets, and ${profileAssets}/2 profile images. Saved in this browser.`,
     restored: (name, savedAt) => `Restored ${name} from this browser · saved ${savedAt}.`,
-    localDataCleared: "Saved B50 data and images were removed from this browser.",
+    localDataCleared: "Saved B50 data, images, and local history were removed from this browser.",
     localSaveFailed: "The preview is ready, but this browser could not save it for later.",
     receiving: "Receiving B50 from the Mai-Score extension…",
+    ready: (name, records) => `${name}: ${records} B50 records are ready.`,
+    extensionUnavailable: "Could not connect to Mai-Score. Reload the latest extension.",
+    transferTimedOut: "Transfer timed out. Open Studio again from the extension.",
+    transferEmpty: "The extension returned no B50 data.",
+    transferFailedRestored: (error, name, savedAt) => `Could not receive the new B50 (${error}). Restored ${name} from this browser · saved ${savedAt}.`,
     downloadReady: (format) => `${format} is ready to download.`,
     styleCopied: "Style link copied. It does not include player or score data."
   },
@@ -171,8 +181,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     download: "下載",
     processing: "處理中…",
     copyStyle: "複製目前樣式連結",
-    clearLocalData: "清除本機 B50 資料",
-    clearConfirm: "要從此瀏覽器移除已儲存的 B50 與圖片嗎？",
+    clearLocalData: "清除本機 B50 與歷史紀錄",
+    clearConfirm: "要從此瀏覽器移除已儲存的 B50、圖片與所有本機歷史紀錄嗎？",
     privacy: "B50 預設只留在此瀏覽器；啟用同步後，歷史紀錄會存入你自己的 Google 帳號。",
     privacyLink: "隱私權政策",
     share: "分享圖片",
@@ -205,9 +215,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     transferred: (name, records, covers, profileAssets) =>
       `已載入 ${name}：${records} 筆 B50、${covers} 張封面與 ${profileAssets}/2 項玩家圖片；已儲存在此瀏覽器。`,
     restored: (name, savedAt) => `已從此瀏覽器還原 ${name} · 儲存時間 ${savedAt}。`,
-    localDataCleared: "已從此瀏覽器清除 B50 與圖片。",
+    localDataCleared: "已從此瀏覽器清除 B50、圖片與本機歷史紀錄。",
     localSaveFailed: "預覽已完成，但此瀏覽器無法保留資料供下次使用。",
     receiving: "正在從 Mai-Score 擴充功能接收 B50…",
+    ready: (name, records) => `${name}：${records} 筆 B50 已可使用。`,
+    extensionUnavailable: "無法連接 Mai-Score，請重新載入最新版擴充功能。",
+    transferTimedOut: "資料傳輸逾時，請回到擴充功能重新開啟 Studio。",
+    transferEmpty: "擴充功能沒有傳回 B50 資料。",
+    transferFailedRestored: (error, name, savedAt) => `無法接收新的 B50（${error}）。已從此瀏覽器還原 ${name} · 儲存時間 ${savedAt}。`,
     downloadReady: (format) => `${format} 已準備下載。`,
     styleCopied: "樣式連結已複製；不包含玩家或成績資料。"
   },
@@ -241,8 +256,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     download: "ダウンロード",
     processing: "処理中…",
     copyStyle: "スタイルリンクをコピー",
-    clearLocalData: "ローカル B50 データを消去",
-    clearConfirm: "このブラウザに保存した B50 と画像を削除しますか？",
+    clearLocalData: "ローカル B50 と履歴を消去",
+    clearConfirm: "このブラウザに保存した B50、画像、すべてのローカル履歴を削除しますか？",
     privacy: "B50 は通常このブラウザ内に保存されます。同期を有効にすると、履歴は自分の Google アカウントに保存されます。",
     privacyLink: "プライバシーポリシー",
     share: "画像を共有",
@@ -275,9 +290,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     transferred: (name, records, covers, profileAssets) =>
       `${name}: B50 ${records} 件、ジャケット ${covers} 枚、プロフィール画像 ${profileAssets}/2 を読み込み、このブラウザに保存しました。`,
     restored: (name, savedAt) => `${name} をこのブラウザから復元しました · 保存日時 ${savedAt}。`,
-    localDataCleared: "このブラウザから B50 と画像を削除しました。",
+    localDataCleared: "このブラウザから B50、画像、ローカル履歴を削除しました。",
     localSaveFailed: "プレビューは利用できますが、このブラウザに保存できませんでした。",
     receiving: "Mai-Score 拡張機能から B50 を受信中…",
+    ready: (name, records) => `${name}: B50 ${records} 件を利用できます。`,
+    extensionUnavailable: "Mai-Score に接続できません。最新版の拡張機能を再読み込みしてください。",
+    transferTimedOut: "転送がタイムアウトしました。拡張機能から Studio をもう一度開いてください。",
+    transferEmpty: "拡張機能から B50 データが返されませんでした。",
+    transferFailedRestored: (error, name, savedAt) => `新しい B50 を受信できませんでした（${error}）。${name} をこのブラウザから復元しました · 保存日時 ${savedAt}。`,
     downloadReady: (format) => `${format} のダウンロード準備が完了しました。`,
     styleCopied: "スタイルリンクをコピーしました。プレイヤー・スコアデータは含まれません。"
   }
