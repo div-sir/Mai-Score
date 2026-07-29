@@ -66,7 +66,7 @@ npm run build
 
 ### Releases
 
-Pushing a tag matching `v*` (e.g. `v0.5.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset.
+Pushing a tag matching `v*` (e.g. `v0.7.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
 
 ### Automatic Studio handoff in v0.5.0
 
