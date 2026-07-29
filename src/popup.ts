@@ -11,7 +11,13 @@ import {
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
-import { connectDrive, disconnectDrive, driveConnection, type AuthDeps } from "./lib/drive-auth";
+import {
+  DRIVE_ENABLED_STORAGE_KEY,
+  connectDrive,
+  disconnectDrive,
+  driveConnection,
+  type AuthDeps
+} from "./lib/drive-auth";
 import {
   STUDIO_TRANSFER_TTL_MS,
   STUDIO_URL,
@@ -84,6 +90,11 @@ function renderDriveState(connected: boolean) {
 }
 
 async function refreshDriveState() {
+  const stored = await chrome.storage.local.get(DRIVE_ENABLED_STORAGE_KEY);
+  if (stored[DRIVE_ENABLED_STORAGE_KEY] !== true) {
+    renderDriveState(false);
+    return;
+  }
   renderDriveState(await driveConnection(authDeps) === "connected");
 }
 
@@ -94,7 +105,11 @@ driveConnectButton.addEventListener("click", async () => {
     const outcome = await connectDrive(authDeps);
     // Cancelling is a choice, not a failure — say so plainly and leave the
     // panel in its disconnected state rather than showing an error.
-    if (!outcome.ok) setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
+    if (outcome.ok) {
+      await chrome.storage.local.set({ [DRIVE_ENABLED_STORAGE_KEY]: true });
+    } else {
+      setStatus(t(outcome.error === "cancelled" ? "driveCancelled" : "driveFailed", outcome.error));
+    }
   } catch (error) {
     setStatus(t("driveFailed", error instanceof Error ? error.message : String(error)), "error");
   } finally {
@@ -107,6 +122,9 @@ driveDisconnectButton.addEventListener("click", async () => {
   driveDisconnectButton.disabled = true;
   $("drive-state").textContent = t("driveDisconnecting");
   try {
+    // Disable Drive before touching remote authorization. This preference
+    // prevents Chrome from silently reissuing a token on the next popup open.
+    await chrome.storage.local.set({ [DRIVE_ENABLED_STORAGE_KEY]: false });
     await disconnectDrive(authDeps);
     renderDriveState(false);
     setStatus(t("driveDisconnectedDone"), "ok");
