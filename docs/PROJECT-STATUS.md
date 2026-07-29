@@ -108,7 +108,9 @@ sandbox without the real services.
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
 3. **Real Drive API behaviour.** Every Drive call is tested against a mocked
-   `fetch`. Nothing has hit Google's servers.
+   `fetch`. Nothing has hit Google's servers. Follow
+   [the real-service test plan](drive-real-api-test.md) with the exact-origin
+   CI preview artifact before release.
 4. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
