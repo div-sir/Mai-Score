@@ -23,7 +23,11 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["downloads", "storage"],
+  "permissions": ["downloads", "storage", "identity"],
+  "oauth2": {
+    "client_id": "827299294563-sd81spsq85psso68r00feav7ua2b9kpp.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/drive.appdata"]
+  },
   "host_permissions": [
     "https://maimaidx-eng.com/maimai-mobile/*",
     "https://maimaidx.jp/maimai-mobile/*",

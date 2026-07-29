@@ -31,6 +31,16 @@ describe("extension package", () => {
     expect(extensionIdFromKey(manifest.key)).toBe("bkdgjhjohcohclggjadimcamjcacfjpk");
   });
 
+  it("requests only the Drive app-data scope, not full Drive access", async () => {
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    expect(manifest.permissions).toContain("identity");
+    expect(manifest.oauth2.client_id).toMatch(/^\d+-[0-9a-z]+\.apps\.googleusercontent\.com$/);
+    // drive.appdata is the least-privilege scope: it can only see files this
+    // app itself created, hidden from the user's own Drive view. The full
+    // "drive" or "drive.file" scopes are broader than history sync needs.
+    expect(manifest.oauth2.scopes).toEqual(["https://www.googleapis.com/auth/drive.appdata"]);
+  });
+
   it("declares PNG icons at every size the Web Store requires", async () => {
     const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
     const sizes = ["16", "32", "48", "128"];
