@@ -2,6 +2,23 @@
 
 All notable changes to Mai-Score are documented here.
 
+## [0.7.1] — 2026-07-30
+
+### Changed
+
+- Studio now always shows a Google Drive card with explicit unavailable, disconnected, checking, and connected states.
+- **Connect Google Drive** in Studio opens an Extension-owned authorization window, preserving the `chrome.identity` user-gesture requirement without exposing OAuth tokens to the website.
+- Studio refreshes Drive state after the authorization window closes or the user returns to the page.
+- Sync, Disconnect, and Delete cloud history appear only after a confirmed connection.
+- Direct Studio visits use the pinned official Extension ID, so an installed Mai-Score build can be detected without a previous B50 handoff.
+- The account hint now clearly states that Chrome uses the current profile's Google account and that another account requires switching Chrome profiles before connecting.
+
+### Fixed
+
+- Added the missing Google authorization entry point to Studio.
+- Prevented Studio from presenting cloud actions before it has verified both the Extension bridge and the Drive grant.
+- Disconnect now remains visibly disconnected even if Google cannot confirm remote token revocation.
+
 ## [0.7.0] — 2026-07-29
 
 ### Added

@@ -17,7 +17,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .data-summary span{color:var(--muted);font-size:9px}
 .data-summary strong{max-width:240px;overflow:hidden;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
 .data-summary small{color:#768299;font-size:9px}
-.secondary-button,.load-button,.reset-button,.preset-button,.export-button,.danger-button,.share-button,.sync-button{border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#171e2d;color:var(--text)}
+.secondary-button,.load-button,.reset-button,.preset-button,.export-button,.danger-button,.share-button,.sync-button,.drive-connect-button{border:1px solid var(--line);border-radius:8px;padding:8px 11px;background:#171e2d;color:var(--text)}
 .load-button{border-color:transparent;background:var(--accent)}
 .status-line{display:flex;align-items:center;gap:8px;min-height:38px;padding:8px 24px;border-bottom:1px solid var(--line);background:#0d121e;color:#9ba6bb;font-size:11px}
 .status-line span{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px #57d9a366}
@@ -43,6 +43,16 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .export-button{border-color:transparent;background:#edf1f8;color:#101521;font-weight:750}
 .preset-button{margin-top:7px;color:#b4bfd1}
 .danger-button{width:100%;margin-top:7px;border-color:#56303a;background:transparent;color:#d99aa8}
+.drive-card{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:11px;background:#0e1421}
+.drive-card-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.drive-card-heading h2{margin:0;font-size:12px}
+.drive-card p{margin:8px 0;color:#8792a7;font-size:9px;line-height:1.45}
+.drive-badge{border:1px solid var(--line);border-radius:999px;padding:3px 7px;color:var(--muted);font-size:8px}
+.drive-badge.connected{border-color:#285546;color:var(--green)}
+.drive-badge.disconnected{border-color:#5a4730;color:#d4ad72}
+.drive-badge.unavailable{color:#778196}
+.drive-connect-button{width:100%;border-color:transparent;background:var(--accent);font-size:11px;font-weight:700}
+.drive-disconnect-button{width:100%;margin-top:7px;color:#c8d0de;font-size:11px}
 .privacy-note{margin:12px 2px 0;color:#717d93;font-size:9px;line-height:1.5}
 .preview-panel{display:flex;min-width:0;flex-direction:column;overflow:hidden}
 .preview-toolbar{display:flex;min-height:42px;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);font-size:11px}

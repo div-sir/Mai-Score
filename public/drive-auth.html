@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mai-Score · Google Drive</title>
+    <link rel="stylesheet" href="drive-auth.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="icons/icon.svg" alt="">
+        <div>
+          <h1 id="title">Connect Google Drive</h1>
+          <p>Mai-Score Studio</p>
+        </div>
+      </header>
+      <div id="status" class="status">Checking connection…</div>
+      <p id="description" class="description"></p>
+      <p id="account-hint" class="hint"></p>
+      <button id="connect" class="primary" hidden>Continue with Google</button>
+      <button id="close" class="secondary" hidden>Return to Studio</button>
+      <p id="privacy" class="privacy"></p>
+    </main>
+    <script src="drive-auth.js"></script>
+  </body>
+</html>

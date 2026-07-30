@@ -70,8 +70,9 @@ export default function Privacy() {
             and <strong>Clear local data</strong> in Studio deletes the local copy.
           </li>
           <li>
-            <strong>Optional Google Drive sync</strong> runs only after you choose to connect
-            Google. The extension requests the limited <code>drive.appdata</code> scope and
+            <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google
+            Drive in Studio and continue from the Extension-owned authorization window. The
+            extension requests the limited <code>drive.appdata</code> scope and
             stores one history document in the hidden app-data folder of your own Drive. Studio
             never receives your OAuth token, and the extension passes the history document
             without interpreting it. Google processes and stores this copy under your Google
@@ -139,7 +140,7 @@ export default function Privacy() {
         <p>
           Use <strong>Clear local data</strong> in Studio to delete local snapshots and history,
           and uninstall the extension to remove its stored preferences. Choosing
-          <strong>Disconnect Google Drive</strong> revokes the extension&rsquo;s grant and
+          <strong>Disconnect Google Drive</strong> in Studio revokes the extension&rsquo;s grant and
           clears Chrome&rsquo;s cached token; it does not silently delete data. Use the separate
           <strong>Delete cloud history</strong> action in Studio to permanently delete the
           Mai-Score history file from Drive app data. That action does not delete local browser

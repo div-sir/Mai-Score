@@ -1,7 +1,12 @@
 import { resolveScores } from "./lib/resolver";
 import { CONNECTIONS, CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
 import { isDriveSyncRequest, performDriveSync, type DriveSyncResponse } from "./lib/drive-sync";
-import { driveEnabled } from "./lib/drive-auth";
+import { driveEnabled, type AuthDeps } from "./lib/drive-auth";
+import {
+  isDriveBridgeRequest,
+  performDriveBridgeRequest,
+  type DriveBridgeResponse
+} from "./lib/drive-bridge";
 import {
   consumeStudioTransfer,
   isStudioImportRequest,
@@ -57,8 +62,26 @@ async function handleDriveSync(message: unknown): Promise<DriveSyncResponse> {
   return performDriveSync({ token, fetch: globalThis.fetch }, message);
 }
 
+const authDeps: AuthDeps = {
+  identity: chrome.identity,
+  fetch: globalThis.fetch,
+  clearLastError: () => { void chrome.runtime.lastError; }
+};
+
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   if (!isStudioSender(sender.url)) return;
+
+  if (isDriveBridgeRequest(message)) {
+    performDriveBridgeRequest({
+      auth: authDeps,
+      storage: chrome.storage.local
+    }, message).then(sendResponse).catch((error: unknown) => sendResponse({
+      ok: false,
+      reason: "error",
+      error: error instanceof Error ? error.message : String(error)
+    } satisfies DriveBridgeResponse));
+    return true;
+  }
 
   if (isDriveSyncRequest(message)) {
     handleDriveSync(message).then(sendResponse).catch((error: unknown) => sendResponse({

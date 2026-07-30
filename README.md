@@ -1,6 +1,8 @@
 # Mai-Score
 
 > The latest packaged release is **v0.7.0**. It adds customizable Studio exports, labeled New B15 / Old B35 regions, multilingual UI, local history, and optional experimental Google Drive history sync.
+>
+> The next patch version is **v0.7.1**, which adds the missing Studio Google Drive connection card and Extension-owned authorization window.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -31,7 +33,7 @@ Building from source instead? See [Development](#development).
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
-- Keeps scores local by default. If the player explicitly connects Google Drive, Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
+- Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 
 ## Usage
 
@@ -88,7 +90,7 @@ See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), 
 
 The v0.7.0 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
 
-Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio provides a separately confirmed **Delete cloud history** action that permanently deletes this file without touching local IndexedDB history; Disconnect remains an OAuth-only operation.
+Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio always shows the Drive connection state; **Connect Google Drive** opens an Extension-owned authorization window so the OAuth token never enters the website. **Sync history**, **Disconnect**, and the separately confirmed **Delete cloud history** actions appear only after the grant is confirmed. Deleting the cloud file does not touch local IndexedDB history; Disconnect remains an OAuth-only operation.
 
 Drive sync is **experimental in the v0.7.0 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
 

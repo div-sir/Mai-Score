@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvvNGQCVytkq01W4vr87nlhjqoAiCSlPK1Ar88P4fVfq851sZ0OqOtb01MomExKT+FzG4k7nAPFONUTU0CDhAmBdduvsfIv+j9jU4hmae5p5vjGfJCMRQgDM9w2GcclnT2HGf/OmAN3G0SeRG9iYiPmVAf9FUgQ5VNjS5rxLFSWB0K8gp3cU7vbAzl8mU5rdl8KHd1waoesBIl9M8GTsnu20H1H7bu72YTtB14CmXYzBHXyddOf2Q+gAOJ1+1FSE4YOtrn1fw/sNnrehC441g8ow/eRa7BLqw4J14uR/Z+XEd2UZI3r14ir39/TCn1HXUWnNODyxWnSHz58PCjxmBAwIDAQAB",
   "description": "Export maimai DX International B50 as customizable images or versioned JSON.",
   "icons": {
@@ -38,6 +38,12 @@
   "externally_connectable": {
     "matches": ["https://mai-score.milifix.com/*"]
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["drive-auth.html", "drive-auth.css", "drive-auth.js"],
+      "matches": ["https://mai-score.milifix.com/*"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": [

@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of the `v0.7.0` release prepared on July 29, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.0`.
+Accurate as of the `v0.7.1` Drive UI fix prepared on July 30, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.1`; the latest packaged release remains `v0.7.0` until this fix is merged and tagged.
 
 ## What this is
 
@@ -15,6 +15,13 @@ page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 ## Released in v0.7.0
 
 The packaged GitHub release is `v0.7.0` (the release workflow builds and attaches the extension zip from the matching tag). It includes the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and experimental Drive work described below.
+
+## Prepared for v0.7.1
+
+- Studio always renders a Drive card and uses the pinned official Extension ID when no prior handoff ID is stored.
+- Connect launches a web-accessible Extension authorization page; the actual interactive `chrome.identity` call remains inside the Extension origin.
+- Studio verifies the Drive grant before showing Sync, Disconnect, and Delete cloud history.
+- Returning focus to Studio refreshes the visible connection state.
 
 | Area | State |
 | --- | --- |
@@ -133,7 +140,10 @@ sandbox without the real services.
   - `manifest.json` host permissions vs the endpoints the code calls
 - **`manifest.json` has a `key` field** pinning the unpacked extension ID to
   `bkdgjhjohcohclggjadimcamjcacfjpk`, which the OAuth client is registered
-  against. Chrome ignores it for a Web Store build and assigns its own ID.
+  against. Studio uses the same ID as its direct-visit fallback. Chrome ignores
+  the key for a Web Store build and assigns its own ID, so update that fallback
+  when a store item ID is available; handoffs already remember a valid runtime
+  ID and override the fallback.
 - **`.summary[hidden]{display:none}`** in `popup.css` exists because an author
   `display:grid` rule outranks the `hidden` attribute. Do not remove it.
 

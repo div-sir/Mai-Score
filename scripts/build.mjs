@@ -6,7 +6,7 @@ await mkdir("dist", { recursive: true });
 await cp("public", "dist", { recursive: true });
 
 await build({
-  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts"],
+  entryPoints: ["src/background.ts", "src/content.ts", "src/popup.ts", "src/drive-auth.ts"],
   outdir: "dist",
   bundle: true,
   minify: true,
