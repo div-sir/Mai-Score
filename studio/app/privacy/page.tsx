@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "July 29, 2026";
+const UPDATED = "July 31, 2026";
 
 export default function Privacy() {
   return (
@@ -71,12 +71,14 @@ export default function Privacy() {
           </li>
           <li>
             <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google
-            Drive in Studio and continue from the Extension-owned authorization window. The
-            extension requests the limited <code>drive.appdata</code> scope and
-            stores one history document in the hidden app-data folder of your own Drive. Studio
-            never receives your OAuth token, and the extension passes the history document
-            without interpreting it. Google processes and stores this copy under your Google
-            account and its privacy terms.
+            Drive in Studio. On desktop, an already-authorized Mai-Score Extension can continue
+            to proxy the request. On mobile or another browser without the Extension, Studio uses
+            Google&rsquo;s account chooser and requests the same limited{" "}
+            <code>drive.appdata</code> scope directly. The short-lived web access token stays only
+            in the current page&rsquo;s memory and is not saved in IndexedDB, localStorage, or a
+            Mai-Score server. Both paths store one history document in the hidden app-data folder
+            of your own Drive. Google processes and stores this copy under your Google account
+            and its privacy terms.
           </li>
         </ul>
         <p>
@@ -118,7 +120,11 @@ export default function Privacy() {
           <li>We do not sell your data. History is transferred to Google only when you explicitly enable Drive sync.</li>
           <li>We do not use your data for advertising, profiling, or credit assessment.</li>
           <li>We do not use your data for anything unrelated to exporting your B50.</li>
-          <li>We do not run analytics or tracking scripts in the extension or in Studio.</li>
+          <li>
+            We do not run analytics or tracking scripts in the extension or in Studio. Studio
+            loads Google Identity Services only to open the account chooser when you request
+            Drive access.
+          </li>
         </ul>
       </section>
 
@@ -140,8 +146,8 @@ export default function Privacy() {
         <p>
           Use <strong>Clear local data</strong> in Studio to delete local snapshots and history,
           and uninstall the extension to remove its stored preferences. Choosing
-          <strong>Disconnect Google Drive</strong> in Studio revokes the extension&rsquo;s grant and
-          clears Chrome&rsquo;s cached token; it does not silently delete data. Use the separate
+          <strong>Disconnect Google Drive</strong> in Studio revokes the active web or Extension
+          grant and clears the local token; it does not silently delete data. Use the separate
           <strong>Delete cloud history</strong> action in Studio to permanently delete the
           Mai-Score history file from Drive app data. That action does not delete local browser
           history. Because nothing is kept on Mai-Score servers, there is no Mai-Score account
