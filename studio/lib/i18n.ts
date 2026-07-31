@@ -9,6 +9,9 @@ export interface StudioCopy {
   exportStyle: string;
   reset: string;
   language: string;
+  appearance: string;
+  dark: string;
+  light: string;
   layout: string;
   theme: string;
   timestamp: string;
@@ -23,6 +26,7 @@ export interface StudioCopy {
   breakdown: string;
   achievement: string;
   chartRating: string;
+  constant: string;
   level: string;
   rank: string;
   download: string;
@@ -98,6 +102,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     exportStyle: "Export style",
     reset: "Reset",
     language: "Language",
+    appearance: "Appearance",
+    dark: "Dark",
+    light: "Light",
     layout: "Layout",
     theme: "Theme",
     timestamp: "Timestamp",
@@ -112,6 +119,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
     chartRating: "Chart Rating",
+    constant: "Chart constant",
     level: "Chart level",
     rank: "B15 / B35 rank",
     download: "Download",
@@ -186,6 +194,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     exportStyle: "匯出樣式",
     reset: "重設",
     language: "語言",
+    appearance: "介面",
+    dark: "深色",
+    light: "淺色",
     layout: "排版",
     theme: "主題",
     timestamp: "時間戳記",
@@ -200,6 +211,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
     chartRating: "單曲 Rating",
+    constant: "譜面定數",
     level: "譜面等級",
     rank: "B15 / B35 排名",
     download: "下載",
@@ -274,6 +286,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     exportStyle: "書き出しスタイル",
     reset: "リセット",
     language: "言語",
+    appearance: "表示",
+    dark: "ダーク",
+    light: "ライト",
     layout: "レイアウト",
     theme: "テーマ",
     timestamp: "タイムスタンプ",
@@ -288,6 +303,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
     chartRating: "譜面 Rating",
+    constant: "譜面定数",
     level: "譜面レベル",
     rank: "B15 / B35 順位",
     download: "ダウンロード",

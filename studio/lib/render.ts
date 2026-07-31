@@ -131,7 +131,10 @@ export function renderStudioSvg(
     const meta = [
       record.type.toUpperCase(),
       record.difficulty.toUpperCase(),
-      ...(options.showLevel ? [record.displayedLevel] : [])
+      ...(options.showLevel ? [record.displayedLevel] : []),
+      ...(options.showConstant && Number.isFinite(record.internalLevelValue)
+        ? [`CONST ${Number(record.internalLevelValue).toFixed(1)}`]
+        : [])
     ].join(" · ");
     const maxChars = options.layout === "landscape" ? 21 : options.layout === "compact" ? 19 : 23;
     const color = difficulty[record.difficulty] ?? options.accent;
@@ -157,7 +160,7 @@ export function renderStudioSvg(
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.width}" height="${spec.height}" viewBox="0 0 ${spec.width} ${spec.height}">
       <style>text{font-family:Inter,ui-sans-serif,system-ui,"Noto Sans",sans-serif;fill:${palette.fg}}</style>
       <rect width="${spec.width}" height="${spec.height}" fill="${palette.bg}"/>
-      ${options.showFrame && frame ? `<image href="${frame}" x="0" y="0" width="${spec.width}" height="${spec.header + 48}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
+      ${options.showFrame && frame ? `<image href="${frame}" x="0" y="0" width="${spec.width}" height="${spec.startY - 58}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
       <rect x="${margin}" y="24" width="${panelW}" height="${spec.header - 10}" rx="28" fill="${palette.header}" opacity=".96" stroke="${alpha(options.accent, .28)}" stroke-width="2"/>
       <rect x="${margin}" y="24" width="10" height="${spec.header - 10}" rx="5" fill="${options.accent}"/>
       ${options.showIcon && icon ? `<image href="${icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
