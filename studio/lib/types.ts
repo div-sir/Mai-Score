@@ -15,6 +15,7 @@ export interface StudioOptions {
   showBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
+  showConstant: boolean;
   showLevel: boolean;
   showRank: boolean;
 }
@@ -26,6 +27,7 @@ export interface StudioRecord {
   displayedLevel: string;
   achievementRate: number;
   bucket: "b15" | "b35";
+  internalLevelValue?: number;
   chartRating?: number;
   imageName?: string;
 }
@@ -55,7 +57,7 @@ export interface StudioAssets {
 export const DEFAULT_OPTIONS: StudioOptions = {
   layout: "classic",
   theme: "night",
-  accent: "#7167ff",
+  accent: "#b89b72",
   watermark: "",
   timestamp: "datetime",
   showFrame: true,
@@ -64,6 +66,7 @@ export const DEFAULT_OPTIONS: StudioOptions = {
   showBreakdown: true,
   showAchievement: true,
   showChartRating: true,
+  showConstant: false,
   showLevel: true,
   showRank: true
 };

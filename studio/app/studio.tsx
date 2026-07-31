@@ -36,7 +36,18 @@ import {
 } from "../lib/types";
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
+const UI_THEME_KEY = "mai-score-studio-ui-theme";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
+type UiTheme = "dark" | "light";
+
+const ACCENT_PRESETS = [
+  { name: "Champagne", value: "#b89b72" },
+  { name: "Sage", value: "#789486" },
+  { name: "Slate", value: "#7489a6" },
+  { name: "Rose", value: "#aa7c82" },
+  { name: "Plum", value: "#8d7898" },
+  { name: "Copper", value: "#ad7654" }
+] as const;
 
 type ExtensionResponse =
   | { ok: true; data: unknown; assets?: StudioAssets; language?: LanguageId }
@@ -70,6 +81,9 @@ function parseMaiScore(input: unknown): StudioData {
           ? record.chart.difficulty
           : "master",
         displayedLevel: String(record.chart?.level ?? "?"),
+        internalLevelValue: Number.isFinite(Number(record.chart?.levelValue))
+          ? Number(record.chart.levelValue)
+          : undefined,
         achievementRate: Number(record.result?.achievementRate ?? 0),
         bucket: record.grouping?.bucket === "b15" ? "b15" : "b35",
         chartRating: Number(record.result?.rating?.value ?? 0),
@@ -108,7 +122,12 @@ function parseMaiScore(input: unknown): StudioData {
       iconUrl: player.iconUrl,
       frameUrl: player.frameUrl
     },
-    records: records as StudioRecord[],
+    records: (records as StudioRecord[]).map((record) => ({
+      ...record,
+      internalLevelValue: Number.isFinite(Number(record.internalLevelValue))
+        ? Number(record.internalLevelValue)
+        : undefined
+    })),
     b15Rating: Number(value.b15Rating ?? 0),
     b35Rating: Number(value.b35Rating ?? 0),
     b50Rating: Number(value.b50Rating ?? 0)
@@ -229,6 +248,7 @@ export default function Studio() {
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [language, setLanguage] = useState<LanguageId>("en");
+  const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -251,6 +271,7 @@ export default function Studio() {
   useEffect(() => {
     let cancelled = false;
     setOrigin(window.location.origin);
+    setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
     listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
@@ -367,6 +388,10 @@ export default function Studio() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...options, language }));
   }, [options, language]);
+
+  useEffect(() => {
+    localStorage.setItem(UI_THEME_KEY, uiTheme);
+  }, [uiTheme]);
 
   const rendered = useMemo(
     () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
@@ -718,7 +743,7 @@ export default function Studio() {
   }
 
   return (
-    <main className="studio-shell">
+    <main className="studio-shell" data-ui-theme={uiTheme}>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <header className="topbar">
         <div className="brand">
@@ -731,7 +756,62 @@ export default function Studio() {
             <strong>{data?.player.name ?? "—"}</strong>
             <small>{data ? `Rating ${data.player.rating} · B50 ${data.b50Rating}` : copy.emptyPreview}</small>
           </div>
-          <label className="language-picker">
+          <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading}>
+            <span className="drive-logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
+                <path d="M16.4 8.9 21 17h-5.2l-2.6-4.5z" />
+                <path d="m3 17 2.6-4.5h7.6l2.6 4.5z" />
+              </svg>
+            </span>
+            <span className="drive-state-label">
+              <i />
+              {driveState === "checking" ? copy.driveChecking
+                : driveState === "connected" ? copy.driveConnected
+                  : driveState === "disconnected" ? copy.driveDisconnected
+                    : copy.driveUnavailable}
+            </span>
+            {driveState === "connected" ? (
+              <>
+                <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
+                  {syncing ? copy.syncing : copy.syncNow}
+                </button>
+                <details className="drive-more">
+                  <summary aria-label={copy.driveOptions}>•••</summary>
+                  <div>
+                    <button
+                      className="secondary-button drive-disconnect-button"
+                      disabled={syncing || deletingCloud || disconnectingDrive || busy}
+                      onClick={disconnectDriveFromStudio}
+                    >
+                      {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
+                    </button>
+                    <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
+                      {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
+                    </button>
+                  </div>
+                </details>
+              </>
+            ) : (
+              <button
+                className="drive-connect-button"
+                disabled={busy || connectingDrive || driveState === "checking" || driveState === "unavailable"}
+                onClick={connectGoogleDriveFromStudio}
+              >
+                {connectingDrive ? copy.driveConnecting
+                  : driveState === "checking" ? copy.driveChecking
+                    : copy.driveConnect}
+              </button>
+            )}
+          </div>
+          <label className="compact-picker">
+            <span>{copy.appearance}</span>
+            <select value={uiTheme} onChange={(event) => setUiTheme(event.target.value as UiTheme)}>
+              <option value="dark">{copy.dark}</option>
+              <option value="light">{copy.light}</option>
+            </select>
+          </label>
+          <label className="compact-picker">
             <span>{copy.language}</span>
             <select value={language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
               <option value="en">English</option>
@@ -745,62 +825,6 @@ export default function Studio() {
       </header>
 
       <div className="status-line"><span />{message}</div>
-
-      <section className={`drive-strip ${driveState}`} aria-labelledby="drive-heading">
-        <div className="drive-identity">
-          <span className="drive-logo" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
-              <path d="M16.4 8.9 21 17h-5.2l-2.6-4.5z" />
-              <path d="m3 17 2.6-4.5h7.6l2.6 4.5z" />
-            </svg>
-          </span>
-          <div>
-            <h2 id="drive-heading">{copy.syncHeading}</h2>
-            <span className="drive-state-label">
-              <i />
-              {driveState === "checking" ? copy.driveChecking
-                : driveState === "connected" ? copy.driveConnected
-                  : driveState === "disconnected" ? copy.driveDisconnected
-                    : copy.driveUnavailable}
-            </span>
-          </div>
-        </div>
-        <div className="drive-actions">
-          {driveState === "connected" ? (
-            <>
-              <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
-                {syncing ? copy.syncing : copy.syncNow}
-              </button>
-              <details className="drive-more">
-                <summary aria-label={copy.driveOptions}>•••</summary>
-                <div>
-                  <button
-                    className="secondary-button drive-disconnect-button"
-                    disabled={syncing || deletingCloud || disconnectingDrive || busy}
-                    onClick={disconnectDriveFromStudio}
-                  >
-                    {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
-                  </button>
-                  <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
-                    {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
-                  </button>
-                </div>
-              </details>
-            </>
-          ) : (
-            <button
-              className="drive-connect-button"
-              disabled={busy || connectingDrive || driveState === "checking" || driveState === "unavailable"}
-              onClick={connectGoogleDriveFromStudio}
-            >
-              {connectingDrive ? copy.driveConnecting
-                : driveState === "checking" ? copy.driveChecking
-                  : copy.driveConnect}
-            </button>
-          )}
-        </div>
-      </section>
 
       <section className="workspace">
         <aside className="control-panel">
@@ -819,26 +843,44 @@ export default function Studio() {
             <label>{copy.timestamp}<select value={options.timestamp} onChange={(event) => set("timestamp", event.target.value as StudioOptions["timestamp"])}>
               <option value="off">{copy.off}</option><option value="date">{copy.date}</option><option value="datetime">{copy.dateTime}</option>
             </select></label>
-            <label>{copy.accent}<input type="color" value={options.accent} onChange={(event) => set("accent", event.target.value)} /></label>
             <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}>
               <option value="png">PNG</option><option value="svg">SVG</option>
             </select></label>
+            <fieldset className="accent-field wide-field">
+              <legend>{copy.accent}</legend>
+              <div className="accent-presets">
+                {ACCENT_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    aria-label={preset.name}
+                    aria-pressed={options.accent.toLowerCase() === preset.value}
+                    style={{ backgroundColor: preset.value }}
+                    onClick={() => set("accent", preset.value)}
+                  />
+                ))}
+                <label className="custom-accent">
+                  <span>HEX</span>
+                  <input type="color" value={options.accent} onChange={(event) => set("accent", event.target.value)} />
+                </label>
+              </div>
+            </fieldset>
             <label className="wide-field">{copy.watermark}<input value={options.watermark} maxLength={48} placeholder={copy.watermarkPlaceholder} onChange={(event) => set("watermark", event.target.value)} /></label>
           </div>
 
-          <details className="display-options">
-            <summary>{copy.displayContent}</summary>
+          <section className="display-options" aria-labelledby="visible-content-heading">
+            <h3 id="visible-content-heading">{copy.displayContent}</h3>
             <div className="toggle-list">
               {([
                 ["showFrame", copy.frame], ["showIcon", copy.icon], ["showCovers", copy.covers],
                 ["showBreakdown", copy.breakdown],
                 ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
-                ["showLevel", copy.level], ["showRank", copy.rank]
+                ["showConstant", copy.constant], ["showLevel", copy.level], ["showRank", copy.rank]
               ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
                 <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>
               ))}
             </div>
-          </details>
+          </section>
 
           <button className="export-button" disabled={busy || !data} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}

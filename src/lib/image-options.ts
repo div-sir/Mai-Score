@@ -19,6 +19,7 @@ export interface ImageOptions {
   showRatingBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
+  showInternalLevel: boolean;
   showLevel: boolean;
   showBucketRank: boolean;
   showGeneratedBy: boolean;
@@ -28,7 +29,7 @@ export const DEFAULT_IMAGE_OPTIONS: ImageOptions = {
   version: 1,
   layout: "classic",
   theme: "night",
-  accentColor: "#6e67ff",
+  accentColor: "#b89b72",
   watermark: "",
   timestampMode: "datetime",
   scale: 1,
@@ -40,6 +41,7 @@ export const DEFAULT_IMAGE_OPTIONS: ImageOptions = {
   showRatingBreakdown: true,
   showAchievement: true,
   showChartRating: true,
+  showInternalLevel: false,
   showLevel: true,
   showBucketRank: true,
   showGeneratedBy: true
@@ -70,6 +72,7 @@ export function normalizeImageOptions(value: unknown): ImageOptions {
     showRatingBreakdown: boolean("showRatingBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
+    showInternalLevel: boolean("showInternalLevel"),
     showLevel: boolean("showLevel"),
     showBucketRank: boolean("showBucketRank"),
     showGeneratedBy: boolean("showGeneratedBy")

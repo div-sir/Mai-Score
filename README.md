@@ -27,7 +27,8 @@ Building from source instead? See [Development](#development).
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
-- Keeps image choices for timestamp, watermark, accent color, assets, and score fields in the Studio; timestamps always use the device's local time zone.
+- Keeps image choices for timestamp, watermark, elegant accent presets, assets, chart constant, and score fields in Studio; timestamps always use the device's local time zone.
+- Offers a separate dark or light Studio interface without changing the selected export theme.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
@@ -79,7 +80,7 @@ Studio is public at `mai-score.milifix.com` and does not require a Mai-Score acc
 
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
-Studio is intentionally a compact preview tool: data controls, style controls, the live B50 preview, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
+Studio is intentionally a compact preview tool: the top bar contains data, Google Drive, appearance, and language controls; the side panel contains export style, prominent visible-content switches, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
 
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 

@@ -14,6 +14,7 @@ const result: CollectionResult = {
     type: "dx" as const,
     difficulty: index % 5 === 0 ? "expert" as const : "master" as const,
     displayedLevel: "13+",
+    internalLevelValue: 13.9,
     achievementRate: 0.1234,
     bucket: index < 15 ? "b15" as const : "b35" as const,
     chartRating: 0,
@@ -77,5 +78,31 @@ describe("B50 image templates", () => {
     expect(rendered.svg).toContain(">14676<");
     expect(rendered.svg).toContain(">4355<");
     expect(rendered.svg).toContain(">10321<");
+  });
+
+  it("shows the chart constant only when enabled", () => {
+    const hidden = renderB50Document(result, {
+      ...DEFAULT_IMAGE_OPTIONS,
+      showInternalLevel: false
+    });
+    const visible = renderB50Document(result, {
+      ...DEFAULT_IMAGE_OPTIONS,
+      showInternalLevel: true
+    });
+    expect(hidden.svg).not.toContain("CONST 13.9");
+    expect(visible.svg).toContain("CONST 13.9");
+  });
+
+  it.each([
+    ["classic", 312],
+    ["compact", 242],
+    ["landscape", 302]
+  ] as const)("keeps the frame above the %s New B15 section", (layout, frameHeight) => {
+    const rendered = renderB50Document(result, {
+      ...DEFAULT_IMAGE_OPTIONS,
+      layout,
+      showFrame: true
+    }, { frame: "data:image/png;base64,frame" });
+    expect(rendered.svg).toContain(`height="${frameHeight}"`);
   });
 });

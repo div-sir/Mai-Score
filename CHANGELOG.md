@@ -15,6 +15,9 @@ All notable changes to Mai-Score are documented here.
 
 - Studio automatically opens the newest synchronized B50 in Live preview and restores public song jackets.
 - Studio language is now a global control in the top bar rather than an export-style field.
+- Google Drive now sits in the main Studio toolbar instead of occupying a separate row.
+- Studio provides independent dark and light interface modes plus six curated export accent presets.
+- Visible-content controls are now always exposed as high-contrast switch cards, including a new chart-constant option.
 - Export timestamps now always use the device's local time zone.
 - The export header separates the B50 total, New B15, and Old B35 into distinct score blocks without thousands separators.
 - The Official Rating row and its visibility control have been removed from exported images.
@@ -25,6 +28,7 @@ All notable changes to Mai-Score are documented here.
 
 - Fixed mobile Drive sync reporting successful history while leaving Live preview empty.
 - Preview and downloaded exports now use the same B50 collection timestamp.
+- Equipped frames now end above the New B15 section in every export layout instead of covering its label.
 
 ### Privacy
 

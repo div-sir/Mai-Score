@@ -189,7 +189,10 @@ function renderCard(
   const meta = [
     record.type.toUpperCase(),
     record.difficulty.toUpperCase(),
-    ...(options.showLevel ? [record.displayedLevel] : [])
+    ...(options.showLevel ? [record.displayedLevel] : []),
+    ...(options.showInternalLevel && Number.isFinite(record.internalLevelValue)
+      ? [`CONST ${Number(record.internalLevelValue).toFixed(1)}`]
+      : [])
   ].join(" · ");
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
 
@@ -240,7 +243,7 @@ function header(
   const scoreBoxesX = scoreX - scoreBoxWidth * 2 - scoreBoxGap;
 
   return `
-  ${options.showFrame && assets.frame ? `<image href="${assets.frame}" x="0" y="0" width="${spec.width}" height="${spec.headerHeight + 48}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
+  ${options.showFrame && assets.frame ? `<image href="${assets.frame}" x="0" y="0" width="${spec.width}" height="${spec.startY - 58}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
   <rect x="${panelX}" y="${panelY}" width="${panelWidth}" height="${spec.headerHeight - 10}" rx="28" fill="${palette.header}" opacity=".95" stroke="${alpha(options.accentColor, .25)}" stroke-width="2"/>
   <rect x="${panelX}" y="${panelY}" width="10" height="${spec.headerHeight - 10}" rx="5" fill="${options.accentColor}"/>
   ${options.showIcon && assets.icon ? `<image href="${assets.icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
