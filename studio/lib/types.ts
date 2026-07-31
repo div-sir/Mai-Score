@@ -9,12 +9,9 @@ export interface StudioOptions {
   accent: string;
   watermark: string;
   timestamp: TimestampMode;
-  timezone: "local" | "utc";
-  language: LanguageId;
   showFrame: boolean;
   showIcon: boolean;
   showCovers: boolean;
-  showOfficialRating: boolean;
   showBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
@@ -61,12 +58,9 @@ export const DEFAULT_OPTIONS: StudioOptions = {
   accent: "#7167ff",
   watermark: "",
   timestamp: "datetime",
-  timezone: "local",
-  language: "en",
   showFrame: true,
   showIcon: true,
   showCovers: true,
-  showOfficialRating: true,
   showBreakdown: true,
   showAchievement: true,
   showChartRating: true,

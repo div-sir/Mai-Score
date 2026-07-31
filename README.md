@@ -27,7 +27,7 @@ Building from source instead? See [Development](#development).
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
-- Keeps image choices for timestamp, timezone, watermark, accent color, assets, and score fields in the Studio.
+- Keeps image choices for timestamp, watermark, accent color, assets, and score fields in the Studio; timestamps always use the device's local time zone.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.

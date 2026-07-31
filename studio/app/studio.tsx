@@ -228,6 +228,7 @@ export default function Studio() {
   const [data, setData] = useState<StudioData | null>(null);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
+  const [language, setLanguage] = useState<LanguageId>("en");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -243,7 +244,7 @@ export default function Studio() {
   const [deletingCloud, setDeletingCloud] = useState(false);
   const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
-  const copy = studioCopy(options.language);
+  const copy = studioCopy(language);
   const copyRef = useRef(copy);
   copyRef.current = copy;
 
@@ -259,9 +260,15 @@ export default function Studio() {
       const preset = hash.get("preset");
       const saved = preset ? JSON.parse(preset) : JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
       if (saved) {
-        const restoredOptions = { ...DEFAULT_OPTIONS, ...saved };
-        savedLanguage = restoredOptions.language;
-        setOptions(restoredOptions);
+        const {
+          language: legacyLanguage,
+          timezone: _legacyTimezone,
+          showOfficialRating: _legacyOfficialRating,
+          ...savedStyle
+        } = saved;
+        savedLanguage = legacyLanguage === "zh-Hant" || legacyLanguage === "ja" ? legacyLanguage : "en";
+        setLanguage(savedLanguage);
+        setOptions({ ...DEFAULT_OPTIONS, ...savedStyle });
       }
     } catch {
       setMessage("Saved style could not be read. Defaults were restored.");
@@ -285,7 +292,7 @@ export default function Studio() {
         setAssets(stored.assets);
         setSource(stored.source);
         setGeneratedAt(stored.generatedAt);
-        setOptions((current) => ({ ...current, language: stored.language }));
+        setLanguage(stored.language);
         const savedAt = new Date(stored.savedAt).toLocaleString();
         const restoredCopy = studioCopy(stored.language);
         setMessage(failure
@@ -308,7 +315,7 @@ export default function Studio() {
           const timestamp = new Date().toISOString();
           setData(parsed);
           setAssets(received.assets);
-          setOptions((current) => ({ ...current, language: received.language }));
+          setLanguage(received.language);
           setSource("Mai-Score extension");
           setGeneratedAt(timestamp);
           const coverCount = Object.keys(received.assets.covers).length;
@@ -358,12 +365,12 @@ export default function Studio() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(options));
-  }, [options]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...options, language }));
+  }, [options, language]);
 
   const rendered = useMemo(
-    () => data ? renderStudioSvg(data, options, origin, new Date(generatedAt), assets) : null,
-    [data, options, origin, generatedAt, assets]
+    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
+    [data, options, language, origin, generatedAt, assets]
   );
   const previewUrl = useMemo(
     () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
@@ -374,7 +381,7 @@ export default function Studio() {
     setOptions((current) => ({ ...current, [key]: value }));
 
   function changeLanguage(next: LanguageId) {
-    set("language", next);
+    setLanguage(next);
     const nextCopy = studioCopy(next);
     setMessage(data ? nextCopy.ready(data.player.name, data.records.length) : nextCopy.emptyMessage);
   }
@@ -401,7 +408,7 @@ export default function Studio() {
           assets: loadedAssets,
           source: file.name,
           generatedAt: timestamp,
-          language: options.language
+          language
         });
         setHistory(await listStudioHistory());
       } catch {
@@ -425,7 +432,7 @@ export default function Studio() {
 
   async function renderExport(): Promise<{ blob: Blob; filename: string }> {
     if (!data) throw new Error(copy.emptyMessage);
-    const finalRendered = renderStudioSvg(data, options, origin, new Date(generatedAt), assets);
+    const finalRendered = renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets);
     const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
     if (exportFormat === "svg") {
       return {
@@ -531,7 +538,7 @@ export default function Studio() {
         assets: latestAssets,
         source: "Google Drive",
         generatedAt: latestData.exportedAt,
-        language: options.language
+        language
       });
     } catch {
       // The synchronized history is already safe. Private browsing may block
@@ -649,7 +656,7 @@ export default function Studio() {
       return;
     }
 
-    const url = driveAuthorizationUrl(options.language);
+    const url = driveAuthorizationUrl(language);
     const authorizationWindow = window.open(
       url,
       "mai-score-drive-auth",
@@ -724,6 +731,14 @@ export default function Studio() {
             <strong>{data?.player.name ?? "—"}</strong>
             <small>{data ? `Rating ${data.player.rating} · B50 ${data.b50Rating}` : copy.emptyPreview}</small>
           </div>
+          <label className="language-picker">
+            <span>{copy.language}</span>
+            <select value={language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
+              <option value="en">English</option>
+              <option value="zh-Hant">繁體中文</option>
+              <option value="ja">日本語</option>
+            </select>
+          </label>
           <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
           <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
         </div>
@@ -795,9 +810,6 @@ export default function Studio() {
           </div>
 
           <div className="field-grid">
-            <label>{copy.language}<select value={options.language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
-              <option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="ja">日本語</option>
-            </select></label>
             <label>{copy.layout}<select value={options.layout} onChange={(event) => set("layout", event.target.value as StudioOptions["layout"])}>
               <option value="classic">Classic 5×10</option><option value="compact">Compact 5×10</option><option value="landscape">Landscape 10×5</option>
             </select></label>
@@ -806,9 +818,6 @@ export default function Studio() {
             </select></label>
             <label>{copy.timestamp}<select value={options.timestamp} onChange={(event) => set("timestamp", event.target.value as StudioOptions["timestamp"])}>
               <option value="off">{copy.off}</option><option value="date">{copy.date}</option><option value="datetime">{copy.dateTime}</option>
-            </select></label>
-            <label>{copy.timezone}<select value={options.timezone} disabled={options.timestamp === "off"} onChange={(event) => set("timezone", event.target.value as StudioOptions["timezone"])}>
-              <option value="local">{copy.local}</option><option value="utc">UTC</option>
             </select></label>
             <label>{copy.accent}<input type="color" value={options.accent} onChange={(event) => set("accent", event.target.value)} /></label>
             <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}>
@@ -822,7 +831,7 @@ export default function Studio() {
             <div className="toggle-list">
               {([
                 ["showFrame", copy.frame], ["showIcon", copy.icon], ["showCovers", copy.covers],
-                ["showOfficialRating", copy.officialRating], ["showBreakdown", copy.breakdown],
+                ["showBreakdown", copy.breakdown],
                 ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
                 ["showLevel", copy.level], ["showRank", copy.rank]
               ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
@@ -847,7 +856,7 @@ export default function Studio() {
                       <li key={point.generatedAt}>
                         <div className="history-head">
                           <time dateTime={point.generatedAt}>
-                            {new Date(point.generatedAt).toLocaleDateString(options.language)}
+                            {new Date(point.generatedAt).toLocaleDateString(language)}
                           </time>
                           <strong>{point.b50Rating}</strong>
                           {diff && diff.ratingDelta !== 0 && (

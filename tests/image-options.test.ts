@@ -29,10 +29,9 @@ describe("image options", () => {
     const date = new Date("2026-07-27T06:30:45.000Z");
     const options = {
       ...DEFAULT_IMAGE_OPTIONS,
-      timestampMode: "datetime" as const,
-      timestampZone: "utc" as const
+      timestampMode: "datetime" as const
     };
-    expect(formatImageTimestamp(date, options, "en-US")).toContain("UTC");
+    expect(formatImageTimestamp(date, options, "en-US")).not.toContain("UTC");
     expect(timestampForFilename(date)).toBe("20260727-063045Z");
   });
 });

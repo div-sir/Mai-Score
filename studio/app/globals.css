@@ -97,6 +97,15 @@ button:active{transform:scale(.97)}
 .brand strong{font-size:16px;letter-spacing:-.01em}
 .brand small{margin-top:2px;color:var(--muted);font-size:10px;letter-spacing:.03em}
 .data-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+.language-picker{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:9px}
+.language-picker select{
+  min-height:36px;
+  border:1px solid var(--line2);
+  border-radius:999px;
+  padding:7px 30px 7px 12px;
+  background:color-mix(in srgb,var(--bg3) 78%,transparent);
+  color:var(--text);
+}
 .data-summary{min-width:0;margin-right:8px;text-align:right}
 .data-summary span{
   color:color-mix(in srgb,var(--muted-dim) 58%,var(--accent) 42%);
@@ -319,6 +328,8 @@ button:active{transform:scale(.97)}
   .topbar{display:block}
   .brand-mark{width:40px;height:40px}
   .data-actions{margin-top:12px}
+  .language-picker{flex:1}
+  .language-picker select{width:100%}
   .data-summary{text-align:left}
   .status-line{padding:8px 14px}
   .drive-strip{align-items:stretch;padding:11px}
