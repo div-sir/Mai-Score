@@ -114,11 +114,21 @@ sandbox without the real services.
    share a template. Never run against a live logged-in `maimaidx.jp`. If the
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
-3. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+3. **Whether the two OAuth clients share one `appDataFolder`.** This is the
+   load-bearing assumption of the whole two-provider design, and nothing in
+   the repository establishes it. The extension and Studio-web paths use
+   different client IDs in one Google Cloud project. If `appDataFolder` is
+   scoped per project they share a document and cross-device sync works; if
+   per client ID, a user who connects via the extension on desktop and the
+   web client on mobile gets two separate histories, **both reporting
+   successful syncs**. Verify this before anything else —
+   [the test plan](drive-real-api-test.md) opens with the procedure and what
+   to do if it fails.
+4. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
    complete multi-profile real-service matrix has not been recorded in the
    repository. Follow [the real-service test plan](drive-real-api-test.md)
    before declaring Drive generally available.
-4. **Collect latency.** The chart database was measured at ~95 ms and ruled
+5. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
 

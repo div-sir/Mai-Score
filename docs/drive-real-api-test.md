@@ -12,6 +12,43 @@ Use this only with a Google account listed as a test user on the Mai-Score OAuth
 
 The CI artifact rewrites the bundled Studio origin and adds only that exact preview host to `externally_connectable`. Packaged releases remain restricted to `mai-score.milifix.com`.
 
+## Run this first: do both OAuth clients share one app-data folder?
+
+Everything below assumes they do. Nothing in the repository establishes it, and
+if the assumption is wrong the failure is silent — both providers report a
+successful sync while writing to folders that never see each other.
+
+Two OAuth clients exist in Google Cloud project `827299294563`: a Chrome
+Extension client used by the extension path, and a Web client used by Studio on
+mobile and extension-free browsers. Drive's `appDataFolder` is scoped per
+application. If that means per *project*, the two providers share one document
+and cross-device sync works. If it means per *client ID*, a user who connects
+via the extension on desktop and via the web client on mobile ends up with two
+separate histories, each looking healthy.
+
+**Procedure**
+
+1. On desktop, connect through the Extension and run Sync history. Note the
+   collection count Studio reports.
+2. On a device or browser without the Extension, open Studio, connect with the
+   **same Google account**, and Sync.
+3. Compare.
+
+| Outcome | Meaning | Action |
+| --- | --- | --- |
+| Mobile shows the desktop collections | The folder is shared, per project. | Proceed with the matrix below. |
+| Mobile shows an empty or separate history | The folder is per client ID. | **Stop.** The two-provider design needs rework before release — see below. |
+
+**If the folder is not shared**, the options are to route both paths through a
+single OAuth client, or to keep two but make the split explicit rather than
+silent — for example by refusing to present them as one synced history, and
+telling the user which client holds which data. Do not ship the current design
+on the assumption that users will only ever use one provider.
+
+Row 36 of the matrix (`Cross-device pull`) is the same check written as a
+regression test; this section exists because it is a precondition, not a
+feature to confirm at the end.
+
 ## Test matrix
 
 Record the actual time, Chrome version, Google account type (test user only — never the address), and result for each case.
