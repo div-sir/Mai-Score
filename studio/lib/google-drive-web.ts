@@ -46,6 +46,7 @@ export interface WebDriveDependencies {
   clientId: string;
   fetch: typeof globalThis.fetch;
   oauth: () => GoogleOAuth2 | undefined;
+  enabled?: () => boolean;
   now?: () => number;
   randomUUID?: () => string;
 }
@@ -61,7 +62,8 @@ export class WebGoogleDriveClient {
   constructor(private readonly dependencies: WebDriveDependencies) {}
 
   configured(): boolean {
-    return this.dependencies.clientId.trim().length > 0;
+    return this.dependencies.clientId.trim().length > 0
+      && (this.dependencies.enabled?.() ?? true);
   }
 
   connectionStatus(): DriveConnectionResult {
@@ -325,8 +327,16 @@ function browserOAuth(): GoogleOAuth2 | undefined {
   }).google?.accounts?.oauth2;
 }
 
+function browserWebOAuthEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.origin === "https://mai-score.milifix.com"
+    || window.location.origin === "http://localhost:3000"
+    || window.location.origin === "http://127.0.0.1:3000";
+}
+
 export const webGoogleDrive = new WebGoogleDriveClient({
   clientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
   fetch: (...args) => globalThis.fetch(...args),
-  oauth: browserOAuth
+  oauth: browserOAuth,
+  enabled: browserWebOAuthEnabled
 });
