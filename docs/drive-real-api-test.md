@@ -50,11 +50,12 @@ authorized JavaScript origins:
 - `https://mai-score.milifix.com`
 - `http://localhost:3000` for local testing
 
-Set the public client identifier as `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` in
-Vercel Production, Preview, and Development as appropriate. This identifier is
-browser-visible by design and is not a client secret. Preview deployments need
-an explicitly authorized stable preview origin; Google does not accept a
-wildcard Vercel hostname.
+Production pins the public client identifier through
+`studio/.env.production`. This identifier is browser-visible by design and is
+not a client secret. Local development can override it with
+`NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` in `studio/.env.local`. Web OAuth is disabled
+on Vercel's changing preview origins because Google does not accept a wildcard
+Vercel hostname; the production origin and localhost remain enabled.
 
 The web client must belong to the same Google Cloud project so both OAuth client
 types represent the same application and can access the same hidden app-data
