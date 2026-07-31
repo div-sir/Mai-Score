@@ -32,7 +32,31 @@ Record the actual time, Chrome version, Google account type (test user only — 
 | Missing Extension | Disable Mai-Score and reload Studio | The Drive card remains visible, reports that the Extension is unavailable, and does not show cloud actions |
 | Reauthorize | Connect again from Studio, then Sync | Existing local history syncs normally with a fresh token |
 | Network/API failure | Test offline or with a deliberately interrupted request | UI reports a failure and does not clear local history |
+| Mobile web authorization | Open Studio in mobile Chrome or Safari without the Extension → Connect Google Drive | Google's account chooser opens and Studio reports Connected after selecting an approved account |
+| Cross-device pull | Sync desktop history, then connect the same account from mobile Studio and sync | The desktop collections appear in mobile Studio history |
+| Explicit account choice | Disconnect, connect again, and choose another approved Google account | Studio uses the selected account rather than the desktop Chrome profile |
+| Web token expiry | Connect through Studio web OAuth, wait for expiry or reload, then sync | Studio asks the user to reconnect; local and cloud history remain intact |
 
 ## General-availability gate
 
 Do not remove Drive's experimental label or advertise it to general users until all cases above pass against Google's real API, the updated privacy page is deployed, the Web Store extension ID has a production OAuth client, and Google has approved the sensitive `drive.appdata` scope.
+
+## Studio web OAuth configuration
+
+Create a **Web application** OAuth client in the same Google Cloud project as
+the Mai-Score Chrome Extension client. Enable the Drive API and add these
+authorized JavaScript origins:
+
+- `https://mai-score.milifix.com`
+- `http://localhost:3000` for local testing
+
+Production pins the public client identifier through
+`studio/.env.production`. This identifier is browser-visible by design and is
+not a client secret. Local development can override it with
+`NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` in `studio/.env.local`. Web OAuth is disabled
+on Vercel's changing preview origins because Google does not accept a wildcard
+Vercel hostname; the production origin and localhost remain enabled.
+
+The web client must belong to the same Google Cloud project so both OAuth client
+types represent the same application and can access the same hidden app-data
+history file.

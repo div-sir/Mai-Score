@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
@@ -14,14 +15,16 @@ import {
 import { diffHistory, type HistoryEntry } from "../lib/history";
 import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
 import {
+  connectGoogleDriveWeb,
   deleteFromDrive,
   disconnectGoogleDrive,
   driveAuthorizationUrl,
   driveConnectionStatus,
   pullFromDrive,
   pushToDrive,
-  rememberExtensionId
-} from "../lib/drive-client";
+  rememberExtensionId,
+  webDriveConfigured
+} from "../lib/drive-provider";
 import {
   DEFAULT_OPTIONS,
   type LanguageId,
@@ -234,6 +237,7 @@ export default function Studio() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [driveState, setDriveState] = useState<DriveUiState>("unavailable");
   const [syncing, setSyncing] = useState(false);
+  const [connectingDrive, setConnectingDrive] = useState(false);
   const [disconnectingDrive, setDisconnectingDrive] = useState(false);
   const [deletingCloud, setDeletingCloud] = useState(false);
   const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
@@ -583,7 +587,32 @@ export default function Studio() {
     if (outcome.warning) setMessage(copyRef.current.driveDisconnectWarning(outcome.warning));
   }
 
-  function connectGoogleDrive() {
+  async function connectGoogleDriveFromStudio() {
+    if (webDriveConfigured()) {
+      setConnectingDrive(true);
+      setMessage(copy.driveConnecting);
+      try {
+        const outcome = await connectGoogleDriveWeb();
+        if (!outcome.ok) {
+          setDriveState("disconnected");
+          setMessage(outcome.reason === "needs-auth"
+            ? copy.syncNeedsAuth
+            : outcome.reason === "no-extension"
+              ? copy.syncNoExtension
+              : copy.syncFailed(outcome.error));
+          return;
+        }
+        setDriveState("connected");
+        setMessage(copy.driveConnectedDone);
+      } catch (error) {
+        setDriveState("disconnected");
+        setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+      } finally {
+        setConnectingDrive(false);
+      }
+      return;
+    }
+
     const url = driveAuthorizationUrl(options.language);
     const authorizationWindow = window.open(
       url,
@@ -647,6 +676,7 @@ export default function Studio() {
 
   return (
     <main className="studio-shell">
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">M</span>
@@ -724,8 +754,8 @@ export default function Studio() {
             </div>
             <p>{driveState === "unavailable" ? copy.syncNoExtension : copy.driveAccountHint}</p>
             {driveState === "disconnected" && (
-              <button className="drive-connect-button" disabled={busy} onClick={connectGoogleDrive}>
-                {copy.driveConnect}
+              <button className="drive-connect-button" disabled={busy || connectingDrive} onClick={connectGoogleDriveFromStudio}>
+                {connectingDrive ? copy.driveConnecting : copy.driveConnect}
               </button>
             )}
             {driveState === "unavailable" && (
