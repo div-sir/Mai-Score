@@ -32,6 +32,7 @@ Building from source instead? See [Development](#development).
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
+- Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
 
 ## Usage
 
@@ -91,6 +92,12 @@ The v0.7.1 flow keeps Studio as the owner of the IndexedDB history schema while 
 Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio always shows the Drive connection state; **Connect Google Drive** opens an Extension-owned authorization window so the OAuth token never enters the website. **Sync history**, **Disconnect**, and the separately confirmed **Delete cloud history** actions appear only after the grant is confirmed. Deleting the cloud file does not touch local IndexedDB history; Disconnect remains an OAuth-only operation.
 
 Drive sync is **experimental in the v0.7.1 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
+
+The next development version also supports Google Identity Services directly in
+Studio. This makes cross-device history available from mobile Chrome or Safari
+without a browser extension. Configure a Web application OAuth client through
+`studio/.env.example`; keep it in the same Google Cloud project as the
+Extension OAuth client so both paths use the same app-data file.
 
 ### “Failed to fetch” in v0.1.0
 
