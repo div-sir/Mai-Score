@@ -10,7 +10,7 @@ export const EXTENSION_ID_STORAGE_KEY = "mai-score-extension-id";
 // without requiring a previous B50 handoff.
 export const OFFICIAL_EXTENSION_ID = "bkdgjhjohcohclggjadimcamjcacfjpk";
 
-type DriveFailure =
+export type DriveFailure =
   | { ok: false; reason: "needs-auth" }
   | { ok: false; reason: "error"; error: string }
   | { ok: false; reason: "no-extension" };
