@@ -96,7 +96,7 @@ Drive sync is **experimental in the v0.7.1 GitHub release**. Google access is li
 The next development version also supports Google Identity Services directly in
 Studio. This makes cross-device history available from mobile Chrome or Safari
 without a browser extension. Production's public Web application client ID is
-in `studio/.env.production`; `studio/.env.example` documents the local override.
+in `studio/lib/google-drive-web.ts`; `studio/.env.example` documents the local override.
 Keep both OAuth clients in the same Google Cloud project so both paths use the
 same app-data file.
 

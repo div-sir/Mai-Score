@@ -50,9 +50,9 @@ authorized JavaScript origins:
 - `https://mai-score.milifix.com`
 - `http://localhost:3000` for local testing
 
-Production pins the public client identifier through
-`studio/.env.production`. This identifier is browser-visible by design and is
-not a client secret. Local development can override it with
+Production pins the public client identifier in
+`studio/lib/google-drive-web.ts`. This identifier is browser-visible by design
+and is not a client secret. Local development can override it with
 `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` in `studio/.env.local`. Web OAuth is disabled
 on Vercel's changing preview origins because Google does not accept a wildcard
 Vercel hostname; the production origin and localhost remain enabled.
