@@ -15,10 +15,12 @@ import { diffHistory, type HistoryEntry } from "../lib/history";
 import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
 import {
   deleteFromDrive,
+  disconnectGoogleDrive,
+  driveAuthorizationUrl,
+  driveConnectionStatus,
   pullFromDrive,
   pushToDrive,
-  rememberExtensionId,
-  storedExtensionId
+  rememberExtensionId
 } from "../lib/drive-client";
 import {
   DEFAULT_OPTIONS,
@@ -30,6 +32,7 @@ import {
 } from "../lib/types";
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
+type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 
 type ExtensionResponse =
   | { ok: true; data: unknown; assets?: StudioAssets; language?: LanguageId }
@@ -229,12 +232,15 @@ export default function Studio() {
   // Resolved after mount: navigator is not available while server-rendering.
   const [canShare, setCanShare] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [canSync, setCanSync] = useState(false);
+  const [driveState, setDriveState] = useState<DriveUiState>("unavailable");
   const [syncing, setSyncing] = useState(false);
+  const [disconnectingDrive, setDisconnectingDrive] = useState(false);
   const [deletingCloud, setDeletingCloud] = useState(false);
   const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(options.language);
+  const copyRef = useRef(copy);
+  copyRef.current = copy;
 
   useEffect(() => {
     let cancelled = false;
@@ -242,7 +248,6 @@ export default function Studio() {
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
     listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
-    if (storedExtensionId()) setCanSync(true);
     const hash = new URLSearchParams(window.location.hash.slice(1));
     let savedLanguage: LanguageId = "en";
     try {
@@ -263,8 +268,8 @@ export default function Studio() {
     // Studio; sync happens long after, so keep it.
     if (extensionId) {
       rememberExtensionId(extensionId);
-      setCanSync(true);
     }
+    void refreshDriveState();
 
     const restoreSavedSnapshot = async (failure?: string): Promise<boolean> => {
       try {
@@ -337,6 +342,14 @@ export default function Studio() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const refreshAfterAuthorization = () => {
+      void refreshDriveState();
+    };
+    window.addEventListener("focus", refreshAfterAuthorization);
+    return () => window.removeEventListener("focus", refreshAfterAuthorization);
   }, []);
 
   useEffect(() => {
@@ -493,6 +506,8 @@ export default function Studio() {
     try {
       const pulled = await pullFromDrive();
       if (!pulled.ok) {
+        if (pulled.reason === "needs-auth") setDriveState("disconnected");
+        if (pulled.reason === "no-extension") setDriveState("unavailable");
         setMessage(pulled.reason === "needs-auth" ? copy.syncNeedsAuth
           : pulled.reason === "no-extension" ? copy.syncNoExtension
             : copy.syncFailed(pulled.error));
@@ -517,6 +532,8 @@ export default function Studio() {
 
       const pushed = await pushToDrive(serializeSyncDocument(merged));
       if (!pushed.ok) {
+        if (pushed.reason === "needs-auth") setDriveState("disconnected");
+        if (pushed.reason === "no-extension") setDriveState("unavailable");
         setMessage(pushed.reason === "needs-auth" ? copy.syncNeedsAuth
           : pushed.reason === "no-extension" ? copy.syncNoExtension
             : copy.syncFailed(pushed.error));
@@ -539,6 +556,8 @@ export default function Studio() {
     try {
       const outcome = await deleteFromDrive();
       if (!outcome.ok) {
+        if (outcome.reason === "needs-auth") setDriveState("disconnected");
+        if (outcome.reason === "no-extension") setDriveState("unavailable");
         setMessage(outcome.reason === "needs-auth" ? copy.syncNeedsAuth
           : outcome.reason === "no-extension" ? copy.syncNoExtension
             : copy.syncFailed(outcome.error));
@@ -549,6 +568,57 @@ export default function Studio() {
       setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
     } finally {
       setDeletingCloud(false);
+    }
+  }
+
+  async function refreshDriveState() {
+    setDriveState("checking");
+    const outcome = await driveConnectionStatus();
+    if (!outcome.ok) {
+      setDriveState(outcome.reason === "no-extension" ? "unavailable" : "disconnected");
+      if (outcome.reason === "error") setMessage(copyRef.current.syncFailed(outcome.error));
+      return;
+    }
+    setDriveState(outcome.connected ? "connected" : "disconnected");
+    if (outcome.warning) setMessage(copyRef.current.driveDisconnectWarning(outcome.warning));
+  }
+
+  function connectGoogleDrive() {
+    const url = driveAuthorizationUrl(options.language);
+    const authorizationWindow = window.open(
+      url,
+      "mai-score-drive-auth",
+      "popup,width=480,height=620"
+    );
+    if (!authorizationWindow) {
+      setMessage(copy.drivePopupBlocked);
+      return;
+    }
+    setMessage(copy.driveAuthOpened);
+  }
+
+  async function disconnectDriveFromStudio() {
+    setDisconnectingDrive(true);
+    try {
+      const outcome = await disconnectGoogleDrive();
+      if (!outcome.ok) {
+        setDriveState(outcome.reason === "no-extension" ? "unavailable" : "disconnected");
+        setMessage(outcome.reason === "no-extension"
+          ? copy.syncNoExtension
+          : outcome.reason === "needs-auth"
+            ? copy.syncNeedsAuth
+            : copy.syncFailed(outcome.error));
+        return;
+      }
+      setDriveState("disconnected");
+      setMessage(outcome.warning
+        ? copy.driveDisconnectWarning(outcome.warning)
+        : copy.driveDisconnectedDone);
+    } catch (error) {
+      setDriveState("disconnected");
+      setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
+    } finally {
+      setDisconnectingDrive(false);
     }
   }
 
@@ -642,16 +712,50 @@ export default function Studio() {
           <button className="export-button" disabled={busy || !data} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
-          {canSync && (
-            <>
+          <section className="drive-card" aria-labelledby="drive-heading">
+            <div className="drive-card-heading">
+              <h2 id="drive-heading">{copy.syncHeading}</h2>
+              <span className={`drive-badge ${driveState}`}>
+                {driveState === "checking" ? copy.driveChecking
+                  : driveState === "connected" ? copy.driveConnected
+                    : driveState === "disconnected" ? copy.driveDisconnected
+                      : copy.driveUnavailable}
+              </span>
+            </div>
+            <p>{driveState === "unavailable" ? copy.syncNoExtension : copy.driveAccountHint}</p>
+            {driveState === "disconnected" && (
+              <button className="drive-connect-button" disabled={busy} onClick={connectGoogleDrive}>
+                {copy.driveConnect}
+              </button>
+            )}
+            {driveState === "unavailable" && (
+              <button className="drive-connect-button" disabled>
+                {copy.driveConnect}
+              </button>
+            )}
+            {driveState === "checking" && (
+              <button className="drive-connect-button" disabled>
+                {copy.driveChecking}
+              </button>
+            )}
+            {driveState === "connected" && (
+              <>
               <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
                 {syncing ? copy.syncing : copy.syncNow}
+              </button>
+              <button
+                className="secondary-button drive-disconnect-button"
+                disabled={syncing || deletingCloud || disconnectingDrive || busy}
+                onClick={disconnectDriveFromStudio}
+              >
+                {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
               </button>
               <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
                 {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
               </button>
-            </>
-          )}
+              </>
+            )}
+          </section>
           <details className="history-panel">
             <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
             {history.length === 0

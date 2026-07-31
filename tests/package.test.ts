@@ -16,13 +16,20 @@ function extensionIdFromKey(base64Key: string): string {
 describe("extension package", () => {
   it("registers the background resolver", async () => {
     const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
-    expect(manifest.version).toBe("0.7.0");
+    expect(manifest.version).toBe("0.7.1");
     expect(manifest.background.service_worker).toBe("background.js");
     expect(manifest.permissions).toContain("storage");
     expect(manifest.externally_connectable.matches).toEqual([
       "https://mai-score.milifix.com/*"
     ]);
-    expect(manifest.web_accessible_resources).toBeUndefined();
+    expect(manifest.web_accessible_resources).toEqual([
+      {
+        resources: ["drive-auth.html", "drive-auth.css", "drive-auth.js"],
+        matches: ["https://mai-score.milifix.com/*"]
+      }
+    ]);
+    const authPage = await readFile("public/drive-auth.html", "utf8");
+    expect(authPage).toContain('src="drive-auth.js"');
   });
 
   it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {

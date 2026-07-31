@@ -38,6 +38,20 @@ export interface StudioCopy {
   shared: string;
   history: string;
   syncHeading: string;
+  driveChecking: string;
+  driveConnected: string;
+  driveDisconnected: string;
+  driveUnavailable: string;
+  driveAccountHint: string;
+  driveConnect: string;
+  driveConnecting: string;
+  drivePopupBlocked: string;
+  driveDisconnect: string;
+  driveDisconnecting: string;
+  driveAuthOpened: string;
+  driveConnectedDone: string;
+  driveDisconnectedDone: string;
+  driveDisconnectWarning: (error: string) => string;
   syncNow: string;
   syncing: string;
   deleteCloudHistory: string;
@@ -114,6 +128,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     shared: "Shared.",
     history: "History",
     syncHeading: "Google Drive",
+    driveChecking: "Checking…",
+    driveConnected: "Connected",
+    driveDisconnected: "Not connected",
+    driveUnavailable: "Extension not linked",
+    driveAccountHint: "Uses the Google account for this Chrome profile. Switch Chrome profiles before connecting to use a different account.",
+    driveConnect: "Connect Google Drive",
+    driveConnecting: "Opening Google authorization…",
+    drivePopupBlocked: "The Google authorization window was blocked. Allow pop-ups for this site and try again.",
+    driveDisconnect: "Disconnect",
+    driveDisconnecting: "Disconnecting…",
+    driveAuthOpened: "Complete Google authorization in the Mai-Score window, then return here.",
+    driveConnectedDone: "Google Drive is connected. History sync is available.",
+    driveDisconnectedDone: "Google Drive was disconnected. Local history was not changed.",
+    driveDisconnectWarning: (error) => `Disconnected locally, but Google could not confirm revocation: ${error}`,
     syncNow: "Sync history",
     syncing: "Syncing…",
     deleteCloudHistory: "Delete cloud history",
@@ -122,8 +150,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     cloudDeleted: "Cloud history was permanently deleted. Local history was not changed.",
     cloudAlreadyEmpty: "No cloud history file was found. Local history was not changed.",
     syncedAt: (count) => `Synced. ${count} collection(s) in history.`,
-    syncNeedsAuth: "Open the Mai-Score popup and allow Google Drive access, then sync again.",
-    syncNoExtension: "Open Studio from the Mai-Score extension once, so it can connect.",
+    syncNeedsAuth: "Choose Connect Google Drive here, complete authorization, then sync again.",
+    syncNoExtension: "Install or enable the latest Mai-Score extension in this Chrome profile.",
     syncFailed: (error) => `Sync failed: ${error}`,
     syncSkipped: (count) => `${count} unreadable entr(ies) in the synced file were ignored.`,
     historyEmpty: "No history yet. Collect again later to see what changed.",
@@ -189,6 +217,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     shared: "已分享。",
     history: "歷史紀錄",
     syncHeading: "Google 雲端硬碟",
+    driveChecking: "檢查中…",
+    driveConnected: "已連結",
+    driveDisconnected: "尚未連結",
+    driveUnavailable: "尚未連接擴充功能",
+    driveAccountHint: "使用目前 Chrome 個人檔案的 Google 帳號；若要使用其他帳號，請先切換 Chrome 個人檔案再連結。",
+    driveConnect: "連結 Google 雲端硬碟",
+    driveConnecting: "正在開啟 Google 授權…",
+    drivePopupBlocked: "Google 授權視窗遭到封鎖。請允許此網站開啟彈出式視窗後再試一次。",
+    driveDisconnect: "取消連結",
+    driveDisconnecting: "正在取消連結…",
+    driveAuthOpened: "請在 Mai-Score 授權視窗完成 Google 授權，再回到此頁。",
+    driveConnectedDone: "Google 雲端硬碟已連結，可以同步歷史紀錄。",
+    driveDisconnectedDone: "已取消 Google 雲端硬碟連結，本機歷史紀錄沒有變更。",
+    driveDisconnectWarning: (error) => `已清除本機連結，但 Google 無法確認撤銷授權：${error}`,
     syncNow: "同步歷史紀錄",
     syncing: "同步中…",
     deleteCloudHistory: "刪除雲端歷史紀錄",
@@ -197,8 +239,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     cloudDeleted: "已永久刪除雲端歷史紀錄，本機歷史沒有變更。",
     cloudAlreadyEmpty: "找不到雲端歷史檔案，本機歷史沒有變更。",
     syncedAt: (count) => `已同步，歷史共 ${count} 筆收集紀錄。`,
-    syncNeedsAuth: "請開啟 Mai-Score 彈出視窗並允許 Google 雲端硬碟存取，然後再同步一次。",
-    syncNoExtension: "請先從 Mai-Score 擴充功能開啟一次 Studio，才能建立連線。",
+    syncNeedsAuth: "請在此按「連結 Google 雲端硬碟」、完成授權，再重新同步。",
+    syncNoExtension: "請在目前的 Chrome 個人檔案安裝或啟用最新版 Mai-Score 擴充功能。",
     syncFailed: (error) => `同步失敗：${error}`,
     syncSkipped: (count) => `同步檔案中有 ${count} 筆無法讀取的紀錄已略過。`,
     historyEmpty: "尚無歷史紀錄。之後再收集一次就能看到變化。",
@@ -264,6 +306,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     shared: "共有しました。",
     history: "履歴",
     syncHeading: "Google ドライブ",
+    driveChecking: "確認中…",
+    driveConnected: "連携済み",
+    driveDisconnected: "未連携",
+    driveUnavailable: "拡張機能と未接続",
+    driveAccountHint: "現在の Chrome プロフィールの Google アカウントを使用します。別のアカウントを使う場合は、連携前に Chrome プロフィールを切り替えてください。",
+    driveConnect: "Google ドライブと連携",
+    driveConnecting: "Google 認証を開いています…",
+    drivePopupBlocked: "Google 認証ウィンドウがブロックされました。このサイトのポップアップを許可して、もう一度お試しください。",
+    driveDisconnect: "連携を解除",
+    driveDisconnecting: "連携を解除中…",
+    driveAuthOpened: "Mai-Score の認証ウィンドウで Google 認証を完了し、このページに戻ってください。",
+    driveConnectedDone: "Google ドライブと連携しました。履歴を同期できます。",
+    driveDisconnectedDone: "Google ドライブとの連携を解除しました。ローカル履歴は変更されていません。",
+    driveDisconnectWarning: (error) => `ローカル連携は解除しましたが、Google で認証の取り消しを確認できませんでした：${error}`,
     syncNow: "履歴を同期",
     syncing: "同期中…",
     deleteCloudHistory: "クラウド履歴を削除",
@@ -272,8 +328,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     cloudDeleted: "クラウド履歴を完全に削除しました。ローカル履歴は変更されていません。",
     cloudAlreadyEmpty: "クラウド履歴ファイルは見つかりませんでした。ローカル履歴は変更されていません。",
     syncedAt: (count) => `同期しました。履歴は ${count} 件です。`,
-    syncNeedsAuth: "Mai-Score のポップアップを開いて Google ドライブへのアクセスを許可してから、もう一度同期してください。",
-    syncNoExtension: "先に Mai-Score 拡張機能から Studio を一度開いてください。",
+    syncNeedsAuth: "ここで「Google ドライブと連携」を選び、認証を完了してからもう一度同期してください。",
+    syncNoExtension: "現在の Chrome プロフィールに最新版 Mai-Score 拡張機能をインストールまたは有効化してください。",
     syncFailed: (error) => `同期に失敗しました：${error}`,
     syncSkipped: (count) => `同期ファイル内の読み取れない ${count} 件は無視しました。`,
     historyEmpty: "履歴はまだありません。次回の取得から変化を確認できます。",
