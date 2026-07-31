@@ -14,7 +14,7 @@ page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 
 ## Released in v0.7.0
 
-The packaged GitHub release is `v0.7.0` (the release workflow builds and attaches the extension zip from the matching tag). It includes the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and experimental Drive work described below.
+The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and underlying experimental Drive work. The current packaged release is `v0.7.1`, described below.
 
 ## Released in v0.7.1
 
@@ -50,9 +50,9 @@ The popup now shows the signed difference beside the B50 total when it
 disagrees with the official rating, so any remaining gap is visible instead of
 silent.
 
-## Experimental Google Drive sync in v0.7.0
+## Experimental Google Drive sync in v0.7.1
 
-Google Drive history sync is included in v0.7.0 but remains experimental. Only OAuth test users approved in Google Cloud can authorize it until sensitive-scope verification and the production Web Store OAuth client are complete. The local B50, image, JSON, Studio, and IndexedDB-history flows remain available without Drive.
+Google Drive history sync is available in v0.7.1 but remains experimental. Only OAuth test users approved in Google Cloud can authorize it until sensitive-scope verification and the production Web Store OAuth client are complete. The local B50, image, JSON, Studio, and IndexedDB-history flows remain available without Drive.
 
 ### Architecture, and why
 
