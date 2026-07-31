@@ -3,6 +3,11 @@ import type { DriveConnectionResult, DriveSyncResult } from "./drive-client";
 export const GOOGLE_DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 export const DRIVE_HISTORY_FILE = "mai-score-history.json";
 export const MAX_SYNC_PAYLOAD_BYTES = 4 * 1024 * 1024;
+// OAuth client IDs are public identifiers. Google Cloud restricts this Web
+// client to the production Studio origin; an environment variable can still
+// override it for a separate deployment.
+export const DEFAULT_GOOGLE_WEB_CLIENT_ID =
+  "827299294563-tiptgldsm8riqtnp7am71hcpb7q9628h.apps.googleusercontent.com";
 
 const DRIVE_FILES_API = "https://www.googleapis.com/drive/v3/files";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
@@ -335,7 +340,7 @@ function browserWebOAuthEnabled(): boolean {
 }
 
 export const webGoogleDrive = new WebGoogleDriveClient({
-  clientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
+  clientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID || DEFAULT_GOOGLE_WEB_CLIENT_ID,
   fetch: (...args) => globalThis.fetch(...args),
   oauth: browserOAuth,
   enabled: browserWebOAuthEnabled
