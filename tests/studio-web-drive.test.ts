@@ -62,6 +62,17 @@ describe("Studio web Google Drive client", () => {
     });
   });
 
+  it("can disable web OAuth on unregistered preview origins", () => {
+    const client = new WebGoogleDriveClient({
+      clientId: "web-client.apps.googleusercontent.com",
+      fetch: vi.fn(),
+      oauth: () => undefined,
+      enabled: () => false
+    });
+
+    expect(client.configured()).toBe(false);
+  });
+
   it("uses an explicit account chooser and keeps the grant in memory", async () => {
     const fixture = connectedClient();
     await fixture.connect();
