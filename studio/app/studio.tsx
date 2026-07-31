@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
@@ -675,6 +676,7 @@ export default function Studio() {
 
   return (
     <main className="studio-shell">
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">M</span>
