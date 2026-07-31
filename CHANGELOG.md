@@ -8,7 +8,21 @@ All notable changes to Mai-Score are documented here.
 
 - Studio can authorize Google Drive directly with Google Identity Services on mobile and extension-free browsers.
 - Desktop Extension sync and Studio web sync share the existing `mai-score-history.json` app-data document and pull → merge → push behavior.
+- Synced history now carries compact player metadata so future snapshots can restore the equipped icon and frame without storing large image data in Drive.
 - Added explicit mobile, cross-device, account-choice, and token-expiry cases to the real-service test plan.
+
+### Changed
+
+- Studio automatically opens the newest synchronized B50 in Live preview and restores public song jackets.
+- The export header now separates the B50 total, New B15, and Old B35 into distinct score blocks with thousands separators.
+- Official Rating is shown as simple text; the tier badge and stars have been removed.
+- Google Drive controls are now a compact sync bar, with destructive and account-management actions moved into a secondary menu.
+- Studio now uses the Milifix dark palette, ambient grid, subtle glass surfaces, and reduced-motion-safe transitions.
+
+### Fixed
+
+- Fixed mobile Drive sync reporting successful history while leaving Live preview empty.
+- Preview and downloaded exports now use the same B50 collection timestamp.
 
 ### Privacy
 

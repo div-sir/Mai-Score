@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chartKey, diffHistory, sortHistory, toHistoryEntry } from "../studio/lib/history";
+import { chartKey, diffHistory, fromHistoryEntry, sortHistory, toHistoryEntry } from "../studio/lib/history";
 import type { HistoryEntry } from "../studio/lib/history";
 import type { StudioData, StudioRecord } from "../studio/lib/types";
 
@@ -58,6 +58,28 @@ describe("history entries", () => {
     const saved = toHistoryEntry(data, "extension", "en");
     source.achievementRate = 12;
     expect(saved.records[0].achievementRate).toBe(99);
+  });
+
+  it("restores a previewable B50 from synced history and rebuilds its totals", () => {
+    const restored = fromHistoryEntry(entry({
+      playerTitle: "Champion",
+      playerIconUrl: "https://example.com/icon.png",
+      records: [
+        record({ bucket: "b15", chartRating: 301 }),
+        record({ title: "Old song", bucket: "b35", chartRating: 289 })
+      ],
+      b50Rating: 99999
+    }));
+
+    expect(restored.exportedAt).toBe("2026-07-01T00:00:00.000Z");
+    expect(restored.player).toMatchObject({
+      name: "DIV",
+      title: "Champion",
+      iconUrl: "https://example.com/icon.png"
+    });
+    expect(restored.b15Rating).toBe(301);
+    expect(restored.b35Rating).toBe(289);
+    expect(restored.b50Rating).toBe(590);
   });
 
   it("distinguishes the same song across type and difficulty", () => {

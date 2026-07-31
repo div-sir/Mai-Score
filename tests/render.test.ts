@@ -55,28 +55,28 @@ describe("B50 image templates", () => {
     expect(rendered.svg).not.toContain("0.1234%");
   });
 
-  it("draws the official rating as a tier-coloured badge, not plain text", () => {
+  it("shows the official rating as plain text without a tier badge or stars", () => {
     const goldPlayer: CollectionResult = { ...result, player: { ...result.player, rating: 14200 } };
     const rendered = renderB50Document(goldPlayer, { ...DEFAULT_IMAGE_OPTIONS, showOfficialRating: true });
-    expect(rendered.svg).toContain("ratingTierGradient");
-    expect(rendered.svg).toContain(">14200<");
-    expect(rendered.svg).toContain(">RATING<");
-    // 14200 falls in the gold band's first star (14000-14249); its gradient
-    // colours and exactly one star must actually appear.
-    expect(rendered.svg).toContain("#ffe27a");
-    expect(rendered.svg).toContain("#e8942f");
-    expect(rendered.svg.match(/<polygon/g)).toHaveLength(1);
-  });
-
-  it("draws four stars for a top rainbow-extreme rating, per the official table", () => {
-    const topPlayer: CollectionResult = { ...result, player: { ...result.player, rating: 17500 } };
-    const rendered = renderB50Document(topPlayer, { ...DEFAULT_IMAGE_OPTIONS, showOfficialRating: true });
-    expect(rendered.svg.match(/<polygon/g)).toHaveLength(4);
-  });
-
-  it("draws no stars below the gold band", () => {
-    const silverPlayer: CollectionResult = { ...result, player: { ...result.player, rating: 13500 } };
-    const rendered = renderB50Document(silverPlayer, { ...DEFAULT_IMAGE_OPTIONS, showOfficialRating: true });
+    expect(rendered.svg).toContain("OFFICIAL RATING · 14,200");
+    expect(rendered.svg).not.toContain("ratingTierGradient");
     expect(rendered.svg).not.toContain("<polygon");
+  });
+
+  it("separates the total, new B15, and old B35 scores", () => {
+    const scored: CollectionResult = {
+      ...result,
+      b15Rating: 4355,
+      b35Rating: 10321,
+      b50Rating: 14676
+    };
+    const rendered = renderB50Document(scored, {
+      ...DEFAULT_IMAGE_OPTIONS,
+      showRatingBreakdown: true
+    });
+    expect(rendered.svg).toContain("BEST 50 · TOTAL");
+    expect(rendered.svg).toContain(">14,676<");
+    expect(rendered.svg).toContain(">4,355<");
+    expect(rendered.svg).toContain(">10,321<");
   });
 });
