@@ -2,6 +2,18 @@
 
 All notable changes to Mai-Score are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Studio can authorize Google Drive directly with Google Identity Services on mobile and extension-free browsers.
+- Desktop Extension sync and Studio web sync share the existing `mai-score-history.json` app-data document and pull → merge → push behavior.
+- Added explicit mobile, cross-device, account-choice, and token-expiry cases to the real-service test plan.
+
+### Privacy
+
+- Web OAuth access tokens are short-lived and kept only in page memory; they are never stored by Mai-Score or sent to the Studio server.
+
 ## [0.7.1] — 2026-07-30
 
 ### Changed
