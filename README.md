@@ -75,7 +75,7 @@ After collection, choose **Preview and customize online**. The extension stores 
 
 The handoff also embeds the equipped frame, icon, and resolved song covers as image data. This lets the browser preview and PNG export render authenticated DX NET assets without uploading them or depending on cross-origin image requests.
 
-Studio is public at `mai-score.milifix.com` and does not require a Mai-Score account. After a successful transfer or JSON import, the latest B50 and its images are stored in that browser's IndexedDB so the preview can be restored later. Style preferences are stored separately in localStorage. No Mai-Score server-side score database is used, and the saved local copy can be cleared from Studio. In v0.7.1, an explicit Google connection can additionally synchronize history through Drive `appDataFolder`.
+Studio is public at `mai-score.milifix.com` and does not require a Mai-Score account. After a successful transfer, JSON import, or Drive sync, the newest B50 is opened in Live preview and stored in that browser's IndexedDB so it can be restored later. Public song jackets are fetched again on a new device; newer history points also retain the small profile URLs needed to restore the equipped icon and frame. Style preferences are stored separately in localStorage. No Mai-Score server-side score database is used, and the saved local copy can be cleared from Studio.
 
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
@@ -95,8 +95,10 @@ Drive sync is **experimental in the v0.7.1 GitHub release**. Google access is li
 
 The next development version also supports Google Identity Services directly in
 Studio. This makes cross-device history available from mobile Chrome or Safari
-without a browser extension. Production's public Web application client ID is
-in `studio/lib/google-drive-web.ts`; `studio/.env.example` documents the local override.
+without a browser extension. Connecting performs the first sync automatically;
+later, **Sync latest B50** merges both sides and opens the newest snapshot in Live
+preview. Production's public Web application client ID is in
+`studio/lib/google-drive-web.ts`; `studio/.env.example` documents the local override.
 Keep both OAuth clients in the same Google Cloud project so both paths use the
 same app-data file.
 

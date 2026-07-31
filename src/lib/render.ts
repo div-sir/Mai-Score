@@ -5,7 +5,6 @@ import {
   type ImageOptions,
   type ImageTheme
 } from "./image-options";
-import { ratingStars, ratingTier } from "./rating-tier";
 import type { CollectionResult, ResolvedScore } from "./types";
 
 export interface RenderAssets {
@@ -63,6 +62,7 @@ const layouts: Record<ImageLayout, LayoutSpec> = {
 };
 
 interface RenderCopy {
+  officialRating: string;
   newBreakdown: string;
   oldBreakdown: string;
   newSection: string;
@@ -74,6 +74,7 @@ interface RenderCopy {
 function renderCopy(locale: string): RenderCopy {
   if (locale.toLowerCase().startsWith("zh")) {
     return {
+      officialRating: "官方 RATING",
       newBreakdown: "新曲 B15",
       oldBreakdown: "舊曲 B35",
       newSection: "新曲區 · BEST 15",
@@ -84,6 +85,7 @@ function renderCopy(locale: string): RenderCopy {
   }
   if (locale.toLowerCase().startsWith("ja")) {
     return {
+      officialRating: "公式 RATING",
       newBreakdown: "新曲 B15",
       oldBreakdown: "旧曲 B35",
       newSection: "新曲枠 · BEST 15",
@@ -93,6 +95,7 @@ function renderCopy(locale: string): RenderCopy {
     };
   }
   return {
+    officialRating: "OFFICIAL RATING",
     newBreakdown: "New B15",
     oldBreakdown: "Old B35",
     newSection: "NEW CHARTS · BEST 15",
@@ -138,49 +141,7 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
 
 const alpha = (hex: string, opacity: number) =>
   `${hex}${Math.round(Math.max(0, Math.min(1, opacity)) * 255).toString(16).padStart(2, "0")}`;
-
-// 5-point star centred at (cx, cy) with outer radius r, points up.
-function starPolygon(cx: number, cy: number, r: number): string {
-  const points: string[] = [];
-  for (let i = 0; i < 10; i++) {
-    const radius = i % 2 === 0 ? r : r * 0.42;
-    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
-    points.push(`${(cx + radius * Math.cos(angle)).toFixed(1)},${(cy + radius * Math.sin(angle)).toFixed(1)}`);
-  }
-  return `<polygon points="${points.join(" ")}" fill="#ffd54a" stroke="#00000040" stroke-width="1"/>`;
-}
-
-// A compact two-tone pill echoing the in-game DELUXE RATING badge: a
-// tier-coloured label zone fused into a dark number zone, with 0-4 stars
-// after it for tiers that carry a sub-rank (gold and up, per the official
-// table). Self-contained (its <defs> can sit anywhere in the document per
-// the SVG spec) so callers only need an anchor point and a height.
-function ratingBadge(x: number, yCenter: number, rating: number, height: number): string {
-  const tier = ratingTier(rating);
-  const stars = ratingStars(rating);
-  const labelWidth = height * 2.35;
-  const numberWidth = String(rating).length * height * 0.58 + height * 0.85;
-  const y = yCenter - height / 2;
-  const stops = tier.gradient.map((color, index) =>
-    `<stop offset="${tier.gradient.length > 1 ? Math.round(index / (tier.gradient.length - 1) * 100) : 0}%" stop-color="${color}"/>`
-  ).join("");
-  const starRadius = height * 0.19;
-  const starGap = starRadius * 2.6;
-  const starsStartX = labelWidth - height / 2 + numberWidth + starRadius + height * 0.18;
-  const starMarkup = Array.from({ length: stars }, (_, index) =>
-    starPolygon(starsStartX + index * starGap, height / 2, starRadius)
-  ).join("");
-
-  return `
-  <defs><linearGradient id="ratingTierGradient" x1="0" y1="0" x2="1" y2="0">${stops}</linearGradient></defs>
-  <g transform="translate(${x} ${y})">
-    <rect x="0" y="0" width="${labelWidth + height / 2}" height="${height}" rx="${height / 2}" fill="url(#ratingTierGradient)" stroke="#00000030" stroke-width="1.5"/>
-    <rect x="${labelWidth - height / 2}" y="0" width="${numberWidth}" height="${height}" rx="${height / 2}" fill="#1c1c1c"/>
-    <text x="${labelWidth / 2}" y="${height * 0.63}" text-anchor="middle" font-size="${Math.round(height * 0.32)}" font-weight="800" letter-spacing="0.5" style="fill:${tier.labelColor}">RATING</text>
-    <text x="${labelWidth - height / 2 + numberWidth / 2}" y="${height * 0.71}" text-anchor="middle" font-size="${Math.round(height * 0.5)}" font-weight="900" style="fill:#ffffff">${rating}</text>
-    ${starMarkup}
-  </g>`;
-}
+const formatScore = (value: number) => new Intl.NumberFormat("en-US").format(value);
 
 function textUnits(value: string): number {
   return [...value].reduce((sum, character) => sum + (/[\u0000-\u00ff]/.test(character) ? 0.56 : 1), 0);
@@ -278,6 +239,11 @@ function header(
   const nameY = titleY + (options.layout === "compact" ? 46 : 60);
   const ratingY = nameY + (options.layout === "compact" ? 36 : 48);
   const scoreX = panelX + panelWidth - 52;
+  const scoreBoxWidth = options.layout === "compact" ? 142 : 168;
+  const scoreBoxHeight = options.layout === "compact" ? 42 : 50;
+  const scoreBoxGap = 10;
+  const scoreBoxY = ratingY - (options.layout === "compact" ? 8 : 5);
+  const scoreBoxesX = scoreX - scoreBoxWidth * 2 - scoreBoxGap;
 
   return `
   ${options.showFrame && assets.frame ? `<image href="${assets.frame}" x="0" y="0" width="${spec.width}" height="${spec.headerHeight + 48}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
@@ -286,10 +252,20 @@ function header(
   ${options.showIcon && assets.icon ? `<image href="${assets.icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
   ${options.showPlayerTitle ? `<text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(result.player.title)}</text>` : ""}
   <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(result.player.name)}</text>
-  ${options.showOfficialRating ? ratingBadge(textX, ratingY - (options.layout === "compact" ? 10 : 12), result.player.rating, options.layout === "compact" ? 30 : 36) : ""}
-  <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 20 : 25}" fill="${palette.muted}">BEST 50</text>
-  <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${result.b50Rating}</text>
-  ${options.showRatingBreakdown ? `<text x="${scoreX}" y="${ratingY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" fill="${palette.muted}">${copy.newBreakdown} ${result.b15Rating} + ${copy.oldBreakdown} ${result.b35Rating}</text>` : ""}`;
+  ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 16 : 19}" font-weight="700" fill="${palette.muted}">${copy.officialRating} · ${formatScore(result.player.rating)}</text>` : ""}
+  <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" fill="${palette.muted}">BEST 50 · TOTAL</text>
+  <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${formatScore(result.b50Rating)}</text>
+  ${options.showRatingBreakdown ? `
+    <g transform="translate(${scoreBoxesX} ${scoreBoxY})">
+      <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accentColor, .13)}" stroke="${alpha(options.accentColor, .34)}"/>
+      <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.newBreakdown}</text>
+      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(result.b15Rating)}</text>
+    </g>
+    <g transform="translate(${scoreBoxesX + scoreBoxWidth + scoreBoxGap} ${scoreBoxY})">
+      <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accentColor, .07)}" stroke="${alpha(options.accentColor, .2)}"/>
+      <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.oldBreakdown}</text>
+      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(result.b35Rating)}</text>
+    </g>` : ""}`;
 }
 
 export function renderB50Document(

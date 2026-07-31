@@ -80,6 +80,26 @@ export async function saveStudioSnapshot(snapshot: Omit<StudioSnapshot, "savedAt
   }
 }
 
+/**
+ * Updates the currently previewed snapshot without creating or replacing a
+ * history point. Drive sync already merged the authoritative history first.
+ */
+export async function saveStudioSnapshotOnly(
+  snapshot: Omit<StudioSnapshot, "savedAt">
+): Promise<void> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).put(
+      { ...snapshot, savedAt: new Date().toISOString() } satisfies StudioSnapshot,
+      LATEST_KEY
+    );
+    await complete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export async function appendStudioHistory(entry: HistoryEntry): Promise<void> {
   const database = await openDatabase();
   try {

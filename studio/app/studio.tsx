@@ -10,9 +10,10 @@ import {
   listStudioHistory,
   loadStudioSnapshot,
   mergeStudioHistory,
-  saveStudioSnapshot
+  saveStudioSnapshot,
+  saveStudioSnapshotOnly
 } from "../lib/local-store";
-import { diffHistory, type HistoryEntry } from "../lib/history";
+import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
 import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
 import {
   connectGoogleDriveWeb,
@@ -424,7 +425,7 @@ export default function Studio() {
 
   async function renderExport(): Promise<{ blob: Blob; filename: string }> {
     if (!data) throw new Error(copy.emptyMessage);
-    const finalRendered = renderStudioSvg(data, options, origin, new Date(), assets);
+    const finalRendered = renderStudioSvg(data, options, origin, new Date(generatedAt), assets);
     const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
     if (exportFormat === "svg") {
       return {
@@ -505,6 +506,39 @@ export default function Studio() {
    * own collections instead of being silently overwritten by whatever Drive
    * already held.
    */
+  async function showLatestHistory(entries: readonly HistoryEntry[]) {
+    const latest = entries[0];
+    if (!latest) return;
+
+    const latestData = normalizeB50(fromHistoryEntry(latest));
+    const isCurrentSnapshot = data?.exportedAt === latestData.exportedAt;
+    const retainedProfileAssets: Pick<StudioAssets, "icon" | "frame"> = isCurrentSnapshot
+      ? { icon: assets.icon, frame: assets.frame }
+      : {};
+
+    // Show the score immediately, then let jacket loading fill in progressively.
+    setData(latestData);
+    setAssets({ covers: {}, ...retainedProfileAssets });
+    setSource("Google Drive");
+    setGeneratedAt(latestData.exportedAt);
+
+    const publicAssets = await loadPublicAssets(latestData);
+    const latestAssets = { ...publicAssets, ...retainedProfileAssets };
+    setAssets(latestAssets);
+    try {
+      await saveStudioSnapshotOnly({
+        data: latestData,
+        assets: latestAssets,
+        source: "Google Drive",
+        generatedAt: latestData.exportedAt,
+        language: options.language
+      });
+    } catch {
+      // The synchronized history is already safe. Private browsing may block
+      // the optional current-preview cache, which should not fail the sync.
+    }
+  }
+
   async function syncHistory() {
     setSyncing(true);
     try {
@@ -544,6 +578,7 @@ export default function Studio() {
         return;
       }
 
+      await showLatestHistory(merged);
       setMessage(skipped > 0
         ? `${copy.syncedAt(merged.length)} ${copy.syncSkipped(skipped)}`
         : copy.syncedAt(merged.length));
@@ -604,6 +639,7 @@ export default function Studio() {
         }
         setDriveState("connected");
         setMessage(copy.driveConnectedDone);
+        await syncHistory();
       } catch (error) {
         setDriveState("disconnected");
         setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
@@ -695,6 +731,62 @@ export default function Studio() {
 
       <div className="status-line"><span />{message}</div>
 
+      <section className={`drive-strip ${driveState}`} aria-labelledby="drive-heading">
+        <div className="drive-identity">
+          <span className="drive-logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
+              <path d="M16.4 8.9 21 17h-5.2l-2.6-4.5z" />
+              <path d="m3 17 2.6-4.5h7.6l2.6 4.5z" />
+            </svg>
+          </span>
+          <div>
+            <h2 id="drive-heading">{copy.syncHeading}</h2>
+            <span className="drive-state-label">
+              <i />
+              {driveState === "checking" ? copy.driveChecking
+                : driveState === "connected" ? copy.driveConnected
+                  : driveState === "disconnected" ? copy.driveDisconnected
+                    : copy.driveUnavailable}
+            </span>
+          </div>
+        </div>
+        <div className="drive-actions">
+          {driveState === "connected" ? (
+            <>
+              <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
+                {syncing ? copy.syncing : copy.syncNow}
+              </button>
+              <details className="drive-more">
+                <summary aria-label={copy.driveOptions}>•••</summary>
+                <div>
+                  <button
+                    className="secondary-button drive-disconnect-button"
+                    disabled={syncing || deletingCloud || disconnectingDrive || busy}
+                    onClick={disconnectDriveFromStudio}
+                  >
+                    {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
+                  </button>
+                  <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
+                    {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
+                  </button>
+                </div>
+              </details>
+            </>
+          ) : (
+            <button
+              className="drive-connect-button"
+              disabled={busy || connectingDrive || driveState === "checking" || driveState === "unavailable"}
+              onClick={connectGoogleDriveFromStudio}
+            >
+              {connectingDrive ? copy.driveConnecting
+                : driveState === "checking" ? copy.driveChecking
+                  : copy.driveConnect}
+            </button>
+          )}
+        </div>
+      </section>
+
       <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">
@@ -742,50 +834,6 @@ export default function Studio() {
           <button className="export-button" disabled={busy || !data} onClick={exportImage}>
             {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
           </button>
-          <section className="drive-card" aria-labelledby="drive-heading">
-            <div className="drive-card-heading">
-              <h2 id="drive-heading">{copy.syncHeading}</h2>
-              <span className={`drive-badge ${driveState}`}>
-                {driveState === "checking" ? copy.driveChecking
-                  : driveState === "connected" ? copy.driveConnected
-                    : driveState === "disconnected" ? copy.driveDisconnected
-                      : copy.driveUnavailable}
-              </span>
-            </div>
-            <p>{driveState === "unavailable" ? copy.syncNoExtension : copy.driveAccountHint}</p>
-            {driveState === "disconnected" && (
-              <button className="drive-connect-button" disabled={busy || connectingDrive} onClick={connectGoogleDriveFromStudio}>
-                {connectingDrive ? copy.driveConnecting : copy.driveConnect}
-              </button>
-            )}
-            {driveState === "unavailable" && (
-              <button className="drive-connect-button" disabled>
-                {copy.driveConnect}
-              </button>
-            )}
-            {driveState === "checking" && (
-              <button className="drive-connect-button" disabled>
-                {copy.driveChecking}
-              </button>
-            )}
-            {driveState === "connected" && (
-              <>
-              <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
-                {syncing ? copy.syncing : copy.syncNow}
-              </button>
-              <button
-                className="secondary-button drive-disconnect-button"
-                disabled={syncing || deletingCloud || disconnectingDrive || busy}
-                onClick={disconnectDriveFromStudio}
-              >
-                {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
-              </button>
-              <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
-                {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
-              </button>
-              </>
-            )}
-          </section>
           <details className="history-panel">
             <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
             {history.length === 0
@@ -834,7 +882,7 @@ export default function Studio() {
           </p>
         </aside>
 
-        <section className="preview-panel">
+        <section className={`preview-panel${data ? "" : " empty"}`}>
           <div className="preview-toolbar">
             <strong>{copy.livePreview}</strong>
             <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
