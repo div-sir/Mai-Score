@@ -1,4 +1,4 @@
-import type { LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
+import type { LanguageId, LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
 
 interface Spec {
   width: number; height: number; columns: number; margin: number; startY: number;
@@ -27,8 +27,6 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;"
 }[character]!));
 const alpha = (hex: string, opacity: number) => `${hex}${Math.round(opacity * 255).toString(16).padStart(2, "0")}`;
-const formatScore = (value: number) => new Intl.NumberFormat("en-US").format(value);
-
 function truncate(value: string, limit: number) {
   if (value.length <= limit) return value;
   return `${value.slice(0, Math.max(1, limit - 1))}…`;
@@ -39,9 +37,8 @@ function assetUrl(url: string | undefined, origin: string) {
   return `${origin}/api/asset?url=${encodeURIComponent(url)}`;
 }
 
-function renderCopy(language: StudioOptions["language"]) {
+function renderCopy(language: LanguageId) {
   if (language === "zh-Hant") return {
-    officialRating: "官方 RATING",
     newBreakdown: "新曲 B15",
     oldBreakdown: "舊曲 B35",
     newSection: "新曲區 · BEST 15",
@@ -50,7 +47,6 @@ function renderCopy(language: StudioOptions["language"]) {
     generated: "由 Mai-Score Studio 在本機產生"
   };
   if (language === "ja") return {
-    officialRating: "公式 RATING",
     newBreakdown: "新曲 B15",
     oldBreakdown: "旧曲 B35",
     newSection: "新曲枠 · BEST 15",
@@ -59,7 +55,6 @@ function renderCopy(language: StudioOptions["language"]) {
     generated: "Mai-Score Studio でローカル生成"
   };
   return {
-    officialRating: "OFFICIAL RATING",
     newBreakdown: "New B15",
     oldBreakdown: "Old B35",
     newSection: "NEW CHARTS · BEST 15",
@@ -69,16 +64,14 @@ function renderCopy(language: StudioOptions["language"]) {
   };
 }
 
-function visibleTimestamp(options: StudioOptions, generatedAt: Date) {
+function visibleTimestamp(options: StudioOptions, generatedAt: Date, language: LanguageId) {
   if (options.timestamp === "off") return "";
   const format: Intl.DateTimeFormatOptions = {
     dateStyle: "medium",
-    ...(options.timestamp === "datetime" ? { timeStyle: "short" as const } : {}),
-    ...(options.timezone === "utc" ? { timeZone: "UTC" } : {})
+    ...(options.timestamp === "datetime" ? { timeStyle: "short" as const } : {})
   };
-  const locale = options.language === "zh-Hant" ? "zh-TW" : options.language === "ja" ? "ja-JP" : "en-US";
-  const text = new Intl.DateTimeFormat(locale, format).format(generatedAt);
-  return options.timezone === "utc" ? `${text} UTC` : text;
+  const locale = language === "zh-Hant" ? "zh-TW" : language === "ja" ? "ja-JP" : "en-US";
+  return new Intl.DateTimeFormat(locale, format).format(generatedAt);
 }
 
 function rank(records: StudioRecord[], index: number) {
@@ -89,13 +82,14 @@ function rank(records: StudioRecord[], index: number) {
 export function renderStudioSvg(
   data: StudioData,
   options: StudioOptions,
+  language: LanguageId,
   origin = "",
   generatedAt = new Date(),
   assets: StudioAssets = { covers: {} }
 ) {
   const spec = specs[options.layout];
   const palette = palettes[options.theme];
-  const copy = renderCopy(options.language);
+  const copy = renderCopy(language);
   const ordered = [...data.records].sort((a, b) => a.bucket === b.bucket ? 0 : a.bucket === "b15" ? -1 : 1);
   const newRecords = ordered.filter((record) => record.bucket === "b15").slice(0, 15);
   const oldRecords = ordered.filter((record) => record.bucket === "b35").slice(0, 35);
@@ -118,7 +112,7 @@ export function renderStudioSvg(
   const scoreBoxGap = 10;
   const scoreBoxY = ratingY - (options.layout === "compact" ? 8 : 5);
   const scoreBoxesX = scoreX - scoreBoxWidth * 2 - scoreBoxGap;
-  const timestamp = visibleTimestamp(options, generatedAt);
+  const timestamp = visibleTimestamp(options, generatedAt, language);
 
   const renderCards = (records: StudioRecord[], sectionStartY: number, globalOffset: number) => records.map((record, sectionIndex) => {
     const index = globalOffset + sectionIndex;
@@ -169,19 +163,18 @@ export function renderStudioSvg(
       ${options.showIcon && icon ? `<image href="${icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
       <text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(data.player.title)}</text>
       <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(data.player.name)}</text>
-      ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 16 : 19}" font-weight="700" fill="${palette.muted}">${copy.officialRating} · ${formatScore(data.player.rating)}</text>` : ""}
       <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" fill="${palette.muted}">BEST 50 · TOTAL</text>
-      <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${formatScore(data.b50Rating)}</text>
+      <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${data.b50Rating}</text>
       ${options.showBreakdown ? `
         <g transform="translate(${scoreBoxesX} ${scoreBoxY})">
           <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accent, .13)}" stroke="${alpha(options.accent, .34)}"/>
           <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.newBreakdown}</text>
-          <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(data.b15Rating)}</text>
+          <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${data.b15Rating}</text>
         </g>
         <g transform="translate(${scoreBoxesX + scoreBoxWidth + scoreBoxGap} ${scoreBoxY})">
           <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accent, .07)}" stroke="${alpha(options.accent, .2)}"/>
           <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.oldBreakdown}</text>
-          <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(data.b35Rating)}</text>
+          <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${data.b35Rating}</text>
         </g>` : ""}
       <g>
         <rect x="${spec.margin}" y="${spec.startY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .16)}"/>

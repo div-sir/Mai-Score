@@ -62,7 +62,6 @@ const layouts: Record<ImageLayout, LayoutSpec> = {
 };
 
 interface RenderCopy {
-  officialRating: string;
   newBreakdown: string;
   oldBreakdown: string;
   newSection: string;
@@ -74,7 +73,6 @@ interface RenderCopy {
 function renderCopy(locale: string): RenderCopy {
   if (locale.toLowerCase().startsWith("zh")) {
     return {
-      officialRating: "官方 RATING",
       newBreakdown: "新曲 B15",
       oldBreakdown: "舊曲 B35",
       newSection: "新曲區 · BEST 15",
@@ -85,7 +83,6 @@ function renderCopy(locale: string): RenderCopy {
   }
   if (locale.toLowerCase().startsWith("ja")) {
     return {
-      officialRating: "公式 RATING",
       newBreakdown: "新曲 B15",
       oldBreakdown: "旧曲 B35",
       newSection: "新曲枠 · BEST 15",
@@ -95,7 +92,6 @@ function renderCopy(locale: string): RenderCopy {
     };
   }
   return {
-    officialRating: "OFFICIAL RATING",
     newBreakdown: "New B15",
     oldBreakdown: "Old B35",
     newSection: "NEW CHARTS · BEST 15",
@@ -141,8 +137,6 @@ const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (charact
 
 const alpha = (hex: string, opacity: number) =>
   `${hex}${Math.round(Math.max(0, Math.min(1, opacity)) * 255).toString(16).padStart(2, "0")}`;
-const formatScore = (value: number) => new Intl.NumberFormat("en-US").format(value);
-
 function textUnits(value: string): number {
   return [...value].reduce((sum, character) => sum + (/[\u0000-\u00ff]/.test(character) ? 0.56 : 1), 0);
 }
@@ -252,19 +246,18 @@ function header(
   ${options.showIcon && assets.icon ? `<image href="${assets.icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
   ${options.showPlayerTitle ? `<text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(result.player.title)}</text>` : ""}
   <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(result.player.name)}</text>
-  ${options.showOfficialRating ? `<text x="${textX}" y="${ratingY}" font-size="${options.layout === "compact" ? 16 : 19}" font-weight="700" fill="${palette.muted}">${copy.officialRating} · ${formatScore(result.player.rating)}</text>` : ""}
   <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" fill="${palette.muted}">BEST 50 · TOTAL</text>
-  <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${formatScore(result.b50Rating)}</text>
+  <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${result.b50Rating}</text>
   ${options.showRatingBreakdown ? `
     <g transform="translate(${scoreBoxesX} ${scoreBoxY})">
       <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accentColor, .13)}" stroke="${alpha(options.accentColor, .34)}"/>
       <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.newBreakdown}</text>
-      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(result.b15Rating)}</text>
+      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${result.b15Rating}</text>
     </g>
     <g transform="translate(${scoreBoxesX + scoreBoxWidth + scoreBoxGap} ${scoreBoxY})">
       <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accentColor, .07)}" stroke="${alpha(options.accentColor, .2)}"/>
       <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.oldBreakdown}</text>
-      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${formatScore(result.b35Rating)}</text>
+      <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${result.b35Rating}</text>
     </g>` : ""}`;
 }
 

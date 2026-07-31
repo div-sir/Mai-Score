@@ -43,22 +43,21 @@ describe("B50 image templates", () => {
     const rendered = renderB50Document(result, {
       ...DEFAULT_IMAGE_OPTIONS,
       watermark: "<private>",
-      timestampZone: "utc",
-      showOfficialRating: false,
       showAchievement: false,
       showChartRating: false,
       showCovers: false
     }, {}, new Date("2026-07-27T06:30:45.000Z"), "en-US");
     expect(rendered.svg).toContain("&lt;private&gt;");
-    expect(rendered.svg).toContain("UTC");
+    expect(rendered.svg).not.toContain("UTC");
     expect(rendered.svg).not.toContain("ratingTierGradient");
     expect(rendered.svg).not.toContain("0.1234%");
   });
 
-  it("shows the official rating as plain text without a tier badge or stars", () => {
+  it("does not render an official rating row", () => {
     const goldPlayer: CollectionResult = { ...result, player: { ...result.player, rating: 14200 } };
-    const rendered = renderB50Document(goldPlayer, { ...DEFAULT_IMAGE_OPTIONS, showOfficialRating: true });
-    expect(rendered.svg).toContain("OFFICIAL RATING · 14,200");
+    const rendered = renderB50Document(goldPlayer, DEFAULT_IMAGE_OPTIONS);
+    expect(rendered.svg).not.toContain("OFFICIAL RATING");
+    expect(rendered.svg).not.toContain(">14200<");
     expect(rendered.svg).not.toContain("ratingTierGradient");
     expect(rendered.svg).not.toContain("<polygon");
   });
@@ -75,8 +74,8 @@ describe("B50 image templates", () => {
       showRatingBreakdown: true
     });
     expect(rendered.svg).toContain("BEST 50 · TOTAL");
-    expect(rendered.svg).toContain(">14,676<");
-    expect(rendered.svg).toContain(">4,355<");
-    expect(rendered.svg).toContain(">10,321<");
+    expect(rendered.svg).toContain(">14676<");
+    expect(rendered.svg).toContain(">4355<");
+    expect(rendered.svg).toContain(">10321<");
   });
 });

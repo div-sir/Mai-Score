@@ -14,8 +14,10 @@ All notable changes to Mai-Score are documented here.
 ### Changed
 
 - Studio automatically opens the newest synchronized B50 in Live preview and restores public song jackets.
-- The export header now separates the B50 total, New B15, and Old B35 into distinct score blocks with thousands separators.
-- Official Rating is shown as simple text; the tier badge and stars have been removed.
+- Studio language is now a global control in the top bar rather than an export-style field.
+- Export timestamps now always use the device's local time zone.
+- The export header separates the B50 total, New B15, and Old B35 into distinct score blocks without thousands separators.
+- The Official Rating row and its visibility control have been removed from exported images.
 - Google Drive controls are now a compact sync bar, with destructive and account-management actions moved into a secondary menu.
 - Studio now uses the Milifix dark palette, ambient grid, subtle glass surfaces, and reduced-motion-safe transitions.
 

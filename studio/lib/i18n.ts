@@ -12,7 +12,6 @@ export interface StudioCopy {
   layout: string;
   theme: string;
   timestamp: string;
-  timezone: string;
   accent: string;
   outputFormat: string;
   watermark: string;
@@ -21,7 +20,6 @@ export interface StudioCopy {
   frame: string;
   icon: string;
   covers: string;
-  officialRating: string;
   breakdown: string;
   achievement: string;
   chartRating: string;
@@ -103,7 +101,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     layout: "Layout",
     theme: "Theme",
     timestamp: "Timestamp",
-    timezone: "Time zone",
     accent: "Accent",
     outputFormat: "Format",
     watermark: "Watermark",
@@ -112,7 +109,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "Frame",
     icon: "Icon",
     covers: "Song jackets",
-    officialRating: "Official Rating",
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
     chartRating: "Chart Rating",
@@ -193,7 +189,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     layout: "排版",
     theme: "主題",
     timestamp: "時間戳記",
-    timezone: "時區",
     accent: "強調色",
     outputFormat: "輸出格式",
     watermark: "浮水印",
@@ -202,7 +197,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "Frame",
     icon: "Icon",
     covers: "歌曲封面",
-    officialRating: "官方 Rating",
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
     chartRating: "單曲 Rating",
@@ -283,7 +277,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     layout: "レイアウト",
     theme: "テーマ",
     timestamp: "タイムスタンプ",
-    timezone: "タイムゾーン",
     accent: "アクセント",
     outputFormat: "形式",
     watermark: "透かし",
@@ -292,7 +285,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "フレーム",
     icon: "アイコン",
     covers: "ジャケット",
-    officialRating: "公式 Rating",
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
     chartRating: "譜面 Rating",
