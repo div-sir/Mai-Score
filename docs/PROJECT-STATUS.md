@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of the `v0.7.1` Drive UI fix prepared on July 30, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.1`; the latest packaged release remains `v0.7.0` until this fix is merged and tagged.
+Accurate as of the `v0.7.1` release on July 31, 2026. Extension, manifest, lockfiles, and Studio all use version `0.7.1`; the latest packaged GitHub release is `v0.7.1`.
 
 ## What this is
 
@@ -16,7 +16,7 @@ page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 
 The packaged GitHub release is `v0.7.0` (the release workflow builds and attaches the extension zip from the matching tag). It includes the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and experimental Drive work described below.
 
-## Prepared for v0.7.1
+## Released in v0.7.1
 
 - Studio always renders a Drive card and uses the pinned official Extension ID when no prior handoff ID is stored.
 - Connect launches a web-accessible Extension authorization page; the actual interactive `chrome.identity` call remains inside the Extension origin.
@@ -167,7 +167,7 @@ years of weekly play, but unbounded growth is worth a decision before it
 matters, and downsampling old entries would conflict with long-range progress
 tracking.
 
-### 2. Finish Drive general availability after v0.7.0
+### 2. Finish Drive general availability after v0.7.1
 
 - The source privacy policy and store permission documentation were updated for v0.7.0. Confirm the production policy deployment after the release merge.
 - Studio has a separately confirmed **Delete cloud history** action. It deletes only the Drive `appDataFolder` history file and leaves local IndexedDB history intact; Disconnect remains OAuth-only. Verify the complete real-service matrix before removing the experimental label.
