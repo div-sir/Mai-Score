@@ -145,10 +145,10 @@ export function renderStudioSvg(
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
       : ""}
       <text x="${contentX}" y="${spec.pad + spec.title}" font-size="${spec.title}" font-weight="750">${esc(truncate(record.title, maxChars))}</text>
-      <text x="${contentX}" y="${spec.pad + spec.title + spec.meta + 13}" font-size="${spec.meta}" fill="${palette.muted}">${esc(meta)}</text>
+      <text x="${contentX}" y="${spec.pad + spec.title + spec.meta + 13}" font-size="${spec.meta}" style="fill:${palette.muted}">${esc(meta)}</text>
       ${options.showAchievement ? `<text x="${contentX}" y="${achievementY}" font-size="${spec.rate}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>` : ""}
       ${(options.showRank || options.showChartRating) ? `<rect x="${spec.pad}" y="${stripY}" width="${spec.cardW - spec.pad * 2}" height="${spec.strip}" rx="10" fill="${palette.strip}"/>` : ""}
-      ${options.showRank ? `<text x="${spec.pad * 2}" y="${stripY + spec.strip * .68}" font-size="${spec.meta}" fill="${palette.muted}">${record.bucket.toUpperCase()} #${rank(ordered, index)}</text>` : ""}
+      ${options.showRank ? `<text x="${spec.pad * 2}" y="${stripY + spec.strip * .68}" font-size="${spec.meta}" style="fill:${palette.muted}">${record.bucket.toUpperCase()} #${rank(ordered, index)}</text>` : ""}
       ${options.showChartRating ? `<text x="${spec.cardW - spec.pad * 2}" y="${stripY + spec.strip * .72}" text-anchor="end" font-size="${spec.rate * .88}" font-weight="850">${record.chartRating ?? "?"}</text>` : ""}
     </g>`;
   }).join("");
@@ -164,34 +164,34 @@ export function renderStudioSvg(
       <rect x="${margin}" y="24" width="${panelW}" height="${spec.header - 10}" rx="28" fill="${palette.header}" opacity=".96" stroke="${alpha(options.accent, .28)}" stroke-width="2"/>
       <rect x="${margin}" y="24" width="10" height="${spec.header - 10}" rx="5" fill="${options.accent}"/>
       ${options.showIcon && icon ? `<image href="${icon}" x="${iconX}" y="${iconY}" width="${iconSize}" height="${iconSize}" preserveAspectRatio="xMidYMid slice"/>` : ""}
-      <text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" fill="${palette.muted}">${esc(data.player.title)}</text>
+      <text x="${textX}" y="${titleY}" font-size="${options.layout === "compact" ? 22 : 25}" style="fill:${palette.muted}">${esc(data.player.title)}</text>
       <text x="${textX}" y="${nameY}" font-size="${options.layout === "compact" ? 42 : 49}" font-weight="850" letter-spacing="2">${esc(data.player.name)}</text>
-      <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" fill="${palette.muted}">BEST 50 · TOTAL</text>
+      <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" style="fill:${palette.muted}">BEST 50 · TOTAL</text>
       <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${data.b50Rating}</text>
       ${options.showBreakdown ? `
         <g transform="translate(${scoreBoxesX} ${scoreBoxY})">
           <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accent, .13)}" stroke="${alpha(options.accent, .34)}"/>
-          <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.newBreakdown}</text>
+          <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" style="fill:${palette.muted}">${copy.newBreakdown}</text>
           <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${data.b15Rating}</text>
         </g>
         <g transform="translate(${scoreBoxesX + scoreBoxWidth + scoreBoxGap} ${scoreBoxY})">
           <rect width="${scoreBoxWidth}" height="${scoreBoxHeight}" rx="10" fill="${alpha(options.accent, .07)}" stroke="${alpha(options.accent, .2)}"/>
-          <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" fill="${palette.muted}">${copy.oldBreakdown}</text>
+          <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" style="fill:${palette.muted}">${copy.oldBreakdown}</text>
           <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${data.b35Rating}</text>
         </g>` : ""}
       <g>
         <rect x="${spec.margin}" y="${spec.startY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .16)}"/>
         <text x="${spec.margin + 14}" y="${spec.startY - 22}" font-size="18" font-weight="850">${copy.newSection}</text>
-        <text x="${spec.width - spec.margin - 14}" y="${spec.startY - 22}" text-anchor="end" font-size="16" fill="${palette.muted}">${newRecords.length} ${copy.charts} · ${data.b15Rating}</text>
+        <text x="${spec.width - spec.margin - 14}" y="${spec.startY - 22}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${newRecords.length} ${copy.charts} · ${data.b15Rating}</text>
       </g>
       <g>
         <rect x="${spec.margin}" y="${oldStartY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .11)}"/>
         <text x="${spec.margin + 14}" y="${oldStartY - 22}" font-size="18" font-weight="850">${copy.oldSection}</text>
-        <text x="${spec.width - spec.margin - 14}" y="${oldStartY - 22}" text-anchor="end" font-size="16" fill="${palette.muted}">${oldRecords.length} ${copy.charts} · ${data.b35Rating}</text>
+        <text x="${spec.width - spec.margin - 14}" y="${oldStartY - 22}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${oldRecords.length} ${copy.charts} · ${data.b35Rating}</text>
       </g>
       ${cards}
-      <text x="${spec.margin}" y="${spec.height - 28}" font-size="16" fill="${palette.muted}">${esc(options.watermark || copy.generated)}</text>
-      <text x="${spec.width - spec.margin}" y="${spec.height - 28}" text-anchor="end" font-size="16" fill="${palette.muted}">${esc([timestamp, "preview"].filter(Boolean).join(" · "))}</text>
+      <text x="${spec.margin}" y="${spec.height - 28}" font-size="16" style="fill:${palette.muted}">${esc(options.watermark || copy.generated)}</text>
+      <text x="${spec.width - spec.margin}" y="${spec.height - 28}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${esc([timestamp, "preview"].filter(Boolean).join(" · "))}</text>
     </svg>`
   };
 }

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_IMAGE_OPTIONS } from "../src/lib/image-options";
 import { renderB50Document } from "../src/lib/render";
@@ -104,5 +105,16 @@ describe("B50 image templates", () => {
       showFrame: true
     }, { frame: "data:image/png;base64,frame" });
     expect(rendered.svg).toContain(`height="${frameHeight}"`);
+  });
+
+  it("styles every text element inline, since the stylesheet defeats fill=", async () => {
+    // <style>text{fill:…}</style> outranks a fill="…" presentation attribute on
+    // the same element, so a muted <text> written that way silently renders in
+    // the foreground colour instead. <rect> is unaffected and keeps fill=.
+    for (const path of ["src/lib/render.ts", "studio/lib/render.ts"]) {
+      const source = await readFile(path, "utf8");
+      const offenders = source.match(/<text[^>]*\sfill="/g) ?? [];
+      expect(offenders, `${path} has <text> using fill= instead of style="fill:…"`).toEqual([]);
+    }
   });
 });

@@ -126,12 +126,11 @@ sandbox without the real services.
 
 - **SVG `fill=` loses to the stylesheet.** Both renderers emit
   `<style>text{fill:…}</style>`, which outranks a `fill="…"` presentation
-  attribute on the same element — confirmed in both Chromium and librsvg. The
-  rating badge uses `style="fill:…"` for this reason. **12 other text elements
-  in `src/lib/render.ts` and 13 in `studio/lib/render.ts` still use the
-  attribute form.** They remain visible (they are not on a fixed-colour
-  background like the badge was) but do not render in the intended muted tone.
-  Unfixed; a mechanical but wide change.
+  attribute on the same element — confirmed in both Chromium and librsvg. All
+  `<text>` elements in both renderers now use `style="fill:…"`; a test asserts
+  none regress to the attribute form. **`<rect>` elements are unaffected** and
+  correctly keep `fill=`, since the stylesheet rule only targets `text` — do
+  not "fix" those.
 - **Three tables are duplicated by hand**, because Studio cannot import from
   the extension package. Each has a test asserting the copies agree —
   keep them:
