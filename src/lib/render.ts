@@ -276,7 +276,7 @@ function renderCard(
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
 
   return `<g transform="translate(${x} ${y})">
-    <rect width="${spec.cardWidth}" height="${spec.cardHeight}" rx="${spec.cardRadius}" fill="${palette.card}" stroke="${alpha(borderColor, .62)}" stroke-width="3"/>
+    <rect width="${spec.cardWidth}" height="${spec.cardHeight}" rx="${spec.cardRadius}" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
     ${hasCover
       ? `<image href="${asset}" x="${pad}" y="${pad}" width="${spec.coverSize}" height="${spec.coverSize}" preserveAspectRatio="xMidYMid slice"/>`
       : options.showCovers
