@@ -278,7 +278,7 @@ export function renderStudioSvg(
     const borderColor = mix(color, options.accent, accentReach(options.accentScope).outline);
     const borderOpacity = options.accentScope === "minimal" ? .45 : .62;
     return `<g transform="translate(${x} ${y})">
-      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, .62)}" stroke-width="3"/>
+      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
       ${reservesCover ? coverSource
         ? `<image href="${coverSource}" x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" preserveAspectRatio="xMidYMid slice"/>`
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
