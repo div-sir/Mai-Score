@@ -171,8 +171,8 @@ function mix(base: string, towards: string, amount: number): string {
  * original look, where the accent only coloured the elements dedicated to it.
  */
 export function accentReach(scope: AccentScope): { outline: number; surface: number } {
-  if (scope === "full") return { outline: .5, surface: .1 };
-  if (scope === "outline") return { outline: .34, surface: 0 };
+  if (scope === "full") return { outline: .64, surface: .1 };
+  if (scope === "outline") return { outline: .48, surface: 0 };
   return { outline: 0, surface: 0 };
 }
 
@@ -275,7 +275,7 @@ function renderCard(
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
 
   return `<g transform="translate(${x} ${y})">
-    <rect width="${spec.cardWidth}" height="${spec.cardHeight}" rx="${spec.cardRadius}" fill="${palette.card}" stroke="${alpha(borderColor, .42)}" stroke-width="3"/>
+    <rect width="${spec.cardWidth}" height="${spec.cardHeight}" rx="${spec.cardRadius}" fill="${palette.card}" stroke="${alpha(borderColor, .62)}" stroke-width="3"/>
     ${hasCover
       ? `<image href="${asset}" x="${pad}" y="${pad}" width="${spec.coverSize}" height="${spec.coverSize}" preserveAspectRatio="xMidYMid slice"/>`
       : options.showCovers
