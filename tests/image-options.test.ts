@@ -25,6 +25,31 @@ describe("image options", () => {
     });
   });
 
+  it.each([
+    [{ showLevel: true, showInternalLevel: false }, "level"],
+    [{ showLevel: false, showInternalLevel: true }, "constant"],
+    [{ showLevel: true, showInternalLevel: true }, "both"],
+    [{ showLevel: false, showInternalLevel: false }, "none"],
+    [{ showInternalLevel: true }, "both"]
+  ])("reads the retired showLevel/showInternalLevel pair as %j", (legacy, expected) => {
+    // Styles saved before chartValue existed must keep rendering what they
+    // rendered, rather than snapping back to the default.
+    expect(normalizeImageOptions(legacy)).toMatchObject({ chartValue: expected });
+  });
+
+  it("prefers an explicit chartValue over the legacy booleans", () => {
+    expect(normalizeImageOptions({
+      chartValue: "none",
+      showLevel: true,
+      showInternalLevel: true
+    })).toMatchObject({ chartValue: "none" });
+  });
+
+  it("falls back to the default when neither form is present", () => {
+    expect(normalizeImageOptions({ theme: "light" }).chartValue)
+      .toBe(DEFAULT_IMAGE_OPTIONS.chartValue);
+  });
+
   it("formats visible and filename timestamps deterministically", () => {
     const date = new Date("2026-07-27T06:30:45.000Z");
     const options = {

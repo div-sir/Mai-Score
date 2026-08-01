@@ -85,6 +85,19 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
 }
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {
+  return currentCollectionImage(doc, "/img/Frame/", base);
+}
+
+/**
+ * The nameplate ("名牌版" / プレート) behind the player name. Same page shape as
+ * the frame collection, so it shares the parser; the caller treats a missing
+ * result as "no plate", never as a failed collection.
+ */
+export function parseCurrentPlate(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/plate"): string | undefined {
+  return currentCollectionImage(doc, "/img/Plate/", base);
+}
+
+function currentCollectionImage(doc: Document, fragment: string, base: string): string | undefined {
   const current = doc.querySelector(".town_block.m_15.p_15.t_l .see_through_block.collection_setting_block");
-  return absolute(current?.querySelector<HTMLImageElement>('img[src*="/img/Frame/"]')?.getAttribute("src") ?? null, base);
+  return absolute(current?.querySelector<HTMLImageElement>(`img[src*="${fragment}"]`)?.getAttribute("src") ?? null, base);
 }

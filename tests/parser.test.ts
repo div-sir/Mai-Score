@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
-import { parseCurrentFrame, parseProfile, parseRatingTarget } from "../src/lib/parser";
+import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget } from "../src/lib/parser";
 
 const doc = (html: string) => new JSDOM(html, { url: "https://maimaidx-eng.com/maimai-mobile/home/" }).window.document;
 
@@ -23,6 +23,25 @@ describe("international DX NET parser", () => {
       </div></div>
     `));
     expect(frame).toContain("/img/Frame/frame.png");
+
+    const plate = parseCurrentPlate(doc(`
+      <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
+        <img src="/maimai-mobile/img/Plate/plate.png">
+      </div></div>
+    `));
+    expect(plate).toContain("/img/Plate/plate.png");
+  });
+
+  it("returns no plate rather than throwing when the page has none", () => {
+    // The plate collection page has not been verified against every region.
+    // content.ts treats a miss as "no nameplate", so the parser must return
+    // undefined instead of failing the whole collection.
+    expect(parseCurrentPlate(doc("<div></div>"))).toBeUndefined();
+    expect(parseCurrentPlate(doc(`
+      <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
+        <img src="/maimai-mobile/img/Frame/frame.png">
+      </div></div>
+    `))).toBeUndefined();
   });
 
   it("resolves asset URLs against an explicit base, not a hardcoded region", () => {

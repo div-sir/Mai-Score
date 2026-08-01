@@ -8,6 +8,7 @@ export const STUDIO_TRANSFER_PREFIX = "studioTransfer:";
 export interface StudioTransferAssets {
   icon?: string;
   frame?: string;
+  plate?: string;
   covers: Record<string, string>;
 }
 

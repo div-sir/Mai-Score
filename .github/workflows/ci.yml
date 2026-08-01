@@ -29,7 +29,7 @@ jobs:
       - run: npm ci
       - run: npm run verify
       - name: Prepare exact-origin preview build
-        run: node scripts/prepare-preview-build.mjs https://mai-score-git-agent-align-v0-7-docs-soliliums-projects.vercel.app
+        run: node scripts/prepare-preview-build.mjs https://mai-score-git-claude-mai-score-progre-2e97dc-soliliums-projects.vercel.app
       - name: Package preview extension
         run: |
           cd dist

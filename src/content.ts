@@ -4,7 +4,7 @@ import {
   describeFetchError,
   FETCH_TIMEOUT_MS
 } from "./lib/collect-progress";
-import { parseCurrentFrame, parseProfile, parseRatingTarget } from "./lib/parser";
+import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget } from "./lib/parser";
 import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
@@ -15,6 +15,8 @@ import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
 // this instance actually loaded, never a hardcoded domain.
 const CONNECTION: ConnectionDescriptor | undefined = connectionForUrl(window.location.href);
 const ROOT = `${window.location.origin}/maimai-mobile`;
+/** Deadline for pages the export can do without. */
+const OPTIONAL_FETCH_TIMEOUT_MS = 5_000;
 
 async function currentLanguage(): Promise<PopupLanguage> {
   const stored = await chrome.storage.local.get(LANGUAGE_STORAGE_KEY);
@@ -28,10 +30,15 @@ function reportProgress(message: ReturnType<typeof createFetchProgress>) {
   void chrome.runtime.sendMessage(message).catch(() => {});
 }
 
-async function fetchDocument(path: string, label: string, text: (key: string, ...values: Array<string | number>) => string): Promise<Document> {
+async function fetchDocument(
+  path: string,
+  label: string,
+  text: (key: string, ...values: Array<string | number>) => string,
+  timeoutMs = FETCH_TIMEOUT_MS
+): Promise<Document> {
   let response: Response;
   try {
-    response = await fetch(`${ROOT}${path}`, { credentials: "include", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    response = await fetch(`${ROOT}${path}`, { credentials: "include", signal: AbortSignal.timeout(timeoutMs) });
   } catch (error) {
     throw describeFetchError(error, label, text);
   }
@@ -67,13 +74,21 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
     return doc;
   });
 
-  const [home, ratingTarget, frame] = await Promise.all([
+  const [home, ratingTarget, frame, plate] = await Promise.all([
     tracked(fetchDocument("/home/", text("labelProfile"), text)),
     tracked(fetchDocument("/home/ratingTargetMusic/", text("labelB50"), text)),
-    tracked(fetchDocument("/collection/frame/", text("labelFrame"), text))
+    tracked(fetchDocument("/collection/frame/", text("labelFrame"), text)),
+    // Decorative only, and the plate collection page has not been verified
+    // against every region. A failure here must not lose the whole B50, so
+    // this one request is allowed to come back empty — on a short deadline,
+    // because the other three are what the export actually needs and a slow
+    // optional page must not hold the collection open behind them.
+    fetchDocument("/collection/plate/", text("labelPlate"), text, OPTIONAL_FETCH_TIMEOUT_MS)
+      .catch(() => undefined)
   ]);
   const player = parseProfile(home, `${ROOT}/home/`);
   player.frameUrl = parseCurrentFrame(frame, `${ROOT}/collection/frame`);
+  player.plateUrl = plate ? parseCurrentPlate(plate, `${ROOT}/collection/plate`) : undefined;
   const parsed = parseRatingTarget(ratingTarget);
   const parsedB15 = parsed.filter((record) => record.bucket === "b15");
   const parsedB35 = parsed.filter((record) => record.bucket === "b35");

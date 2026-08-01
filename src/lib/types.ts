@@ -43,6 +43,7 @@ export interface PlayerProfile {
   stars?: number;
   iconUrl?: string;
   frameUrl?: string;
+  plateUrl?: string;
   courseRankUrl?: string;
   classRankUrl?: string;
   ratingBaseUrl?: string;
