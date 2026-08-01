@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 1, 2026. The latest packaged GitHub release is `v0.7.1`; Extension, manifest, lockfiles, and Studio release metadata still use `0.7.1`. Production `main` is `559722e` (PR #21). Draft PR #22 is `76cd99d`; its CI and Vercel Preview pass, but its code is not released or deployed to production.
+Accurate as of August 1, 2026. The latest packaged GitHub release is `v0.7.1`; Extension, manifest, lockfiles, and Studio release metadata still use `0.7.1`. Production `main` is `559722e` (PR #21). Draft PR #22 contains the current unreleased work; its feature commit passed CI and Vercel Preview, but its code is not released or deployed to production.
 
 ## What this is
 
@@ -29,7 +29,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | --- | --- | --- | --- |
 | Packaged Extension baseline | Release `v0.7.1` | Done | Keep installable release stable while post-release Studio work settles. |
 | Cross-device Studio + UI pass | PRs #17–#21 on `main`; production Studio at `559722e` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
-| Export/style synchronization pass | Draft PR #22 at `76cd99d` | Automated verification complete | Review the visual choices, test the live nameplate page, then merge. The shared-`appDataFolder` test is a Drive-GA gate, not something CI can prove. |
+| Export/style synchronization pass | Draft PR #22 | Automated verification complete | Review the visual choices, test the live nameplate page, then merge. The shared-`appDataFolder` test is a Drive-GA gate, not something CI can prove. |
 | Next packaged release | Not started | Blocked on PR #22 | Merge the accepted draft, update versions and release notes, package the Extension, and tag the next release. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Planned | Next product phase | Decide history retention, then add rating-over-time, per-chart history, and next-grade targets. |
