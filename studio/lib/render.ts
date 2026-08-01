@@ -81,8 +81,8 @@ function mix(base: string, towards: string, amount: number): string {
  * original look, where the accent only coloured the elements dedicated to it.
  */
 export function accentReach(scope: AccentScope): { outline: number; surface: number } {
-  if (scope === "full") return { outline: .5, surface: .1 };
-  if (scope === "outline") return { outline: .34, surface: 0 };
+  if (scope === "full") return { outline: .64, surface: .1 };
+  if (scope === "outline") return { outline: .48, surface: 0 };
   return { outline: 0, surface: 0 };
 }
 
@@ -277,7 +277,7 @@ export function renderStudioSvg(
     // a restyled export reads as one palette instead of five stray hues.
     const borderColor = mix(color, options.accent, accentReach(options.accentScope).outline);
     return `<g transform="translate(${x} ${y})">
-      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, .45)}" stroke-width="3"/>
+      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, .62)}" stroke-width="3"/>
       ${reservesCover ? coverSource
         ? `<image href="${coverSource}" x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" preserveAspectRatio="xMidYMid slice"/>`
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
