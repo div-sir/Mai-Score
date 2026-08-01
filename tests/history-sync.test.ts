@@ -3,9 +3,12 @@ import type { HistoryEntry } from "../studio/lib/history";
 import {
   HISTORY_SYNC_SCHEMA,
   mergeHistories,
+  mergeSettings,
   parseSyncDocument,
-  serializeSyncDocument
+  serializeSyncDocument,
+  type SyncedSettings
 } from "../studio/lib/history-sync";
+import { DEFAULT_OPTIONS } from "../studio/lib/types";
 
 const entry = (overrides: Partial<HistoryEntry> = {}): HistoryEntry => ({
   generatedAt: "2026-07-01T00:00:00.000Z",
@@ -126,5 +129,82 @@ describe("merging two histories", () => {
     expect(merged).toHaveLength(12);
     // Newest first, so a timeline can be read straight off the result.
     expect(merged[0].generatedAt > merged[merged.length - 1].generatedAt).toBe(true);
+  });
+});
+
+const settings = (overrides: Partial<SyncedSettings> = {}): SyncedSettings => ({
+  updatedAt: "2026-07-01T00:00:00.000Z",
+  language: "en",
+  options: DEFAULT_OPTIONS,
+  ...overrides
+});
+
+describe("synced settings", () => {
+  it("round-trips watermark, style, and language through the document", () => {
+    const mine = settings({
+      language: "zh-Hant",
+      options: { ...DEFAULT_OPTIONS, watermark: "@div", accent: "#123456", accentScope: "full" }
+    });
+    const parsed = parseSyncDocument(serializeSyncDocument([entry()], mine));
+    expect(parsed.settings).toEqual(mine);
+  });
+
+  it("leaves settings absent on a document written before they existed", () => {
+    expect(parseSyncDocument(serializeSyncDocument([entry()])).settings).toBeUndefined();
+  });
+
+  it("is readable by a document reader that only wants entries", () => {
+    // The added key must not change the schema, or older Studio builds would
+    // reject the whole file and report an unsupported format.
+    const document = JSON.parse(serializeSyncDocument([entry()], settings()));
+    expect(document.schema).toBe(HISTORY_SYNC_SCHEMA);
+    expect(document.entries).toHaveLength(1);
+  });
+
+  it("ignores a settings block with no timestamp to merge on", () => {
+    const document = JSON.parse(serializeSyncDocument([entry()], settings()));
+    delete document.settings.updatedAt;
+    expect(parseSyncDocument(JSON.stringify(document)).settings).toBeUndefined();
+  });
+
+  it("repairs unusable fields instead of discarding the whole block", () => {
+    const document = JSON.parse(serializeSyncDocument([entry()], settings()));
+    document.settings.language = "kl";
+    document.settings.options.accent = "not-a-colour";
+    const parsed = parseSyncDocument(JSON.stringify(document));
+    expect(parsed.settings).toMatchObject({
+      language: "en",
+      options: expect.objectContaining({ accent: DEFAULT_OPTIONS.accent })
+    });
+  });
+
+  it("takes the later edit", () => {
+    const older = settings({ updatedAt: "2026-07-01T00:00:00.000Z" });
+    const newer = settings({ updatedAt: "2026-07-09T00:00:00.000Z", language: "ja" });
+    expect(mergeSettings(older, newer)).toBe(newer);
+    expect(mergeSettings(newer, older)).toBe(newer);
+  });
+
+  it("takes whichever side exists when the other has none", () => {
+    const mine = settings();
+    expect(mergeSettings(mine, undefined)).toBe(mine);
+    expect(mergeSettings(undefined, mine)).toBe(mine);
+    expect(mergeSettings(undefined, undefined)).toBeUndefined();
+  });
+
+  it("agrees on a winner when two devices saved in the same millisecond", () => {
+    // Without a content tiebreak each device would keep preferring its own
+    // copy and re-push it forever.
+    const left = settings({ language: "ja" });
+    const right = settings({ language: "zh-Hant" });
+    expect(mergeSettings(left, right)).toBe(mergeSettings(right, left));
+  });
+
+  it("is idempotent and associative", () => {
+    const a = settings({ updatedAt: "2026-07-01T00:00:00.000Z" });
+    const b = settings({ updatedAt: "2026-07-05T00:00:00.000Z", language: "ja" });
+    const c = settings({ updatedAt: "2026-07-03T00:00:00.000Z", language: "zh-Hant" });
+    expect(mergeSettings(a, a)).toBe(a);
+    expect(mergeSettings(mergeSettings(a, b), c)).toEqual(mergeSettings(a, mergeSettings(b, c)));
   });
 });

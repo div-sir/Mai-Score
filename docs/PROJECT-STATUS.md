@@ -27,9 +27,9 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | --- | --- |
 | B50 collection from DX NET | International (`maimaidx-eng.com`) and Japan (`maimaidx.jp`) |
 | Rating calculation | Matches the official formula — see the correction below |
-| Image export | 3 layouts, 3 themes, PNG/SVG, tier-coloured rating badge with star sub-ranks |
+| Image export | 3 layouts, 3 themes, PNG/SVG, tier-coloured rating badge with star sub-ranks, accent reach, trophy + nameplate |
 | JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` |
-| Studio | Preview, restyle, local history with per-collection diffs, Web Share |
+| Studio | Preview, restyle, local history with per-collection diffs, Web Share, synced style |
 | Languages | English, 繁體中文, 日本語 throughout |
 | Privacy policy | `studio/app/privacy/page.tsx`, live at `/privacy` |
 | Store assets | `store/` — 1280×800 screenshots and listing copy in three languages |
@@ -81,6 +81,15 @@ The extension never parses the payload. Studio never sees a token.
 Sync is always **pull → merge → push**, never one direction, so a device that
 was offline contributes rather than being overwritten.
 
+The document also carries an optional `settings` block — export style,
+watermark, and language. It was added after `v1` shipped, so it is optional and
+the schema string is unchanged: an older Studio ignores the key rather than
+rejecting the file. `mergeSettings` takes the later `updatedAt`, with the same
+content-derived tiebreak the entries use. A device stamps `updatedAt` only when
+the person changes something, never when a sync applies an incoming style —
+otherwise every device would look like the newest one and the merge could never
+settle.
+
 `mergeHistories` unions by `generatedAt` (collection time), preferring the
 later `savedAt` — a re-save usually means it was resolved against a newer
 chart database. The tiebreak is **derived from content, not argument order**.
@@ -114,7 +123,14 @@ sandbox without the real services.
    share a template. Never run against a live logged-in `maimaidx.jp`. If the
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
-3. **Whether the two OAuth clients share one `appDataFolder`.** This is the
+3. **The nameplate collection page** (`src/lib/parser.ts`, `src/content.ts`).
+   `parseCurrentPlate` assumes `/collection/plate/` has the same shape as the
+   frame page and serves `/img/Plate/` images. Never run against a live
+   logged-in account. It is fetched on a 5 s deadline, separately from the
+   three pages the export needs, and both a failed request and an unrecognized
+   page yield "no nameplate" rather than failing the collection — so the cost
+   of the guess being wrong is a missing decoration, not a lost B50.
+4. **Whether the two OAuth clients share one `appDataFolder`.** This is the
    load-bearing assumption of the whole two-provider design, and nothing in
    the repository establishes it. The extension and Studio-web paths use
    different client IDs in one Google Cloud project. If `appDataFolder` is
@@ -124,11 +140,11 @@ sandbox without the real services.
    successful syncs**. Verify this before anything else —
    [the test plan](drive-real-api-test.md) opens with the procedure and what
    to do if it fails.
-4. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+5. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
    complete multi-profile real-service matrix has not been recorded in the
    repository. Follow [the real-service test plan](drive-real-api-test.md)
    before declaring Drive generally available.
-5. **Collect latency.** The chart database was measured at ~95 ms and ruled
+6. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
 
@@ -145,6 +161,8 @@ sandbox without the real services.
   the extension package. Each has a test asserting the copies agree —
   keep them:
   - `rating-tier.ts` in `src/lib/` and `studio/lib/`
+  - `accentReach`, the trophy rarity table, and the text-measurement constants
+    in both `render.ts` files
   - `SYNC_PROTOCOL_VERSION` (Studio) vs `CONNECTION_PROTOCOL_VERSION`
   - `manifest.json` host permissions vs the endpoints the code calls
 - **`manifest.json` has a `key` field** pinning the unpacked extension ID to
@@ -153,6 +171,11 @@ sandbox without the real services.
   the key for a Web Store build and assigns its own ID, so update that fallback
   when a store item ID is available; handoffs already remember a valid runtime
   ID and override the fallback.
+- **Text is measured in units, not characters.** One unit is one full-width
+  glyph, and `UNIT_EM` converts units to pixels. Counting characters treats a
+  CJK glyph as no wider than an `i`, which is what used to push full-width song
+  titles past the card edge. Size any new box with `textWidth`, and budget any
+  new truncation with `widthUnits`.
 - **`.summary[hidden]{display:none}`** in `popup.css` exists because an author
   `display:grid` rule outranks the `hidden` attribute. Do not remove it.
 

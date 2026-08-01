@@ -14,7 +14,12 @@ import {
   saveStudioSnapshotOnly
 } from "../lib/local-store";
 import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
-import { parseSyncDocument, serializeSyncDocument } from "../lib/history-sync";
+import {
+  mergeSettings,
+  parseSyncDocument,
+  serializeSyncDocument,
+  type SyncedSettings
+} from "../lib/history-sync";
 import {
   connectGoogleDriveWeb,
   deleteFromDrive,
@@ -28,6 +33,8 @@ import {
 } from "../lib/drive-provider";
 import {
   DEFAULT_OPTIONS,
+  normalizeLanguage,
+  normalizeStudioOptions,
   type LanguageId,
   type StudioAssets,
   type StudioData,
@@ -118,9 +125,11 @@ function parseMaiScore(input: unknown): StudioData {
     player: {
       name: String(player.name ?? "PLAYER"),
       title: String(player.title ?? ""),
+      titleColor: player.titleColor,
       rating: Number(player.rating ?? 0),
       iconUrl: player.iconUrl,
-      frameUrl: player.frameUrl
+      frameUrl: player.frameUrl,
+      plateUrl: player.plateUrl
     },
     records: (records as StudioRecord[]).map((record) => ({
       ...record,
@@ -248,6 +257,10 @@ export default function Studio() {
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [language, setLanguage] = useState<LanguageId>("en");
+  // Stamped only when the person changes something, never when a sync applies
+  // an incoming style — otherwise every device would look like the newest one
+  // and the merge could never settle.
+  const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
@@ -281,15 +294,14 @@ export default function Studio() {
       const preset = hash.get("preset");
       const saved = preset ? JSON.parse(preset) : JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
       if (saved) {
-        const {
-          language: legacyLanguage,
-          timezone: _legacyTimezone,
-          showOfficialRating: _legacyOfficialRating,
-          ...savedStyle
-        } = saved;
-        savedLanguage = legacyLanguage === "zh-Hant" || legacyLanguage === "ja" ? legacyLanguage : "en";
+        savedLanguage = normalizeLanguage(saved.language);
         setLanguage(savedLanguage);
-        setOptions({ ...DEFAULT_OPTIONS, ...savedStyle });
+        setOptions(normalizeStudioOptions(saved));
+        // A shared preset link is somebody else's style, not an edit of your
+        // own, so it must not win the next sync against your real devices.
+        if (!preset && typeof saved.settingsUpdatedAt === "string") {
+          setSettingsUpdatedAt(saved.settingsUpdatedAt);
+        }
       }
     } catch {
       setMessage("Saved style could not be read. Defaults were restored.");
@@ -340,7 +352,7 @@ export default function Studio() {
           setSource("Mai-Score extension");
           setGeneratedAt(timestamp);
           const coverCount = Object.keys(received.assets.covers).length;
-          const profileAssetCount = [received.assets.icon, received.assets.frame].filter(Boolean).length;
+          const profileAssetCount = [received.assets.icon, received.assets.frame, received.assets.plate].filter(Boolean).length;
           setMessage(studioCopy(received.language).transferred(
             parsed.player.name,
             parsed.records.length,
@@ -386,8 +398,8 @@ export default function Studio() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...options, language }));
-  }, [options, language]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...options, language, settingsUpdatedAt }));
+  }, [options, language, settingsUpdatedAt]);
 
   useEffect(() => {
     localStorage.setItem(UI_THEME_KEY, uiTheme);
@@ -402,13 +414,28 @@ export default function Studio() {
     [rendered]
   );
 
-  const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) =>
+  const touchSettings = () => setSettingsUpdatedAt(new Date().toISOString());
+
+  const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) => {
     setOptions((current) => ({ ...current, [key]: value }));
+    touchSettings();
+  };
+
+  function resetOptions() {
+    setOptions(DEFAULT_OPTIONS);
+    touchSettings();
+  }
 
   function changeLanguage(next: LanguageId) {
     setLanguage(next);
+    touchSettings();
     const nextCopy = studioCopy(next);
     setMessage(data ? nextCopy.ready(data.player.name, data.records.length) : nextCopy.emptyMessage);
+  }
+
+  /** What this device would contribute to a sync, or nothing if untouched. */
+  function localSettings(): SyncedSettings | undefined {
+    return settingsUpdatedAt ? { updatedAt: settingsUpdatedAt, language, options } : undefined;
   }
 
   async function loadFile(event: ChangeEvent<HTMLInputElement>) {
@@ -538,14 +565,19 @@ export default function Studio() {
    * own collections instead of being silently overwritten by whatever Drive
    * already held.
    */
-  async function showLatestHistory(entries: readonly HistoryEntry[]) {
+  async function showLatestHistory(
+    entries: readonly HistoryEntry[],
+    // Sync may have just adopted another device's language; the closure still
+    // holds the old one, and this is written into the stored snapshot.
+    snapshotLanguage: LanguageId = language
+  ) {
     const latest = entries[0];
     if (!latest) return;
 
     const latestData = normalizeB50(fromHistoryEntry(latest));
     const isCurrentSnapshot = data?.exportedAt === latestData.exportedAt;
-    const retainedProfileAssets: Pick<StudioAssets, "icon" | "frame"> = isCurrentSnapshot
-      ? { icon: assets.icon, frame: assets.frame }
+    const retainedProfileAssets: Pick<StudioAssets, "icon" | "frame" | "plate"> = isCurrentSnapshot
+      ? { icon: assets.icon, frame: assets.frame, plate: assets.plate }
       : {};
 
     // Show the score immediately, then let jacket loading fill in progressively.
@@ -563,7 +595,7 @@ export default function Studio() {
         assets: latestAssets,
         source: "Google Drive",
         generatedAt: latestData.exportedAt,
-        language
+        language: snapshotLanguage
       });
     } catch {
       // The synchronized history is already safe. Private browsing may block
@@ -586,11 +618,13 @@ export default function Studio() {
 
       let incoming: HistoryEntry[] = [];
       let skipped = 0;
+      let incomingSettings: SyncedSettings | undefined;
       if (pulled.payload) {
         try {
           const parsed = parseSyncDocument(pulled.payload);
           incoming = parsed.entries;
           skipped = parsed.skipped;
+          incomingSettings = parsed.settings;
         } catch (error) {
           setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
           return;
@@ -600,7 +634,19 @@ export default function Studio() {
       const merged = await mergeStudioHistory(incoming);
       setHistory(merged);
 
-      const pushed = await pushToDrive(serializeSyncDocument(merged));
+      const mine = localSettings();
+      const settings = mergeSettings(mine, incomingSettings);
+      // mergeSettings returns one of its arguments, so an identity check is
+      // what tells us the remote style won. Applying it without re-stamping
+      // keeps this device a follower until its own next edit, so the two
+      // sides converge instead of racing.
+      if (settings && settings !== mine) {
+        setOptions(settings.options);
+        setLanguage(settings.language);
+        setSettingsUpdatedAt(settings.updatedAt);
+      }
+
+      const pushed = await pushToDrive(serializeSyncDocument(merged, settings));
       if (!pushed.ok) {
         if (pushed.reason === "needs-auth") setDriveState("disconnected");
         if (pushed.reason === "no-extension") setDriveState("unavailable");
@@ -610,10 +656,11 @@ export default function Studio() {
         return;
       }
 
-      await showLatestHistory(merged);
+      const syncedCopy = studioCopy(settings?.language ?? language);
+      await showLatestHistory(merged, settings?.language ?? language);
       setMessage(skipped > 0
-        ? `${copy.syncedAt(merged.length)} ${copy.syncSkipped(skipped)}`
-        : copy.syncedAt(merged.length));
+        ? `${syncedCopy.syncedAt(merged.length)} ${syncedCopy.syncSkipped(skipped)}`
+        : syncedCopy.syncedAt(merged.length));
     } catch (error) {
       setMessage(copy.syncFailed(error instanceof Error ? error.message : String(error)));
     } finally {
@@ -804,21 +851,40 @@ export default function Studio() {
               </button>
             )}
           </div>
-          <label className="compact-picker">
-            <span>{copy.appearance}</span>
-            <select value={uiTheme} onChange={(event) => setUiTheme(event.target.value as UiTheme)}>
-              <option value="dark">{copy.dark}</option>
-              <option value="light">{copy.light}</option>
-            </select>
-          </label>
-          <label className="compact-picker">
-            <span>{copy.language}</span>
-            <select value={language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
-              <option value="en">English</option>
-              <option value="zh-Hant">繁體中文</option>
+          <button
+            type="button"
+            className="icon-toggle"
+            aria-pressed={uiTheme === "light"}
+            aria-label={`${copy.appearance}: ${uiTheme === "light" ? copy.light : copy.dark}`}
+            title={`${copy.appearance}: ${uiTheme === "light" ? copy.light : copy.dark}`}
+            onClick={() => setUiTheme(uiTheme === "light" ? "dark" : "light")}
+          >
+            {uiTheme === "light" ? (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.6" />
+                <path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M19.2 4.8l-2.1 2.1M6.9 17.1l-2.1 2.1" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.7 8.7 0 1 0 10.9 10.9z" />
+              </svg>
+            )}
+          </button>
+          <span className="icon-picker" title={copy.language}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3.2 9.4h17.6M3.2 14.6h17.6M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
+            </svg>
+            <select
+              aria-label={copy.language}
+              value={language}
+              onChange={(event) => changeLanguage(event.target.value as LanguageId)}
+            >
+              <option value="en">EN</option>
+              <option value="zh-Hant">繁中</option>
               <option value="ja">日本語</option>
             </select>
-          </label>
+          </span>
           <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
           <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
         </div>
@@ -830,7 +896,7 @@ export default function Studio() {
         <aside className="control-panel">
           <div className="panel-heading">
             <h1>{copy.exportStyle}</h1>
-            <button className="reset-button" onClick={() => setOptions(DEFAULT_OPTIONS)}>{copy.reset}</button>
+            <button className="reset-button" onClick={resetOptions}>{copy.reset}</button>
           </div>
 
           <div className="field-grid">
@@ -845,6 +911,17 @@ export default function Studio() {
             </select></label>
             <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}>
               <option value="png">PNG</option><option value="svg">SVG</option>
+            </select></label>
+            <label>{copy.chartValue}<select value={options.chartValue} onChange={(event) => set("chartValue", event.target.value as StudioOptions["chartValue"])}>
+              <option value="level">{copy.level}</option>
+              <option value="constant">{copy.constant}</option>
+              <option value="both">{copy.chartValueBoth}</option>
+              <option value="none">{copy.off}</option>
+            </select></label>
+            <label>{copy.accentScope}<select value={options.accentScope} onChange={(event) => set("accentScope", event.target.value as StudioOptions["accentScope"])}>
+              <option value="minimal">{copy.accentMinimal}</option>
+              <option value="outline">{copy.accentOutline}</option>
+              <option value="full">{copy.accentFull}</option>
             </select></label>
             <fieldset className="accent-field wide-field">
               <legend>{copy.accent}</legend>
@@ -873,9 +950,10 @@ export default function Studio() {
             <div className="toggle-list">
               {([
                 ["showFrame", copy.frame], ["showIcon", copy.icon], ["showCovers", copy.covers],
+                ["showPlate", copy.plate], ["showTrophy", copy.trophy],
                 ["showBreakdown", copy.breakdown],
                 ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
-                ["showConstant", copy.constant], ["showLevel", copy.level], ["showRank", copy.rank]
+                ["showRank", copy.rank]
               ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
                 <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>
               ))}

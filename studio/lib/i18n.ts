@@ -16,12 +16,20 @@ export interface StudioCopy {
   theme: string;
   timestamp: string;
   accent: string;
+  accentScope: string;
+  accentMinimal: string;
+  accentOutline: string;
+  accentFull: string;
+  chartValue: string;
+  chartValueBoth: string;
   outputFormat: string;
   watermark: string;
   watermarkPlaceholder: string;
   displayContent: string;
   frame: string;
   icon: string;
+  plate: string;
+  trophy: string;
   covers: string;
   breakdown: string;
   achievement: string;
@@ -109,12 +117,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theme: "Theme",
     timestamp: "Timestamp",
     accent: "Accent",
+    accentScope: "Accent reach",
+    accentMinimal: "Accent only",
+    accentOutline: "Borders",
+    accentFull: "Borders + background",
+    chartValue: "Difficulty figure",
+    chartValueBoth: "Level + constant",
     outputFormat: "Format",
     watermark: "Watermark",
     watermarkPlaceholder: "@username / event",
     displayContent: "Visible content",
     frame: "Frame",
     icon: "Icon",
+    plate: "Nameplate",
+    trophy: "Trophy",
     covers: "Song jackets",
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
@@ -172,7 +188,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     loadingFile: (name) => `Loaded ${name}; preparing public song jackets…`,
     loadedFile: (name, records, covers) => `Loaded ${name}: ${records} records and ${covers} jackets.`,
     transferred: (name, records, covers, profileAssets) =>
-      `Loaded ${name}: ${records} B50 records, ${covers} jackets, and ${profileAssets}/2 profile images. Saved in this browser.`,
+      `Loaded ${name}: ${records} B50 records, ${covers} jackets, and ${profileAssets}/3 profile images. Saved in this browser.`,
     restored: (name, savedAt) => `Restored ${name} from this browser · saved ${savedAt}.`,
     localDataCleared: "Saved B50 data, images, and local history were removed from this browser.",
     localSaveFailed: "The preview is ready, but this browser could not save it for later.",
@@ -201,12 +217,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theme: "主題",
     timestamp: "時間戳記",
     accent: "強調色",
+    accentScope: "強調色範圍",
+    accentMinimal: "僅強調元素",
+    accentOutline: "框線",
+    accentFull: "框線＋背景",
+    chartValue: "難度數值",
+    chartValueBoth: "等級＋定數",
     outputFormat: "輸出格式",
     watermark: "浮水印",
     watermarkPlaceholder: "@使用者名稱 / 活動",
     displayContent: "顯示內容",
     frame: "Frame",
     icon: "Icon",
+    plate: "名牌版",
+    trophy: "稱號",
     covers: "歌曲封面",
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
@@ -264,7 +288,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     loadingFile: (name) => `已載入 ${name}，正在準備公開歌曲封面…`,
     loadedFile: (name, records, covers) => `已載入 ${name}：${records} 筆記錄與 ${covers} 張封面。`,
     transferred: (name, records, covers, profileAssets) =>
-      `已載入 ${name}：${records} 筆 B50、${covers} 張封面與 ${profileAssets}/2 項玩家圖片；已儲存在此瀏覽器。`,
+      `已載入 ${name}：${records} 筆 B50、${covers} 張封面與 ${profileAssets}/3 項玩家圖片；已儲存在此瀏覽器。`,
     restored: (name, savedAt) => `已從此瀏覽器還原 ${name} · 儲存時間 ${savedAt}。`,
     localDataCleared: "已從此瀏覽器清除 B50、圖片與本機歷史紀錄。",
     localSaveFailed: "預覽已完成，但此瀏覽器無法保留資料供下次使用。",
@@ -293,12 +317,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theme: "テーマ",
     timestamp: "タイムスタンプ",
     accent: "アクセント",
+    accentScope: "アクセントの範囲",
+    accentMinimal: "アクセントのみ",
+    accentOutline: "枠線",
+    accentFull: "枠線＋背景",
+    chartValue: "難易度表示",
+    chartValueBoth: "レベル＋定数",
     outputFormat: "形式",
     watermark: "透かし",
     watermarkPlaceholder: "@ユーザー名 / イベント",
     displayContent: "表示項目",
     frame: "フレーム",
     icon: "アイコン",
+    plate: "プレート",
+    trophy: "称号",
     covers: "ジャケット",
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
@@ -356,7 +388,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     loadingFile: (name) => `${name} を読み込みました。公開ジャケットを準備中…`,
     loadedFile: (name, records, covers) => `${name}: ${records} 件、ジャケット ${covers} 枚を読み込みました。`,
     transferred: (name, records, covers, profileAssets) =>
-      `${name}: B50 ${records} 件、ジャケット ${covers} 枚、プロフィール画像 ${profileAssets}/2 を読み込み、このブラウザに保存しました。`,
+      `${name}: B50 ${records} 件、ジャケット ${covers} 枚、プロフィール画像 ${profileAssets}/3 を読み込み、このブラウザに保存しました。`,
     restored: (name, savedAt) => `${name} をこのブラウザから復元しました · 保存日時 ${savedAt}。`,
     localDataCleared: "このブラウザから B50、画像、ローカル履歴を削除しました。",
     localSaveFailed: "プレビューは利用できますが、このブラウザに保存できませんでした。",

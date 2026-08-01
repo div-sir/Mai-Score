@@ -73,6 +73,9 @@ Record the actual time, Chrome version, Google account type (test user only — 
 | Cross-device pull | Sync desktop history, then connect the same account from mobile Studio and sync | The desktop collections appear in mobile Studio history |
 | Explicit account choice | Disconnect, connect again, and choose another approved Google account | Studio uses the selected account rather than the desktop Chrome profile |
 | Web token expiry | Connect through Studio web OAuth, wait for expiry or reload, then sync | Studio asks the user to reconnect; local and cloud history remain intact |
+| Style sync | Change accent, watermark, and language on device A and sync, then sync device B | Device B adopts A's style and language; syncing B again does not push its old style back |
+| Style conflict | Change the style on both devices while offline, then sync A and B in turn | Whichever was edited last wins on both devices, and a third sync changes nothing |
+| Older client tolerance | Sync from a build without style sync against a document that carries `settings` | The old build reads the history normally rather than rejecting the format. It re-pushes without the block, dropping it; the next sync from a current build restores it from that device's own style |
 
 ## General-availability gate
 

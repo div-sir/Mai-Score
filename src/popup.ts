@@ -233,11 +233,12 @@ async function exportQuickPng() {
   const covers = Object.fromEntries(
     coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
   );
-  const [icon, frame] = await Promise.all([
+  const [icon, frame, plate] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
-    fetchDataUrl(result.player.frameUrl)
+    fetchDataUrl(result.player.frameUrl),
+    fetchDataUrl(result.player.plateUrl)
   ]);
-  const rendered = renderB50Document(result, options, { icon, frame, covers }, generatedAt, intlLocale(language));
+  const rendered = renderB50Document(result, options, { icon, frame, plate, covers }, generatedAt, intlLocale(language));
   const blob = await svgToPng(rendered.svg, rendered.width, rendered.height);
   const safePlayer = result.player.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
   downloadBlob(`mai-score-${safePlayer}-${timestampForFilename(generatedAt)}.png`, blob);
@@ -251,13 +252,15 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
     name,
     await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
   ] as const);
-  const [icon, frame] = await Promise.all([
+  const [icon, frame, plate] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
-    fetchDataUrl(result.player.frameUrl)
+    fetchDataUrl(result.player.frameUrl),
+    fetchDataUrl(result.player.plateUrl)
   ]);
   return {
     icon,
     frame,
+    plate,
     covers: Object.fromEntries(
       coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
     )

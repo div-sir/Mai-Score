@@ -100,14 +100,39 @@ button:active{transform:scale(.97)}
 .brand strong{font-size:16px;letter-spacing:-.01em}
 .brand small{margin-top:2px;color:var(--muted);font-size:10px;letter-spacing:.03em}
 .data-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
-.compact-picker{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:9px}
-.compact-picker select{
+.icon-toggle,.icon-picker{
+  display:flex;
   min-height:36px;
+  align-items:center;
+  gap:5px;
   border:1px solid var(--line2);
   border-radius:999px;
-  padding:7px 30px 7px 12px;
   background:color-mix(in srgb,var(--bg3) 84%,transparent);
+  color:var(--muted);
+}
+.icon-toggle{width:36px;justify-content:center;padding:0}
+.icon-toggle:hover,.icon-picker:hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2));color:var(--text)}
+.icon-picker{padding-left:10px}
+.icon-toggle svg,.icon-picker svg{
+  width:16px;
+  height:16px;
+  flex:0 0 auto;
+  fill:none;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-width:1.7;
+}
+/* The native select stays the control — it keeps keyboard and screen-reader
+   behaviour that a custom menu would have to reimplement. The icon beside it
+   is what makes the row readable at a glance. */
+.icon-picker select{
+  min-height:34px;
+  border:0;
+  border-radius:999px;
+  padding:6px 8px 6px 4px;
+  background:transparent;
   color:var(--text);
+  font-size:11px;
 }
 .data-summary{min-width:0;margin-right:8px;text-align:right}
 .data-summary span{
@@ -367,8 +392,8 @@ button:active{transform:scale(.97)}
   .topbar{display:block}
   .brand-mark{width:40px;height:40px}
   .data-actions{margin-top:12px}
-  .compact-picker{flex:1}
-  .compact-picker select{width:100%}
+  .icon-picker{flex:1}
+  .icon-picker select{width:100%}
   .data-summary{text-align:left}
   .status-line{padding:8px 14px}
   .drive-compact{align-items:center}

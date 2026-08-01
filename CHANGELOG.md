@@ -6,6 +6,11 @@ All notable changes to Mai-Score are documented here.
 
 ### Added
 
+- Exports show the equipped trophy under the player name in its in-game rarity colour, and the equipped nameplate behind the name block. Both have their own visibility toggles.
+- New **Accent reach** setting extends the accent colour from its own elements to card borders and, at the widest setting, to page and card surfaces.
+- A single **Difficulty figure** setting replaces the separate chart-level and chart-constant switches: level, constant, both, or neither.
+- Export style, watermark, and language now sync through Google Drive alongside history, so a phone and a desktop agree on how exports look. The later edit wins.
+- The Extension reads the equipped nameplate from DX NET and passes it to Studio with the icon and frame.
 - Studio can authorize Google Drive directly with Google Identity Services on mobile and extension-free browsers.
 - Desktop Extension sync and Studio web sync share the existing `mai-score-history.json` app-data document and pull → merge → push behavior.
 - Synced history now carries compact player metadata so future snapshots can restore the equipped icon and frame without storing large image data in Drive.
@@ -13,11 +18,13 @@ All notable changes to Mai-Score are documented here.
 
 ### Changed
 
+- Appearance and Language in the Studio top bar are now an icon toggle and an icon-led dropdown instead of labelled fields.
+- The chart constant renders as a bare `13.9` rather than `CONST 13.9`.
 - Studio automatically opens the newest synchronized B50 in Live preview and restores public song jackets.
 - Studio language is now a global control in the top bar rather than an export-style field.
 - Google Drive now sits in the main Studio toolbar instead of occupying a separate row.
 - Studio provides independent dark and light interface modes plus six curated export accent presets.
-- Visible-content controls are now always exposed as high-contrast switch cards, including a new chart-constant option.
+- Visible-content controls are now always exposed as high-contrast switch cards.
 - Export timestamps now always use the device's local time zone.
 - The export header separates the B50 total, New B15, and Old B35 into distinct score blocks without thousands separators.
 - The Official Rating row and its visibility control have been removed from exported images.
@@ -26,6 +33,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Fixed
 
+- Full-width song titles no longer run past the edge of their card. Both renderers measured text by counting characters, which treated a CJK glyph as no wider than an `i`.
 - Fixed mobile Drive sync reporting successful history while leaving Live preview empty.
 - Preview and downloaded exports now use the same B50 collection timestamp.
 - Equipped frames now end above the New B15 section in every export layout instead of covering its label.
