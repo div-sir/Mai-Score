@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 1, 2026. The latest packaged GitHub release is `v0.7.1`; Extension, manifest, lockfiles, and Studio release metadata still use `0.7.1`. Production `main` is `559722e` (PR #21). Draft PR #22 contains the current unreleased work; its feature commit passed CI and Vercel Preview, but its code is not released or deployed to production.
+Accurate as of August 1, 2026. The release candidate is `v0.8.0`; Extension, manifest, lockfiles, and Studio release metadata all use `0.8.0`. PR #22 is merged into production `main` at `c0194f9`. The release tag and packaged ZIP are the remaining publication steps.
 
 ## What this is
 
@@ -23,33 +23,41 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Studio verifies the Drive grant before showing Sync, Disconnect, and Delete cloud history.
 - Returning focus to Studio refreshes the visible connection state.
 
+## Released in v0.8.0
+
+- Refined Studio with compact toolbar controls, dark/light interface modes, curated accents, and stronger accent reach.
+- Added equipped trophy and nameplate export support with independent visibility controls.
+- Unified difficulty display into level, constant, both, or neither; improved CJK title measurement and frame/B15 separation.
+- Added direct mobile/web Google authorization and optional Drive synchronization of export style, watermark, and language.
+- Kept Drive experimental pending real-account cross-provider verification.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release `v0.7.1` | Done | Keep installable release stable while post-release Studio work settles. |
-| Cross-device Studio + UI pass | PRs #17–#21 on `main`; production Studio at `559722e` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
-| Export/style synchronization pass | Draft PR #22 | Automated verification complete | Review the visual choices, test the live nameplate page, then merge. The shared-`appDataFolder` test is a Drive-GA gate, not something CI can prove. |
-| Next packaged release | Not started | Blocked on PR #22 | Merge the accepted draft, update versions and release notes, package the Extension, and tag the next release. |
+| Packaged Extension baseline | Release candidate `v0.8.0` | Publication in progress | Tag the verified release commit and confirm the generated installable ZIP. |
+| Cross-device Studio + UI pass | PRs #17–#22 on `main`; production Studio at `c0194f9` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
+| Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
+| Next packaged release | `v0.8.0` metadata and notes | In progress | Merge the release PR, tag `v0.8.0`, and verify the Release workflow asset. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Planned | Next product phase | Decide history retention, then add rating-over-time, per-chart history, and next-grade targets. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-PR #22's automated gate is strong: 184 tests across 21 files, Extension verification, Studio typecheck/build, desktop and 390 px Chromium checks, and Vercel Preview all pass. It deliberately remains a draft because nameplate parsing and cross-provider Drive behavior need real authenticated services.
+PR #22 passed 184 tests across 21 files, Extension verification, Studio typecheck/build, desktop and 390 px Chromium checks, and Vercel Preview before merge. Nameplate parsing and cross-provider Drive behavior still need real authenticated services; these remain explicit experimental limitations rather than release blockers.
 
 ## Capability snapshot
 
-| Area | Packaged `v0.7.1` | Production `main` | Draft PR #22 |
-| --- | --- | --- | --- |
-| B50 collection | International active; Japan adapter present but unverified | Same | Adds fail-safe equipped-nameplate collection; live page shape unverified |
-| Rating calculation | Official chart formula; exact B15/B35 recomputation | Same | Same |
-| Image export | 3 layouts × 3 themes, PNG/SVG | Adds clearer score blocks, local timestamps, chart constants, elegant accents, and frame/B15 separation | Adds accent reach, one difficulty-figure control, trophy/nameplate controls, and CJK-safe title measurement |
-| JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Same | Same |
-| Studio | Preview, restyle, local history, Web Share | Latest synced B50 opens automatically; mobile/web Drive, dark/light UI, curated accents | Syncs style, watermark, and language; iconised appearance/language controls |
-| Google Drive | Experimental Extension proxy | Also supports direct mobile/web Google Identity Services | Adds convergent optional settings sync and provider-dispatch tests |
-| Languages | English, 繁體中文, 日本語 | Same | Same |
-| Store readiness | Listing copy and assets exist | Privacy URL deployed | Screenshots must be regenerated after the current UI stabilizes |
+| Area | Release candidate `v0.8.0` | Verification status |
+| --- | --- | --- |
+| B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
+| Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
+| Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, trophy/nameplate controls, CJK-safe titles | Automated and Chromium visual checks pass |
+| JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Automated tests pass |
+| Studio | Latest B50 preview, local history, Web Share, mobile/web Drive, dark/light UI, curated accents, settings sync | Deployed; real Drive matrix incomplete |
+| Google Drive | Experimental Extension and Google Identity Services providers | Shared `appDataFolder` behavior unverified |
+| Languages | English, 繁體中文, 日本語 | Automated coverage present |
+| Store readiness | Listing copy, assets, and privacy URL exist | Screenshots must be regenerated |
 
 ### The rating bug that was fixed
 
@@ -201,12 +209,12 @@ sandbox without the real services.
 
 Follow the development-flow table above; these are the implementation notes behind its remaining phases.
 
-### 1. Finish and merge Draft PR #22
+### 1. Publish and verify v0.8.0
 
-- Review accent reach, trophy/nameplate placement, and the combined difficulty-figure control in the Vercel Preview.
-- Test `/collection/plate/` on a real logged-in DX NET account. Failure is non-blocking for B50 collection by design, but the feature should not be advertised until its source is confirmed.
-- Keep the shared-`appDataFolder` question visible as a Drive general-availability gate. It does not need to block safe UI work from merging while Drive remains explicitly experimental.
-- After acceptance, mark the PR ready, merge, verify production, then prepare the next packaged Extension release instead of silently leaving release metadata at `0.7.1`.
+- Merge the release metadata PR only after Extension and Studio CI pass.
+- Tag the merge commit as `v0.8.0`, then verify the Release workflow produces `mai-score-v0.8.0.zip`.
+- Install the packaged ZIP as an unpacked extension and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
+- Test `/collection/plate/` on a real logged-in DX NET account separately; failure is non-blocking for B50 collection by design.
 
 ### 2. Prove Drive cross-device behavior
 
