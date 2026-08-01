@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-08-01
+
 ### Added
 
 - Exports show the equipped trophy under the player name in its in-game rarity colour, and the equipped nameplate behind the name block. Both have their own visibility toggles.
