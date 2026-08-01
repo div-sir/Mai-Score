@@ -33,6 +33,8 @@ describe("Studio renderer", () => {
     for (const scope of ["minimal", "outline", "full"] as AccentScope[]) {
       expect(studioAccentReach(scope)).toEqual(extensionAccentReach(scope));
     }
+    expect(extensionAccentReach("outline").outline).toBe(.48);
+    expect(extensionAccentReach("full").outline).toBe(.64);
   });
 
   it("carries the chart figure chartValue selects, with no CONST prefix", () => {
