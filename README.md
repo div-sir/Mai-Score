@@ -1,6 +1,6 @@
 # Mai-Score
 
-> The latest packaged release is **v0.7.1**. It adds the missing Studio Google Drive connection card and Extension-owned authorization window on top of the customizable B50 export and local-history features from v0.7.0.
+> The latest packaged release is **v0.8.0**. It adds a refined Studio and export UI, equipped trophy/nameplate support, stronger accent styling, unified difficulty figures, and optional cross-device style sync.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -23,11 +23,11 @@ Building from source instead? See [Development](#development).
 - Captures player name, title, icon, equipped frame, course rank, class rank, stars, and official rating where available.
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
-- Generates PNG locally with Night, Light, and maimai themes.
+- Generates PNG and SVG locally with Night, Light, and maimai themes.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
-- Keeps image choices for timestamp, watermark, elegant accent presets, assets, chart constant, and score fields in Studio; timestamps always use the device's local time zone.
+- Keeps image choices for timestamp, watermark, accent reach, equipped trophy/nameplate, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone.
 - Offers a separate dark or light Studio interface without changing the selected export theme.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
@@ -68,7 +68,7 @@ npm run build
 
 ### Releases
 
-Pushing a tag matching `v*` (e.g. `v0.7.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
+Pushing a tag matching `v*` (e.g. `v0.8.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
 
 ### Automatic Studio handoff in v0.5.0
 
@@ -86,22 +86,21 @@ The first connection adapter is `dxnet-intl`. Future sources can register a new 
 
 See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), and [Connection adapters](docs/connection-adapters.md) for the workflow, shared record contract, and security boundaries.
 
-### Optional Google Drive history sync in v0.7.1
+### Optional Google Drive history and settings sync in v0.8.0
 
-The v0.7.1 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
+The v0.8.0 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
 
 Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio always shows the Drive connection state; **Connect Google Drive** opens an Extension-owned authorization window so the OAuth token never enters the website. **Sync history**, **Disconnect**, and the separately confirmed **Delete cloud history** actions appear only after the grant is confirmed. Deleting the cloud file does not touch local IndexedDB history; Disconnect remains an OAuth-only operation.
 
-Drive sync is **experimental in the v0.7.1 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
+Drive sync is **experimental in the v0.8.0 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
 
-The next development version also supports Google Identity Services directly in
-Studio. This makes cross-device history available from mobile Chrome or Safari
+Version 0.8.0 also supports Google Identity Services directly in Studio. This makes cross-device history available from mobile Chrome or Safari
 without a browser extension. Connecting performs the first sync automatically;
 later, **Sync latest B50** merges both sides and opens the newest snapshot in Live
 preview. Production's public Web application client ID is in
 `studio/lib/google-drive-web.ts`; `studio/.env.example` documents the local override.
 Keep both OAuth clients in the same Google Cloud project so both paths use the
-same app-data file.
+same app-data file. This shared-file behavior still requires real-account verification before Drive can leave its experimental status.
 
 ### “Failed to fetch” in v0.1.0
 
