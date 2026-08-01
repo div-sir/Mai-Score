@@ -267,6 +267,7 @@ function renderCard(
   // Difficulty still leads the card border; the accent is blended into it so
   // a restyled export reads as one palette instead of five stray hues.
   const borderColor = mix(color, options.accentColor, accentReach(options.accentScope).outline);
+  const borderOpacity = options.accentScope === "minimal" ? .42 : .62;
   const meta = [
     record.type.toUpperCase(),
     record.difficulty.toUpperCase(),
