@@ -276,6 +276,7 @@ export function renderStudioSvg(
     // Difficulty still leads the card border; the accent is blended into it so
     // a restyled export reads as one palette instead of five stray hues.
     const borderColor = mix(color, options.accent, accentReach(options.accentScope).outline);
+    const borderOpacity = options.accentScope === "minimal" ? .45 : .62;
     return `<g transform="translate(${x} ${y})">
       <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, .62)}" stroke-width="3"/>
       ${reservesCover ? coverSource
