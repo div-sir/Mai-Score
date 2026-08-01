@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { accentReach as extensionAccentReach } from "../src/lib/render";
+import { DEFAULT_IMAGE_OPTIONS } from "../src/lib/image-options";
+import { accentReach as extensionAccentReach, renderB50Document } from "../src/lib/render";
+import type { CollectionResult } from "../src/lib/types";
 import { accentReach as studioAccentReach, renderStudioSvg } from "../studio/lib/render";
 import { DEFAULT_OPTIONS, type AccentScope, type StudioData, type StudioOptions } from "../studio/lib/types";
 
@@ -24,6 +26,21 @@ const data: StudioData = {
 
 const render = (options: Partial<StudioOptions> = {}) =>
   renderStudioSvg(data, { ...DEFAULT_OPTIONS, ...options }, "en").svg;
+
+/** The same B50 in the extension's shape, for cross-renderer comparisons. */
+const extensionData: CollectionResult = {
+  schema: "mai-score/v1",
+  exportedAt: data.exportedAt,
+  source: "https://maimaidx-eng.com/",
+  player: { name: data.player.name, title: data.player.title, rating: data.player.rating },
+  records: data.records.map((record) => ({ ...record })),
+  b15Rating: data.b15Rating,
+  b35Rating: data.b35Rating,
+  b50Rating: data.b50Rating,
+  warnings: []
+};
+
+const cardStroke = (svg: string) => svg.match(/stroke="(#[0-9a-f]{8})" stroke-width="3"/)![1];
 
 describe("Studio renderer", () => {
   it("agrees with the extension on how far the accent reaches", () => {
@@ -54,6 +71,24 @@ describe("Studio renderer", () => {
     expect(border("minimal")).toBe("#ff5b6673");
     expect(border("outline")).not.toBe(border("minimal"));
     expect(border("full")).not.toBe(border("outline"));
+  });
+
+  it("draws the same card border as the extension once the accent reaches it", () => {
+    // Each renderer holds its own copy of the border colour and its opacity,
+    // and a Studio preview is only trustworthy if it matches what the
+    // extension exports. `minimal` is excluded on purpose: it preserves each
+    // renderer's original opacity — .42 here against .45 in Studio — so that
+    // choosing it reproduces exactly what that side looked like before accent
+    // reach existed.
+    for (const scope of ["outline", "full"] as AccentScope[]) {
+      const fromStudio = cardStroke(render({ accentScope: scope, accent: "#ff0000" }));
+      const fromExtension = cardStroke(renderB50Document(extensionData, {
+        ...DEFAULT_IMAGE_OPTIONS,
+        accentScope: scope,
+        accentColor: "#ff0000"
+      }).svg);
+      expect(fromStudio, `card border disagrees at accentScope "${scope}"`).toBe(fromExtension);
+    }
   });
 
   it("tints surfaces only at the full accent scope", () => {
