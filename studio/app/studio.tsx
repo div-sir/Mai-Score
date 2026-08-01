@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import ProgressDashboard from "./progress";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
 import {
@@ -46,6 +47,7 @@ const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
+type StudioView = "export" | "progress";
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -262,6 +264,7 @@ export default function Studio() {
   // and the merge could never settle.
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
+  const [studioView, setStudioView] = useState<StudioView>("export");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -890,9 +893,17 @@ export default function Studio() {
         </div>
       </header>
 
-      <div className="status-line"><span />{message}</div>
+      <div className="status-line">
+        <div className="status-message"><span />{message}</div>
+        <nav className="studio-tabs" aria-label={copy.studioSections}>
+          <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
+          <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
+        </nav>
+      </div>
 
-      <section className="workspace">
+      {studioView === "progress" ? (
+        <ProgressDashboard data={data} history={history} language={language} />
+      ) : <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">
             <h1>{copy.exportStyle}</h1>
@@ -1022,7 +1033,7 @@ export default function Studio() {
               : <p className="empty-preview">{copy.emptyPreview}</p>}
           </div>
         </section>
-      </section>
+      </section>}
     </main>
   );
 }

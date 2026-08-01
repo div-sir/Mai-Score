@@ -34,6 +34,7 @@ Building from source instead? See [Development](#development).
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 - Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
+- Turns saved snapshots into a separate Studio Progress view: B50/B15/B35 trends, current-B50 upgrade targets, per-chart observed history, latest membership changes, and data provenance.
 
 ## Usage
 
@@ -81,6 +82,8 @@ Studio is public at `mai-score.milifix.com` and does not require a Mai-Score acc
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
 Studio is intentionally a compact preview tool: the top bar contains data, Google Drive, appearance, and language controls; the side panel contains export style, prominent visible-content switches, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
+
+The **Progress** tab reads the same browser-local or optionally Drive-synced snapshots. Its timestamps are B50 observation times, not individual play times. Recommendations cover only charts already found in the current B50 because DX NET's B50 export does not contain the wider replacement-candidate pool.
 
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 

@@ -4,6 +4,17 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Studio now has a dedicated **Progress** view with B50, New B15, and Old B35 timelines built from locally saved or Drive-synced snapshots.
+- Added practical achievement targets for charts already present in the current B50, including the next threshold, required achievement gain, and potential chart-rating gain.
+- Added per-chart observed history, latest B50 membership changes, and explicit source, schema, observation time, import time, and rating-model provenance.
+
+### Data notes
+
+- Progress timestamps describe when a B50 snapshot was observed; they are not presented as individual play timestamps.
+- Upgrade targets intentionally use only charts in the current B50. Candidate songs outside the official B50 are not available in a B50 snapshot and are not guessed.
+
 ## [0.8.0] — 2026-08-01
 
 ### Added

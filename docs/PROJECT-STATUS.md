@@ -40,7 +40,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
 | Next packaged release | `v0.8.0` metadata and notes | In progress | Merge the release PR, tag `v0.8.0`, and verify the Release workflow asset. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
-| Progress dashboard | Planned | Next product phase | Decide history retention, then add rating-over-time, per-chart history, and next-grade targets. |
+| Progress dashboard | Implementation branch | In verification | Review B50/B15/B35 trends, current-B50 upgrade targets, chart history, and provenance in the Studio preview. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 

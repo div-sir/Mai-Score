@@ -47,6 +47,37 @@ export interface StudioCopy {
   share: string;
   shared: string;
   history: string;
+  studioSections: string;
+  exportTab: string;
+  progressTab: string;
+  progressHeading: string;
+  progressEmpty: string;
+  observedSnapshots: string;
+  allTime: string;
+  last30Days: string;
+  upgradeTargets: string;
+  upgradeDescription: string;
+  noUpgradeTargets: string;
+  target: string;
+  needed: string;
+  theoretical: string;
+  chartHistory: string;
+  chartHistoryDescription: string;
+  selectChart: string;
+  latestChanges: string;
+  latestChangesDescription: string;
+  noChanges: string;
+  ratingGain: string;
+  enteredB50: string;
+  leftB50: string;
+  improvedCharts: string;
+  sourceDetails: string;
+  sourceDetailsDescription: string;
+  observedAt: string;
+  importedAt: string;
+  sourceLabel: string;
+  sourceSchema: string;
+  ratingModel: string;
   syncHeading: string;
   driveChecking: string;
   driveConnected: string;
@@ -148,6 +179,37 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "Share image",
     shared: "Shared.",
     history: "History",
+    studioSections: "Studio sections",
+    exportTab: "Export",
+    progressTab: "Progress",
+    progressHeading: "Rating progress",
+    progressEmpty: "Collect or import a B50 to see upgrade targets. Collect again later to build progress history.",
+    observedSnapshots: "observed snapshots",
+    allTime: "All time",
+    last30Days: "30d",
+    upgradeTargets: "B50 upgrade targets",
+    upgradeDescription: "Practical next achievement thresholds for charts already in your B50.",
+    noUpgradeTargets: "No calculable upgrade targets. Internal chart levels may be unavailable.",
+    target: "Target",
+    needed: "Needed",
+    theoretical: "To 100.5",
+    chartHistory: "Chart history",
+    chartHistoryDescription: "Observed best values from each saved B50; these are not individual play timestamps.",
+    selectChart: "Select chart",
+    latestChanges: "Latest change",
+    latestChangesDescription: "Difference between the two newest observed B50 snapshots.",
+    noChanges: "No score or membership change was found between the latest snapshots.",
+    ratingGain: "B50 Rating",
+    enteredB50: "entered B50",
+    leftB50: "left B50",
+    improvedCharts: "improved",
+    sourceDetails: "Data provenance",
+    sourceDetailsDescription: "When Mai-Score observed and imported this snapshot, plus the calculation model used.",
+    observedAt: "Observed",
+    importedAt: "Imported",
+    sourceLabel: "Source",
+    sourceSchema: "Schema",
+    ratingModel: "Rating model",
     syncHeading: "Google Drive",
     driveChecking: "Checking…",
     driveConnected: "Connected",
@@ -248,6 +310,37 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "分享圖片",
     shared: "已分享。",
     history: "歷史紀錄",
+    studioSections: "Studio 區域",
+    exportTab: "匯出",
+    progressTab: "進度",
+    progressHeading: "Rating 進度",
+    progressEmpty: "收集或匯入一筆 B50 即可查看升分目標；之後再次收集就能建立進度歷史。",
+    observedSnapshots: "筆觀測快照",
+    allTime: "全部期間",
+    last30Days: "30 天",
+    upgradeTargets: "B50 升分目標",
+    upgradeDescription: "只根據目前 B50 計算下一個實際 achievement 門檻。",
+    noUpgradeTargets: "沒有可計算的升分目標，部分譜面可能缺少定數。",
+    target: "目標",
+    needed: "尚需",
+    theoretical: "到 100.5",
+    chartHistory: "單曲歷史",
+    chartHistoryDescription: "顯示各次 B50 觀測到的最佳值，不代表實際遊玩時間。",
+    selectChart: "選擇譜面",
+    latestChanges: "最新變化",
+    latestChangesDescription: "比較最近兩筆 B50 觀測快照。",
+    noChanges: "最近兩筆快照之間沒有發現分數或入選變化。",
+    ratingGain: "B50 Rating",
+    enteredB50: "新進 B50",
+    leftB50: "離開 B50",
+    improvedCharts: "筆進步",
+    sourceDetails: "資料來源",
+    sourceDetailsDescription: "清楚區分觀測、匯入時間及使用的計算模型。",
+    observedAt: "觀測時間",
+    importedAt: "匯入時間",
+    sourceLabel: "來源",
+    sourceSchema: "資料格式",
+    ratingModel: "Rating 模型",
     syncHeading: "Google 雲端硬碟",
     driveChecking: "檢查中…",
     driveConnected: "已連結",
@@ -348,6 +441,37 @@ const COPY: Record<LanguageId, StudioCopy> = {
     share: "画像を共有",
     shared: "共有しました。",
     history: "履歴",
+    studioSections: "Studio セクション",
+    exportTab: "書き出し",
+    progressTab: "進捗",
+    progressHeading: "Rating の推移",
+    progressEmpty: "B50 を取得または読み込むと更新目標を表示し、次回以降は進捗履歴も確認できます。",
+    observedSnapshots: "件の観測スナップショット",
+    allTime: "全期間",
+    last30Days: "30日",
+    upgradeTargets: "B50 更新目標",
+    upgradeDescription: "現在の B50 にある譜面だけを使った、次の達成率目標です。",
+    noUpgradeTargets: "計算できる目標がありません。譜面定数が不足している可能性があります。",
+    target: "目標",
+    needed: "必要",
+    theoretical: "100.5まで",
+    chartHistory: "譜面履歴",
+    chartHistoryDescription: "保存した B50 で観測したベスト値です。実際のプレイ時刻ではありません。",
+    selectChart: "譜面を選択",
+    latestChanges: "最新の変化",
+    latestChangesDescription: "最新2件の B50 観測を比較します。",
+    noChanges: "最新のスナップショット間にスコアや選出の変化はありません。",
+    ratingGain: "B50 Rating",
+    enteredB50: "B50入り",
+    leftB50: "B50圏外",
+    improvedCharts: "更新",
+    sourceDetails: "データ来歴",
+    sourceDetailsDescription: "観測・取り込み時刻と計算モデルを区別して表示します。",
+    observedAt: "観測時刻",
+    importedAt: "取込時刻",
+    sourceLabel: "ソース",
+    sourceSchema: "スキーマ",
+    ratingModel: "Ratingモデル",
     syncHeading: "Google ドライブ",
     driveChecking: "確認中…",
     driveConnected: "連携済み",
