@@ -1,6 +1,6 @@
 # Mai-Score
 
-> The latest packaged release is **v0.9.0**. It adds Studio rating progress, practical current-B50 upgrade targets, per-chart observed history, and explicit data provenance.
+> The latest packaged release is **v0.9.1**. It improves B50 upgrade targets with song jackets, larger figures, next-threshold Rating gain, and total potential gain through 100.5%.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -69,7 +69,7 @@ npm run build
 
 ### Releases
 
-Pushing a tag matching `v*` (e.g. `v0.9.0`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
+Pushing a tag matching `v*` (e.g. `v0.9.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
 
 ### Automatic Studio handoff in v0.5.0
 
