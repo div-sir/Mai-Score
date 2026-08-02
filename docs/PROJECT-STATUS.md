@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 2, 2026. PR #24 is the `v0.9.0` release candidate on top of production `main` at `ba30483`; Extension, manifest, lockfiles, and Studio metadata all use `0.9.0`.
+Accurate as of August 2, 2026. `v0.9.1` is the current release; Extension, manifest, lockfiles, and Studio metadata all use `0.9.1`.
 
 ## What this is
 
@@ -39,16 +39,22 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Added per-chart observed history, latest B50 membership changes, and explicit data provenance.
 - Kept skill analysis and player rankings/comparison out of scope.
 
+## Released in v0.9.1
+
+- Replaced the leading upgrade-gain badge with each chart's song jacket.
+- Enlarged target figures and exposed both next-threshold Rating gain and total potential gain through 100.5%.
+- Added a responsive two-column metric layout for narrow screens.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release candidate `v0.9.0` | Publication in progress | Merge PR #24, tag the verified merge commit, and confirm the generated installable ZIP. |
+| Packaged Extension baseline | Release `v0.9.1` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#22 on `main`; production Studio at `c0194f9` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Next packaged release | `v0.9.0` metadata and notes | In progress | Merge PR #24, tag `v0.9.0`, and verify the Release workflow asset. |
+| Next packaged release | Not scheduled | Backlog | Choose the next version only after its scope is defined. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
-| Progress dashboard | PR #24 / `v0.9.0` | Automated verification complete | Merge, deploy, and smoke-test with real multi-snapshot history. |
+| Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
@@ -56,7 +62,7 @@ PR #22 passed 184 tests across 21 files, Extension verification, Studio typechec
 
 ## Capability snapshot
 
-| Area | Release candidate `v0.9.0` | Verification status |
+| Area | Release candidate `v0.9.1` | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
@@ -217,10 +223,10 @@ sandbox without the real services.
 
 Follow the development-flow table above; these are the implementation notes behind its remaining phases.
 
-### 1. Publish and verify v0.9.0
+### 1. Publish and verify v0.9.1
 
 - Merge the release metadata PR only after Extension and Studio CI pass.
-- Tag the merge commit as `v0.8.0`, then verify the Release workflow produces `mai-score-v0.9.0.zip`.
+- Tag the merge commit as `v0.9.1`, then verify the Release workflow produces `mai-score-v0.9.1.zip`.
 - Install the packaged ZIP as an unpacked extension and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
 - Test `/collection/plate/` on a real logged-in DX NET account separately; failure is non-blocking for B50 collection by design.
 

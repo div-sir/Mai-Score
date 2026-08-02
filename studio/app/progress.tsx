@@ -12,10 +12,11 @@ import {
   type RatingTimelinePoint
 } from "../lib/insights";
 import { studioCopy } from "../lib/i18n";
-import type { LanguageId, StudioData } from "../lib/types";
+import type { LanguageId, StudioAssets, StudioData, StudioRecord } from "../lib/types";
 
 interface ProgressDashboardProps {
   data: StudioData | null;
+  assets: StudioAssets;
   history: HistoryEntry[];
   language: LanguageId;
 }
@@ -23,6 +24,26 @@ interface ProgressDashboardProps {
 // chartKey deliberately contains a NUL separator. Encode it before putting it
 // into an HTML option value: browsers normalize NULs in DOM strings.
 const chartOptionKey = (record: Parameters<typeof chartKey>[0]) => encodeURIComponent(chartKey(record));
+
+function coverSource(record: StudioRecord, assets: StudioAssets) {
+  if (!record.imageName) return undefined;
+  return assets.covers[record.imageName]
+    ?? `/api/asset?url=${encodeURIComponent(`https://shama.dxrating.net/images/cover/v2/${record.imageName}.jpg`)}`;
+}
+
+function UpgradeCover({ record, assets }: { record: StudioRecord; assets: StudioAssets }) {
+  const source = coverSource(record, assets);
+  return (
+    <div className="upgrade-cover" aria-hidden="true">
+      <span>♪</span>
+      {source ? <img
+        src={source}
+        alt=""
+        onError={(event) => { event.currentTarget.hidden = true; }}
+      /> : null}
+    </div>
+  );
+}
 
 function signed(value: number | undefined) {
   if (value === undefined) return "—";
@@ -54,7 +75,7 @@ function Sparkline({
   );
 }
 
-export default function ProgressDashboard({ data, history, language }: ProgressDashboardProps) {
+export default function ProgressDashboard({ data, assets, history, language }: ProgressDashboardProps) {
   const copy = studioCopy(language);
   const timeline = useMemo(() => buildRatingTimeline(history), [history]);
   const charts = useMemo(() => listHistoryCharts(history), [history]);
@@ -116,7 +137,7 @@ export default function ProgressDashboard({ data, history, language }: ProgressD
             <ol className="upgrade-list">
               {targets.map((target) => (
                 <li key={target.key}>
-                  <div className="upgrade-rank">+{target.ratingGain}</div>
+                  <UpgradeCover record={target.record} assets={assets} />
                   <div className="upgrade-song">
                     <strong>{target.record.title}</strong>
                     <span>{target.record.type.toUpperCase()} · {target.record.difficulty.toUpperCase()} · {target.record.displayedLevel}</span>
@@ -124,6 +145,7 @@ export default function ProgressDashboard({ data, history, language }: ProgressD
                   <dl>
                     <div><dt>{copy.target}</dt><dd>{target.targetAchievement.toFixed(target.targetAchievement % 1 ? 1 : 0)}%</dd></div>
                     <div><dt>{copy.needed}</dt><dd>+{target.achievementNeeded.toFixed(4)}%</dd></div>
+                    <div><dt>{copy.nextGain}</dt><dd className="up">+{target.ratingGain}</dd></div>
                     <div><dt>{copy.theoretical}</dt><dd>+{target.theoreticalGain}</dd></div>
                   </dl>
                 </li>

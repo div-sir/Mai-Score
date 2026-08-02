@@ -395,16 +395,17 @@ button:active{transform:scale(.97)}
 .panel-empty{margin:18px 0;color:var(--muted-dim);font-size:10px}
 .upgrade-panel{grid-row:span 2}
 .upgrade-list{display:grid;margin:0;padding:0;list-style:none;gap:7px}
-.upgrade-list li{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:9px;background:color-mix(in srgb,var(--bg3) 55%,transparent)}
-.upgrade-rank{display:grid;width:42px;height:42px;place-items:center;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);font-size:13px;font-weight:850}
+.upgrade-list li{display:grid;grid-template-columns:62px minmax(150px,1fr) auto;align-items:center;gap:12px;min-height:78px;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:color-mix(in srgb,var(--bg3) 55%,transparent)}
+.upgrade-cover{position:relative;display:grid;width:58px;height:58px;overflow:hidden;place-items:center;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);font-size:20px;font-weight:850}
+.upgrade-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .upgrade-song{min-width:0}
 .upgrade-song strong,.upgrade-song span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.upgrade-song strong{font-size:11px}
-.upgrade-song span{margin-top:3px;color:var(--muted-dim);font-size:8px}
-.upgrade-list dl{display:flex;gap:8px;margin:0}
-.upgrade-list dl div{min-width:62px;text-align:right}
-.upgrade-list dt{color:var(--muted-dim);font-size:7px;text-transform:uppercase}
-.upgrade-list dd{margin:2px 0 0;font-family:ui-monospace,"SFMono-Regular",monospace;font-size:9px;font-weight:700}
+.upgrade-song strong{font-size:12px}
+.upgrade-song span{margin-top:4px;color:var(--muted-dim);font-size:9px}
+.upgrade-list dl{display:grid;grid-template-columns:repeat(4,minmax(72px,auto));gap:14px;margin:0}
+.upgrade-list dl div{text-align:right}
+.upgrade-list dt{color:var(--muted-dim);font-size:8px;font-weight:700;letter-spacing:.025em;text-transform:uppercase}
+.upgrade-list dd{margin:4px 0 0;font-family:ui-monospace,"SFMono-Regular",monospace;font-size:12px;font-weight:800}
 .chart-history-panel select{max-width:210px;border:1px solid var(--line2);border-radius:9px;padding:6px 8px;background:var(--bg3);color:var(--text);font-size:9px}
 .selected-chart{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
 .selected-chart strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
@@ -472,9 +473,9 @@ button:active{transform:scale(.97)}
   .preview-panel.empty{height:240px;min-height:240px}
   .preview-stage{padding:8px}
   .progress-header{align-items:flex-start;flex-direction:column;gap:6px}
-  .upgrade-list li{grid-template-columns:42px minmax(0,1fr)}
-  .upgrade-rank{width:38px;height:38px}
-  .upgrade-list dl{grid-column:1/-1;justify-content:space-between;border-top:1px solid var(--line);padding-top:7px}
+  .upgrade-list li{grid-template-columns:54px minmax(0,1fr);gap:10px}
+  .upgrade-cover{width:50px;height:50px}
+  .upgrade-list dl{grid-column:1/-1;grid-template-columns:repeat(2,1fr);gap:10px 16px;border-top:1px solid var(--line);padding-top:9px}
   .upgrade-list dl div{min-width:0;text-align:left}
   .change-summary{grid-template-columns:1fr 1fr}
   .legal-page{padding:32px 18px 56px}

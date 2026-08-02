@@ -902,7 +902,7 @@ export default function Studio() {
       </div>
 
       {studioView === "progress" ? (
-        <ProgressDashboard data={data} history={history} language={language} />
+        <ProgressDashboard data={data} assets={assets} history={history} language={language} />
       ) : <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">

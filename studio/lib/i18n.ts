@@ -60,6 +60,7 @@ export interface StudioCopy {
   noUpgradeTargets: string;
   target: string;
   needed: string;
+  nextGain: string;
   theoretical: string;
   chartHistory: string;
   chartHistoryDescription: string;
@@ -192,6 +193,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "No calculable upgrade targets. Internal chart levels may be unavailable.",
     target: "Target",
     needed: "Needed",
+    nextGain: "Rating gain",
     theoretical: "To 100.5",
     chartHistory: "Chart history",
     chartHistoryDescription: "Observed best values from each saved B50; these are not individual play timestamps.",
@@ -323,6 +325,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "沒有可計算的升分目標，部分譜面可能缺少定數。",
     target: "目標",
     needed: "尚需",
+    nextGain: "目標增分",
     theoretical: "到 100.5",
     chartHistory: "單曲歷史",
     chartHistoryDescription: "顯示各次 B50 觀測到的最佳值，不代表實際遊玩時間。",
@@ -454,6 +457,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "計算できる目標がありません。譜面定数が不足している可能性があります。",
     target: "目標",
     needed: "必要",
+    nextGain: "目標増分",
     theoretical: "100.5まで",
     chartHistory: "譜面履歴",
     chartHistoryDescription: "保存した B50 で観測したベスト値です。実際のプレイ時刻ではありません。",
