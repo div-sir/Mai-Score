@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 1, 2026. The release candidate is `v0.8.0`; Extension, manifest, lockfiles, and Studio release metadata all use `0.8.0`. PR #22 is merged into production `main` at `c0194f9`. The release tag and packaged ZIP are the remaining publication steps.
+Accurate as of August 2, 2026. PR #24 is the `v0.9.0` release candidate on top of production `main` at `ba30483`; Extension, manifest, lockfiles, and Studio metadata all use `0.9.0`.
 
 ## What this is
 
@@ -31,16 +31,24 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Added direct mobile/web Google authorization and optional Drive synchronization of export style, watermark, and language.
 - Kept Drive experimental pending real-account cross-provider verification.
 
+## Released in v0.9.0
+
+- Added a separate Studio Progress view while keeping Export as the default.
+- Added B50, New B15, and Old B35 timelines from saved observations.
+- Added practical next-achievement targets for charts already in the current B50.
+- Added per-chart observed history, latest B50 membership changes, and explicit data provenance.
+- Kept skill analysis and player rankings/comparison out of scope.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release candidate `v0.8.0` | Publication in progress | Tag the verified release commit and confirm the generated installable ZIP. |
+| Packaged Extension baseline | Release candidate `v0.9.0` | Publication in progress | Merge PR #24, tag the verified merge commit, and confirm the generated installable ZIP. |
 | Cross-device Studio + UI pass | PRs #17–#22 on `main`; production Studio at `c0194f9` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Next packaged release | `v0.8.0` metadata and notes | In progress | Merge the release PR, tag `v0.8.0`, and verify the Release workflow asset. |
+| Next packaged release | `v0.9.0` metadata and notes | In progress | Merge PR #24, tag `v0.9.0`, and verify the Release workflow asset. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
-| Progress dashboard | Implementation branch | In verification | Review B50/B15/B35 trends, current-B50 upgrade targets, chart history, and provenance in the Studio preview. |
+| Progress dashboard | PR #24 / `v0.9.0` | Automated verification complete | Merge, deploy, and smoke-test with real multi-snapshot history. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
@@ -48,13 +56,13 @@ PR #22 passed 184 tests across 21 files, Extension verification, Studio typechec
 
 ## Capability snapshot
 
-| Area | Release candidate `v0.8.0` | Verification status |
+| Area | Release candidate `v0.9.0` | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
 | Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, trophy/nameplate controls, CJK-safe titles | Automated and Chromium visual checks pass |
 | JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Automated tests pass |
-| Studio | Latest B50 preview, local history, Web Share, mobile/web Drive, dark/light UI, curated accents, settings sync | Deployed; real Drive matrix incomplete |
+| Studio | Latest B50 preview, Progress insights, local history, Web Share, mobile/web Drive, dark/light UI, curated accents, settings sync | Automated verification complete; real Drive matrix incomplete |
 | Google Drive | Experimental Extension and Google Identity Services providers | Shared `appDataFolder` behavior unverified |
 | Languages | English, 繁體中文, 日本語 | Automated coverage present |
 | Store readiness | Listing copy, assets, and privacy URL exist | Screenshots must be regenerated |
@@ -209,10 +217,10 @@ sandbox without the real services.
 
 Follow the development-flow table above; these are the implementation notes behind its remaining phases.
 
-### 1. Publish and verify v0.8.0
+### 1. Publish and verify v0.9.0
 
 - Merge the release metadata PR only after Extension and Studio CI pass.
-- Tag the merge commit as `v0.8.0`, then verify the Release workflow produces `mai-score-v0.8.0.zip`.
+- Tag the merge commit as `v0.8.0`, then verify the Release workflow produces `mai-score-v0.9.0.zip`.
 - Install the packaged ZIP as an unpacked extension and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
 - Test `/collection/plate/` on a real logged-in DX NET account separately; failure is non-blocking for B50 collection by design.
 
@@ -222,16 +230,16 @@ The first test is desktop Extension provider → mobile Studio-web provider usin
 
 Then complete create, repeat sync, bidirectional merge, deletion, disconnect, reauthorization, token expiry, account choice, offline failure, and old-client compatibility. Only after that should the project begin Google sensitive-scope verification or remove the experimental label.
 
-### 3. Build progress tracking
+### 3. Extend progress tracking
 
-The timeline is already newest-first and each `HistoryEntry` contains every chart's achievement and rating. The first useful view should include:
+The first progress view now ships rating timelines, current-B50 upgrade targets,
+per-chart observed history, latest membership changes, and provenance. Preserve
+its two trust boundaries: snapshot times are observations rather than play times,
+and a B50 document cannot support recommendations for non-B50 candidates.
 
-1. B50 rating over time, split into New B15 and Old B35.
-2. Per-chart achievement/rating history.
-3. Charts closest to the next grade or rating gain.
-4. A simple collection-to-collection change list using `diffHistory`.
-
-Decide retention before implementation. At roughly 7–8 KB per collection, the 4 MB sync limit is about 500 snapshots. Weekly use is safe for years, but silent downsampling would damage long-range charts; prefer an explicit policy.
+Before adding denser history features, decide an explicit retention policy. At
+roughly 7–8 KB per collection, the 4 MB sync limit is about 500 snapshots; avoid
+silent downsampling because it would damage long-range trends.
 
 ### 4. Prepare the Store release
 
