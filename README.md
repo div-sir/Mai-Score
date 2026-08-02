@@ -1,6 +1,6 @@
 # Mai-Score
 
-> The latest packaged release is **v0.9.1**. It improves B50 upgrade targets with song jackets, larger figures, next-threshold Rating gain, and total potential gain through 100.5%.
+> The latest packaged release is **v0.11.0**. It adds official DX NET result badges, Rating cutoffs and risk insights, What-if simulation, inspectable progress timelines, chart filters, and exact plate-progress transport for future Full Records adapters.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 

@@ -4,6 +4,10 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+No changes yet.
+
+## [0.11.0] — 2026-08-02
+
 ### Added
 
 - Official DX NET achievement-rank, FC/AP, and FS badge artwork in Extension and Studio exports, with a dedicated visibility option.
