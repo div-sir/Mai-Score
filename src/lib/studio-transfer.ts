@@ -10,6 +10,7 @@ export interface StudioTransferAssets {
   frame?: string;
   plate?: string;
   covers: Record<string, string>;
+  badges?: Record<string, string>;
 }
 
 export interface StudioTransfer {

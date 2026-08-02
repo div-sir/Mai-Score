@@ -7,12 +7,14 @@ import {
   type ImageTheme
 } from "./image-options";
 import type { CollectionResult, ResolvedScore } from "./types";
+import { recordBadgeNames } from "./achievement-rank";
 
 export interface RenderAssets {
   icon?: string;
   frame?: string;
   plate?: string;
   covers?: Record<string, string>;
+  badges?: Record<string, string>;
 }
 
 export interface RenderedImage {
@@ -244,7 +246,8 @@ function renderCard(
   spec: LayoutSpec,
   options: ImageOptions,
   palette: Palette,
-  asset?: string
+  asset?: string,
+  badgeAssets: Record<string, string> = {}
 ): string {
   const column = sectionIndex % spec.columns;
   const row = Math.floor(sectionIndex / spec.columns);
@@ -274,6 +277,26 @@ function renderCard(
     ...chartValueParts(options, record)
   ].join(" · ");
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
+  const badgeNames = options.showScoreBadges ? recordBadgeNames(record) : [];
+  const rankAsset = badgeNames[0] ? badgeAssets[badgeNames[0]] : undefined;
+  const flagAssets = badgeNames.slice(1).flatMap((name) => badgeAssets[name] ? [badgeAssets[name]] : []);
+  // The official rank/FC/FS images have very different aspect ratios. Keep
+  // them as one compact ribbon over the jacket's lower edge so the percentage
+  // remains a full-width, readable line in every layout.
+  const badgeHeight = Math.max(16, Math.round(spec.achievementSize * .62));
+  const rankWidth = Math.round(badgeHeight * 68 / 31);
+  const flagWidth = Math.round(badgeHeight * 42 / 47);
+  const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
+  const badgeWidth = (rankAsset ? rankWidth : 0) + (rankAsset && flagAssets.length ? 4 : 0) + flagsWidth;
+  const badgeX = pad;
+  const badgeY = stripY - badgeHeight - 4;
+  const flagsX = badgeX + (rankAsset ? rankWidth + 4 : 0);
+  const achievementX = reservesCover || badgeWidth === 0 ? contentX : badgeX + badgeWidth + 8;
+  const badgeMarkup = `${rankAsset
+    ? `<image href="${rankAsset}" x="${badgeX}" y="${badgeY}" width="${rankWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+    : ""}${flagAssets.map((source, badgeIndex) =>
+      `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${badgeY}" width="${flagWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+    ).join("")}`;
 
   return `<g transform="translate(${x} ${y})">
     <rect width="${spec.cardWidth}" height="${spec.cardHeight}" rx="${spec.cardRadius}" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
@@ -284,8 +307,9 @@ function renderCard(
         : ""}
     <text x="${contentX}" y="${pad + spec.titleSize}" font-size="${spec.titleSize}" font-weight="750">${esc(truncate(record.title, titleUnits))}</text>
     <text x="${contentX}" y="${pad + spec.titleSize + spec.metaSize + 13}" font-size="${spec.metaSize}" style="fill:${palette.muted}">${esc(meta)}</text>
+    ${badgeMarkup}
     ${options.showAchievement
-      ? `<text x="${contentX}" y="${achievementY}" font-size="${spec.achievementSize}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>`
+      ? `<text x="${achievementX}" y="${achievementY}" font-size="${spec.achievementSize}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>`
       : ""}
     ${(options.showBucketRank || options.showChartRating)
       ? `<rect x="${pad}" y="${stripY}" width="${spec.cardWidth - pad * 2}" height="${spec.stripHeight}" rx="${Math.round(spec.stripHeight / 3)}" fill="${options.theme === "maimai" ? alpha(color, .13) : palette.strip}"/>
@@ -457,7 +481,8 @@ export function renderB50Document(
     spec,
     options,
     palette,
-    record.imageName ? assets.covers?.[record.imageName] : undefined
+    record.imageName ? assets.covers?.[record.imageName] : undefined,
+    assets.badges
   )).join("")}
   ${oldRecords.map((record, sectionIndex) => renderCard(
     record,
@@ -468,7 +493,8 @@ export function renderB50Document(
     spec,
     options,
     palette,
-    record.imageName ? assets.covers?.[record.imageName] : undefined
+    record.imageName ? assets.covers?.[record.imageName] : undefined,
+    assets.badges
   )).join("")}
   ${footerLeft ? `<text x="${spec.marginX}" y="${footerY}" font-size="16" style="fill:${palette.muted}">${esc(footerLeft)}</text>` : ""}
   ${footerRight ? `<text x="${spec.width - spec.marginX}" y="${footerY}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${esc(footerRight)}</text>` : ""}

@@ -4,7 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 2, 2026. `v0.9.1` is the current release; Extension, manifest, lockfiles, and Studio metadata all use `0.9.1`.
+Accurate as of August 2, 2026. `v0.9.1` is the current packaged release and release tag.
+
+The v0.11.0 development branch now uses `0.11.0` package and manifest metadata. It is not the latest packaged release until the feature PR is merged, tagged, and the release artifact is verified.
 
 ## What this is
 
@@ -45,6 +47,13 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Enlarged target figures and exposed both next-threshold Rating gain and total potential gain through 100.5%.
 - Added a responsive two-column metric layout for narrow screens.
 
+## In development for v0.11.0
+
+- Official achievement-rank, FC/AP, and FS artwork in both image renderers.
+- B15/B35 cutoffs, at-risk charts, What-if Rating simulation, inspectable timelines, chart search, and target filters.
+- Cross-navigation between Progress records and highlighted Export cards.
+- Exact plate-progress transport and UI for Full Records adapters; B50-only snapshots continue to show that complete records are required.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
@@ -52,7 +61,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Packaged Extension baseline | Release `v0.9.1` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Next packaged release | Not scheduled | Backlog | Choose the next version only after its scope is defined. |
+| Next packaged release | `v0.11.0` candidate | In development | Merge the verified feature PR, tag the merge commit, and verify the packaged Extension asset. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |

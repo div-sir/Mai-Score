@@ -1,4 +1,6 @@
 import type { AccentScope, LanguageId, LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
+import { recordBadgeNames } from "./achievement-rank";
+import { chartKey } from "./history";
 
 interface Spec {
   width: number; height: number; columns: number; margin: number; startY: number;
@@ -204,7 +206,8 @@ export function renderStudioSvg(
   language: LanguageId,
   origin = "",
   generatedAt = new Date(),
-  assets: StudioAssets = { covers: {} }
+  assets: StudioAssets = { covers: {} },
+  highlightedChartKey = ""
 ) {
   const spec = specs[options.layout];
   const palette = accentedPalette(options.theme, options.accent, options.accentScope);
@@ -277,15 +280,36 @@ export function renderStudioSvg(
     // a restyled export reads as one palette instead of five stray hues.
     const borderColor = mix(color, options.accent, accentReach(options.accentScope).outline);
     const borderOpacity = options.accentScope === "minimal" ? .45 : .62;
+    const isHighlighted = highlightedChartKey === chartKey(record);
+    const badgeNames = options.showScoreBadges ? recordBadgeNames(record) : [];
+    const rankAsset = badgeNames[0] ? assets.badges?.[badgeNames[0]] : undefined;
+    const flagAssets = badgeNames.slice(1).flatMap((name) => assets.badges?.[name] ? [assets.badges[name]] : []);
+    // Keep the official rank/FC/FS artwork in a compact jacket ribbon. The
+    // achievement percentage then keeps its own readable line on all layouts.
+    const badgeHeight = Math.max(16, Math.round(spec.rate * .62));
+    const rankWidth = Math.round(badgeHeight * 68 / 31);
+    const flagWidth = Math.round(badgeHeight * 42 / 47);
+    const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
+    const badgeWidth = (rankAsset ? rankWidth : 0) + (rankAsset && flagAssets.length ? 4 : 0) + flagsWidth;
+    const badgeX = spec.pad;
+    const badgeY = stripY - badgeHeight - 4;
+    const flagsX = badgeX + (rankAsset ? rankWidth + 4 : 0);
+    const achievementX = reservesCover || badgeWidth === 0 ? contentX : badgeX + badgeWidth + 8;
+    const badgeMarkup = `${rankAsset
+      ? `<image href="${rankAsset}" x="${badgeX}" y="${badgeY}" width="${rankWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      : ""}${flagAssets.map((source, badgeIndex) =>
+        `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${badgeY}" width="${flagWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      ).join("")}`;
     return `<g transform="translate(${x} ${y})">
-      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
+      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${isHighlighted ? options.accent : alpha(borderColor, borderOpacity)}" stroke-width="${isHighlighted ? 7 : 3}"/>
       ${reservesCover ? coverSource
         ? `<image href="${coverSource}" x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" preserveAspectRatio="xMidYMid slice"/>`
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
       : ""}
       <text x="${contentX}" y="${spec.pad + spec.title}" font-size="${spec.title}" font-weight="750">${esc(truncate(record.title, titleUnits))}</text>
       <text x="${contentX}" y="${spec.pad + spec.title + spec.meta + 13}" font-size="${spec.meta}" style="fill:${palette.muted}">${esc(meta)}</text>
-      ${options.showAchievement ? `<text x="${contentX}" y="${achievementY}" font-size="${spec.rate}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>` : ""}
+      ${badgeMarkup}
+      ${options.showAchievement ? `<text x="${achievementX}" y="${achievementY}" font-size="${spec.rate}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>` : ""}
       ${(options.showRank || options.showChartRating) ? `<rect x="${spec.pad}" y="${stripY}" width="${spec.cardW - spec.pad * 2}" height="${spec.strip}" rx="10" fill="${palette.strip}"/>` : ""}
       ${options.showRank ? `<text x="${spec.pad * 2}" y="${stripY + spec.strip * .68}" font-size="${spec.meta}" style="fill:${palette.muted}">${record.bucket.toUpperCase()} #${rank(ordered, index)}</text>` : ""}
       ${options.showChartRating ? `<text x="${spec.cardW - spec.pad * 2}" y="${stripY + spec.strip * .72}" text-anchor="end" font-size="${spec.rate * .88}" font-weight="850">${record.chartRating ?? "?"}</text>` : ""}

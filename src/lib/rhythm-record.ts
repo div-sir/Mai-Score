@@ -60,6 +60,12 @@ export interface RhythmRecordEnvelope {
     system: string;
     value?: number;
     groups?: Record<string, number>;
+    entries?: Array<{
+      kind: "kiwami" | "shou" | "kami" | "maimai";
+      version?: string;
+      completed: number;
+      total: number;
+    }>;
   }>;
 }
 

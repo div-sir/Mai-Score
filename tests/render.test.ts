@@ -81,6 +81,26 @@ describe("B50 image templates", () => {
     expect(rendered.svg).toContain(">10321<");
   });
 
+  it("renders official achievement, combo, and sync images when enabled", () => {
+    const decorated: CollectionResult = {
+      ...result,
+      records: result.records.map((record, index) => index === 0
+        ? { ...record, achievementRate: 100.5, comboFlag: "ap+", syncFlag: "fsd+" }
+        : record)
+    };
+    const badges = {
+      "music_icon_sssp.png": "data:image/png;base64,rank",
+      "music_icon_app.png": "data:image/png;base64,combo",
+      "music_icon_fsdp.png": "data:image/png;base64,sync"
+    };
+    const shown = renderB50Document(decorated, DEFAULT_IMAGE_OPTIONS, { badges }).svg;
+    const hidden = renderB50Document(decorated, { ...DEFAULT_IMAGE_OPTIONS, showScoreBadges: false }, { badges }).svg;
+    expect(shown).toContain("data:image/png;base64,rank");
+    expect(shown).toContain("data:image/png;base64,combo");
+    expect(shown).toContain("data:image/png;base64,sync");
+    expect(hidden).not.toContain("data:image/png;base64,rank");
+  });
+
   it("carries the chart figure chartValue selects, with no CONST prefix", () => {
     const render = (chartValue: ImageOptions["chartValue"]) =>
       renderB50Document(result, { ...DEFAULT_IMAGE_OPTIONS, chartValue }).svg;

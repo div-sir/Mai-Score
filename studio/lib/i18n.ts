@@ -34,6 +34,7 @@ export interface StudioCopy {
   breakdown: string;
   achievement: string;
   chartRating: string;
+  scoreBadges: string;
   constant: string;
   level: string;
   rank: string;
@@ -79,6 +80,26 @@ export interface StudioCopy {
   sourceLabel: string;
   sourceSchema: string;
   ratingModel: string;
+  timeline: string;
+  cutoff: string;
+  atRisk: string;
+  atRiskDescription: string;
+  margin: string;
+  simulate: string;
+  simulateDescription: string;
+  current: string;
+  simulated: string;
+  b50Impact: string;
+  all: string;
+  difficultyFilter: string;
+  levelFilter: string;
+  searchCharts: string;
+  viewInExport: string;
+  viewInProgress: string;
+  locateChart: string;
+  plateProgress: string;
+  plateRequiresFull: string;
+  completed: string;
   syncHeading: string;
   driveChecking: string;
   driveConnected: string;
@@ -167,6 +188,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
     chartRating: "Chart Rating",
+    scoreBadges: "Score badges",
     constant: "Chart constant",
     level: "Chart level",
     rank: "B15 / B35 rank",
@@ -212,6 +234,26 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "Source",
     sourceSchema: "Schema",
     ratingModel: "Rating model",
+    timeline: "Rating timeline",
+    cutoff: "Cutoff",
+    atRisk: "Near the cutoff",
+    atRiskDescription: "Charts within 3 Rating of the current B15 or B35 floor.",
+    margin: "Margin",
+    simulate: "What-if",
+    simulateDescription: "Move the achievement target to recalculate this chart and your B50.",
+    current: "Current",
+    simulated: "Simulated",
+    b50Impact: "B50 impact",
+    all: "All",
+    difficultyFilter: "Difficulty",
+    levelFilter: "Level",
+    searchCharts: "Search chart history",
+    viewInExport: "View in export",
+    viewInProgress: "View in Progress",
+    locateChart: "Locate chart",
+    plateProgress: "Plate progress",
+    plateRequiresFull: "Full Records is required to calculate 極 / 将 / 神 / 舞舞 accurately.",
+    completed: "completed",
     syncHeading: "Google Drive",
     driveChecking: "Checking…",
     driveConnected: "Connected",
@@ -299,6 +341,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
     chartRating: "單曲 Rating",
+    scoreBadges: "成績徽章",
     constant: "譜面定數",
     level: "譜面等級",
     rank: "B15 / B35 排名",
@@ -344,6 +387,26 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "來源",
     sourceSchema: "資料格式",
     ratingModel: "Rating 模型",
+    timeline: "Rating 時間軸",
+    cutoff: "分數線",
+    atRisk: "接近分數線",
+    atRiskDescription: "距離目前 B15 或 B35 最低分 3 Rating 以內的譜面。",
+    margin: "餘裕",
+    simulate: "升分模擬",
+    simulateDescription: "調整目標達成率，即時計算單曲 Rating 與 B50。",
+    current: "目前",
+    simulated: "模擬後",
+    b50Impact: "B50 變化",
+    all: "全部",
+    difficultyFilter: "難度",
+    levelFilter: "等級",
+    searchCharts: "搜尋單曲歷史",
+    viewInExport: "在匯出圖查看",
+    viewInProgress: "在進度中查看",
+    locateChart: "定位譜面",
+    plateProgress: "牌子進度",
+    plateRequiresFull: "需要 Full Records 才能正確計算極／將／神／舞舞。",
+    completed: "已完成",
     syncHeading: "Google 雲端硬碟",
     driveChecking: "檢查中…",
     driveConnected: "已連結",
@@ -431,6 +494,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
     chartRating: "譜面 Rating",
+    scoreBadges: "スコアバッジ",
     constant: "譜面定数",
     level: "譜面レベル",
     rank: "B15 / B35 順位",
@@ -476,6 +540,26 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "ソース",
     sourceSchema: "スキーマ",
     ratingModel: "Ratingモデル",
+    timeline: "Rating タイムライン",
+    cutoff: "ボーダー",
+    atRisk: "ボーダー付近",
+    atRiskDescription: "現在の B15 / B35 最低値から 3 Rating 以内の譜面です。",
+    margin: "余裕",
+    simulate: "What-if",
+    simulateDescription: "達成率を動かして、譜面 Rating と B50 を再計算します。",
+    current: "現在",
+    simulated: "シミュレーション",
+    b50Impact: "B50 増分",
+    all: "すべて",
+    difficultyFilter: "難易度",
+    levelFilter: "レベル",
+    searchCharts: "譜面履歴を検索",
+    viewInExport: "書き出しで表示",
+    viewInProgress: "進捗で表示",
+    locateChart: "譜面を指定",
+    plateProgress: "プレート進捗",
+    plateRequiresFull: "極・将・神・舞舞の正確な計算には Full Records が必要です。",
+    completed: "完了",
     syncHeading: "Google ドライブ",
     driveChecking: "確認中…",
     driveConnected: "連携済み",

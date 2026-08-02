@@ -62,5 +62,7 @@ describe("Rhythm Record v1", () => {
       "sound-voltex",
       "dance-dance-revolution"
     ]);
+    expect(schema.$defs.summary.properties.entries.items.$ref).toBe("#/$defs/plateProgress");
+    expect(schema.$defs.plateProgress.properties.kind.enum).toEqual(["kiwami", "shou", "kami", "maimai"]);
   });
 });

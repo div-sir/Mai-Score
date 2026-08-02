@@ -4,6 +4,24 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Official DX NET achievement-rank, FC/AP, and FS badge artwork in Extension and Studio exports, with a dedicated visibility option.
+- Progress B15/B35 cutoff values and at-risk charts, plus direct navigation from Progress to the matching export card.
+- An interactive achievement what-if simulator that recalculates chart Rating and B50 immediately.
+- A real B50/B15/B35 timeline with date axes, pointer/keyboard inspection, and exact observation values.
+- Searchable single-chart history and difficulty/level filters for upgrade targets.
+- A versioned `maimai-plate-progress` summary contract and Studio plate-progress UI for future Full Records adapters.
+
+### Changed
+
+- Full Combo parsing now preserves FC and FC+ in addition to AP and AP+.
+- Historical charts default to recent Rating improvement instead of title order.
+
+### Data notes
+
+- Plate completion cannot be derived from a 50-chart Rating Target snapshot. Studio explicitly asks for Full Records unless an adapter supplies exact plate-progress entries.
+
 ## [0.9.1] — 2026-08-02
 
 ### Changed

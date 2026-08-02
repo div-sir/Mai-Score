@@ -1,4 +1,4 @@
-import type { Difficulty, ParsedScore, PlayerProfile } from "./types";
+import type { ComboFlag, Difficulty, ParsedScore, PlayerProfile, SyncFlag } from "./types";
 
 const absolute = (value: string | null, base: string): string | undefined => {
   if (!value) return undefined;
@@ -78,8 +78,12 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
       displayedLevel: card.querySelector(".music_lv_block")?.textContent?.trim() ?? "",
       achievementRate,
       bucket,
-      comboFlag: icons.find((x) => /music_icon_(ap|app)/.test(x))?.match(/music_icon_(app|ap)/)?.[1]?.replace("app", "ap+"),
-      syncFlag: icons.find((x) => /music_icon_(fs|fsp|fsd|fsdp)/.test(x))?.match(/music_icon_(fsdp|fsd|fsp|fs)/)?.[1]?.replace("fsdp", "fsd+").replace("fsp", "fs+")
+      comboFlag: icons.find((x) => /music_icon_(fc|fcp|ap|app)/.test(x))
+        ?.match(/music_icon_(fcp|fc|app|ap)/)?.[1]
+        ?.replace("fcp", "fc+").replace("app", "ap+") as ComboFlag | undefined,
+      syncFlag: icons.find((x) => /music_icon_(fs|fsp|fsd|fsdp)/.test(x))
+        ?.match(/music_icon_(fsdp|fsd|fsp|fs)/)?.[1]
+        ?.replace("fsdp", "fsd+").replace("fsp", "fs+") as SyncFlag | undefined
     }];
   }));
 }
