@@ -40,6 +40,30 @@ export interface UpgradeTarget {
   theoreticalGain: number;
 }
 
+export interface CutoffRisk {
+  key: string;
+  record: StudioRecord;
+  cutoff: number;
+  margin: number;
+}
+
+export interface B50Cutoffs {
+  b15: number;
+  b35: number;
+  atRisk: CutoffRisk[];
+}
+
+export interface WhatIfResult {
+  currentAchievement: number;
+  simulatedAchievement: number;
+  currentChartRating: number;
+  simulatedChartRating: number;
+  chartDelta: number;
+  currentB50: number;
+  simulatedB50: number;
+  b50Delta: number;
+}
+
 export interface SnapshotProvenance {
   observedAt: string;
   importedAt: string;
@@ -88,12 +112,35 @@ export function periodDelta(
 
 export function listHistoryCharts(entries: readonly HistoryEntry[]): StudioRecord[] {
   const charts = new Map<string, StudioRecord>();
+  const activity = new Map<string, { latest: string; gain: number }>();
   for (const entry of entries) {
     for (const record of entry.records) {
       if (!charts.has(chartKey(record))) charts.set(chartKey(record), record);
+      const key = chartKey(record);
+      const current = activity.get(key);
+      if (!current || entry.generatedAt > current.latest) {
+        activity.set(key, { latest: entry.generatedAt, gain: 0 });
+      }
     }
   }
-  return [...charts.values()].sort((a, b) => a.title.localeCompare(b.title));
+  const sortedEntries = [...entries].sort((a, b) => a.generatedAt.localeCompare(b.generatedAt));
+  for (let index = 1; index < sortedEntries.length; index += 1) {
+    const before = new Map(sortedEntries[index - 1].records.map((record) => [chartKey(record), record]));
+    for (const record of sortedEntries[index].records) {
+      const previous = before.get(chartKey(record));
+      if (!previous) continue;
+      const key = chartKey(record);
+      const state = activity.get(key);
+      if (state) state.gain = Math.max(state.gain, Number(record.chartRating ?? 0) - Number(previous.chartRating ?? 0));
+    }
+  }
+  return [...charts.values()].sort((a, b) => {
+    const aa = activity.get(chartKey(a));
+    const bb = activity.get(chartKey(b));
+    return (bb?.gain ?? 0) - (aa?.gain ?? 0)
+      || (bb?.latest ?? "").localeCompare(aa?.latest ?? "")
+      || a.title.localeCompare(b.title);
+  });
 }
 
 export function buildChartHistory(
@@ -126,6 +173,54 @@ function ratingCoefficient(achievementRate: number): number {
 export function calculateInsightRating(internalLevel: number, achievementRate: number): number {
   const capped = Math.min(100.5, Math.max(0, achievementRate));
   return Math.floor(ratingCoefficient(capped) * internalLevel * capped / 100);
+}
+
+function chartRating(record: StudioRecord): number {
+  const stored = Number(record.chartRating);
+  if (Number.isFinite(stored)) return stored;
+  const level = Number(record.internalLevelValue);
+  return Number.isFinite(level) && level > 0
+    ? calculateInsightRating(level, record.achievementRate)
+    : 0;
+}
+
+export function buildB50Cutoffs(data: StudioData, riskWindow = 3): B50Cutoffs {
+  const cutoffFor = (bucket: StudioRecord["bucket"]) => {
+    const ratings = data.records.filter((record) => record.bucket === bucket).map(chartRating).filter((rating) => rating > 0);
+    return ratings.length ? Math.min(...ratings) : 0;
+  };
+  const b15 = cutoffFor("b15");
+  const b35 = cutoffFor("b35");
+  const atRisk = data.records.flatMap((record): CutoffRisk[] => {
+    const rating = chartRating(record);
+    if (rating <= 0) return [];
+    const cutoff = record.bucket === "b15" ? b15 : b35;
+    const margin = rating - cutoff;
+    return margin <= riskWindow ? [{ key: chartKey(record), record, cutoff, margin }] : [];
+  }).sort((a, b) => a.margin - b.margin || chartRating(a.record) - chartRating(b.record));
+  return { b15, b35, atRisk };
+}
+
+export function simulateWhatIf(
+  data: StudioData,
+  record: StudioRecord,
+  simulatedAchievement: number
+): WhatIfResult | undefined {
+  const level = Number(record.internalLevelValue);
+  if (!Number.isFinite(level) || level <= 0) return undefined;
+  const currentChartRating = chartRating(record);
+  const simulatedChartRating = calculateInsightRating(level, simulatedAchievement);
+  const chartDelta = simulatedChartRating - currentChartRating;
+  return {
+    currentAchievement: record.achievementRate,
+    simulatedAchievement,
+    currentChartRating,
+    simulatedChartRating,
+    chartDelta,
+    currentB50: data.b50Rating,
+    simulatedB50: data.b50Rating + chartDelta,
+    b50Delta: chartDelta
+  };
 }
 
 /**

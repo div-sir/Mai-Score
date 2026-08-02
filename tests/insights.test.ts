@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   buildChartHistory,
+  buildB50Cutoffs,
   buildRatingTimeline,
   buildUpgradeTargets,
   calculateInsightRating,
   listHistoryCharts,
   periodDelta,
+  simulateWhatIf,
   snapshotProvenance
 } from "../studio/lib/insights";
 import { calculateChartRating } from "../src/lib/rating";
@@ -80,6 +82,32 @@ describe("rating insights", () => {
   it("does not fabricate targets for charts without an internal level", () => {
     const data = { records: [record({ internalLevelValue: undefined })] } as StudioData;
     expect(buildUpgradeTargets(data)).toEqual([]);
+  });
+
+  it("reports independent B15 and B35 cutoffs and the songs near them", () => {
+    const data = {
+      records: [
+        record({ title: "New floor", bucket: "b15", chartRating: 290 }),
+        record({ title: "New safe", bucket: "b15", chartRating: 296 }),
+        record({ title: "Old floor", bucket: "b35", chartRating: 280 }),
+        record({ title: "Old risk", bucket: "b35", chartRating: 282 }),
+        record({ title: "Old safe", bucket: "b35", chartRating: 286 })
+      ]
+    } as StudioData;
+    const cutoffs = buildB50Cutoffs(data, 3);
+    expect(cutoffs).toMatchObject({ b15: 290, b35: 280 });
+    expect(cutoffs.atRisk.map((risk) => [risk.record.title, risk.margin])).toEqual([
+      ["Old floor", 0], ["New floor", 0], ["Old risk", 2]
+    ]);
+  });
+
+  it("recalculates the chart and total B50 in a what-if simulation", () => {
+    const selected = record({ achievementRate: 99.5, chartRating: calculateChartRating(13.7, 99.5) });
+    const data = { records: [selected], b50Rating: 14500 } as StudioData;
+    const simulation = simulateWhatIf(data, selected, 100.5)!;
+    expect(simulation.simulatedChartRating).toBe(calculateChartRating(13.7, 100.5));
+    expect(simulation.b50Delta).toBe(simulation.simulatedChartRating - simulation.currentChartRating);
+    expect(simulation.simulatedB50).toBe(14500 + simulation.b50Delta);
   });
 });
 

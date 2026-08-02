@@ -248,6 +248,33 @@
           "additionalProperties": {
             "type": "number"
           }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/plateProgress"
+          }
+        }
+      }
+    },
+    "plateProgress": {
+      "type": "object",
+      "required": ["kind", "completed", "total"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": ["kiwami", "shou", "kami", "maimai"]
+        },
+        "version": {
+          "type": "string"
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }

@@ -87,6 +87,23 @@ describe("history entries", () => {
     expect(restored.b50Rating).toBe(590);
   });
 
+  it("preserves exact plate progress through local and Drive history", () => {
+    const data = {
+      schema: "mai-score/v1",
+      exportedAt: "2026-07-02T03:04:05.000Z",
+      player: { name: "DIV", rating: 15000 },
+      records: [record()],
+      b15Rating: 280,
+      b35Rating: 0,
+      b50Rating: 280,
+      plateProgress: [{ kind: "kiwami" as const, version: "FESTiVAL", completed: 182, total: 195 }]
+    } as StudioData;
+    const saved = toHistoryEntry(data, "full-records", "en");
+    expect(fromHistoryEntry(saved).plateProgress).toEqual(data.plateProgress);
+    data.plateProgress![0].completed = 1;
+    expect(saved.plateProgress![0].completed).toBe(182);
+  });
+
   it("distinguishes the same song across type and difficulty", () => {
     const master = record({ difficulty: "master" });
     expect(chartKey(master)).not.toBe(chartKey(record({ difficulty: "expert" })));

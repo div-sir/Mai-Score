@@ -11,6 +11,7 @@ import {
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
+import { recordBadgeNames } from "./lib/achievement-rank";
 import {
   connectDrive,
   disconnectDrive,
@@ -222,6 +223,7 @@ async function svgToPng(svg: string, width: number, height: number): Promise<Blo
 
 async function exportQuickPng() {
   if (!result) return;
+  const source = result.source;
   const generatedAt = new Date();
   setStatus(t("preparingPng"));
   const options = DEFAULT_IMAGE_OPTIONS;
@@ -233,12 +235,20 @@ async function exportQuickPng() {
   const covers = Object.fromEntries(
     coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
   );
+  const badgeNames = [...new Set(result.records.flatMap(recordBadgeNames))];
+  const badgePairs = await mapConcurrent(badgeNames, 8, async (name) => [
+    name,
+    await fetchDataUrl(new URL(`/maimai-mobile/img/${name}`, source).href)
+  ] as const);
+  const badges = Object.fromEntries(
+    badgePairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
+  );
   const [icon, frame, plate] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
     fetchDataUrl(result.player.frameUrl),
     fetchDataUrl(result.player.plateUrl)
   ]);
-  const rendered = renderB50Document(result, options, { icon, frame, plate, covers }, generatedAt, intlLocale(language));
+  const rendered = renderB50Document(result, options, { icon, frame, plate, covers, badges }, generatedAt, intlLocale(language));
   const blob = await svgToPng(rendered.svg, rendered.width, rendered.height);
   const safePlayer = result.player.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
   downloadBlob(`mai-score-${safePlayer}-${timestampForFilename(generatedAt)}.png`, blob);
@@ -247,10 +257,16 @@ async function exportQuickPng() {
 
 async function prepareStudioAssets(): Promise<StudioTransferAssets> {
   if (!result) return { covers: {} };
+  const source = result.source;
   const coverNames = [...new Set(result.records.flatMap((record) => record.imageName ? [record.imageName] : []))];
   const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
     name,
     await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
+  ] as const);
+  const badgeNames = [...new Set(result.records.flatMap(recordBadgeNames))];
+  const badgePairs = await mapConcurrent(badgeNames, 8, async (name) => [
+    name,
+    await fetchDataUrl(new URL(`/maimai-mobile/img/${name}`, source).href)
   ] as const);
   const [icon, frame, plate] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
@@ -261,6 +277,9 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
     icon,
     frame,
     plate,
+    badges: Object.fromEntries(
+      badgePairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
+    ),
     covers: Object.fromEntries(
       coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
     )

@@ -3,6 +3,7 @@ import { DEFAULT_IMAGE_OPTIONS } from "../src/lib/image-options";
 import { accentReach as extensionAccentReach, renderB50Document } from "../src/lib/render";
 import type { CollectionResult } from "../src/lib/types";
 import { accentReach as studioAccentReach, renderStudioSvg } from "../studio/lib/render";
+import { chartKey } from "../studio/lib/history";
 import { DEFAULT_OPTIONS, type AccentScope, type StudioData, type StudioOptions } from "../studio/lib/types";
 
 const data: StudioData = {
@@ -127,6 +128,25 @@ describe("Studio renderer", () => {
     expect(shown).toContain('fill="url(#trophyFill)"');
     expect(hidden).not.toContain("plateClip");
     expect(hidden).not.toContain("trophyFill");
+  });
+
+  it("renders official score badges and can highlight a chart from Progress", () => {
+    const decorated = {
+      ...data,
+      records: data.records.map((record, index) => index === 0
+        ? { ...record, achievementRate: 100.5, comboFlag: "ap+" as const, syncFlag: "fsd+" as const }
+        : record)
+    };
+    const badges = {
+      "music_icon_sssp.png": "data:image/png;base64,rank",
+      "music_icon_app.png": "data:image/png;base64,combo",
+      "music_icon_fsdp.png": "data:image/png;base64,sync"
+    };
+    const highlightedKey = chartKey(decorated.records[0]);
+    const svg = renderStudioSvg(decorated, DEFAULT_OPTIONS, "en", "", new Date(), { covers: {}, badges }, highlightedKey).svg;
+    expect(svg).toContain("data:image/png;base64,rank");
+    expect(svg).toContain("data:image/png;base64,combo");
+    expect(svg).toContain('stroke-width="7"');
   });
 
   it("truncates a full-width title to the card rather than past its edge", () => {

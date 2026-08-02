@@ -117,7 +117,7 @@ describe("international DX NET parser", () => {
         <div class="music_lv_block">14+</div><div class="music_name_block">${title}</div>
         <div class="music_score_block">100.5000%</div>${icons}
       </div>`;
-    const flags = ["", icon("ap"), icon("app"), icon("fs"), icon("fsp"), icon("fsd"), icon("fsdp")];
+    const flags = ["", icon("fc"), icon("fcp"), icon("ap"), icon("app"), icon("fs"), icon("fsp"), icon("fsd"), icon("fsdp")];
     const scores = parseRatingTarget(doc(`
       <div class="see_through_block"></div>
       <div class="screw_block">New</div>${Array.from({ length: 15 }, (_, i) => card(`New ${i}`, flags[i] ?? "")).join("")}
@@ -127,11 +127,13 @@ describe("international DX NET parser", () => {
     expect(scores[0]).toMatchObject({ type: "std", difficulty: "master", displayedLevel: "14+" });
     expect(scores[0].comboFlag).toBeUndefined();
     expect(scores[0].syncFlag).toBeUndefined();
-    expect(scores[1].comboFlag).toBe("ap");
-    expect(scores[2].comboFlag).toBe("ap+");
-    expect(scores[3].syncFlag).toBe("fs");
-    expect(scores[4].syncFlag).toBe("fs+");
-    expect(scores[5].syncFlag).toBe("fsd");
-    expect(scores[6].syncFlag).toBe("fsd+");
+    expect(scores[1].comboFlag).toBe("fc");
+    expect(scores[2].comboFlag).toBe("fc+");
+    expect(scores[3].comboFlag).toBe("ap");
+    expect(scores[4].comboFlag).toBe("ap+");
+    expect(scores[5].syncFlag).toBe("fs");
+    expect(scores[6].syncFlag).toBe("fs+");
+    expect(scores[7].syncFlag).toBe("fsd");
+    expect(scores[8].syncFlag).toBe("fsd+");
   });
 });

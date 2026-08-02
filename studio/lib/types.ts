@@ -22,6 +22,7 @@ export interface StudioOptions {
   showBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
+  showScoreBadges: boolean;
   chartValue: ChartValueMode;
   showRank: boolean;
 }
@@ -36,11 +37,21 @@ export interface StudioRecord {
   internalLevelValue?: number;
   chartRating?: number;
   imageName?: string;
+  comboFlag?: "fc" | "fc+" | "ap" | "ap+";
+  syncFlag?: "fs" | "fs+" | "fsd" | "fsd+";
+}
+
+export interface PlateProgress {
+  kind: "kiwami" | "shou" | "kami" | "maimai";
+  version?: string;
+  completed: number;
+  total: number;
 }
 
 export interface StudioData {
   schema: string;
   exportedAt: string;
+  source?: string;
   player: {
     name: string;
     title: string;
@@ -55,6 +66,7 @@ export interface StudioData {
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;
+  plateProgress?: PlateProgress[];
 }
 
 export interface StudioAssets {
@@ -62,6 +74,7 @@ export interface StudioAssets {
   frame?: string;
   plate?: string;
   covers: Record<string, string>;
+  badges?: Record<string, string>;
 }
 
 export const DEFAULT_OPTIONS: StudioOptions = {
@@ -79,6 +92,7 @@ export const DEFAULT_OPTIONS: StudioOptions = {
   showBreakdown: true,
   showAchievement: true,
   showChartRating: true,
+  showScoreBadges: true,
   chartValue: "level",
   showRank: true
 };
@@ -136,6 +150,7 @@ export function normalizeStudioOptions(value: unknown): StudioOptions {
     showBreakdown: boolean("showBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
+    showScoreBadges: boolean("showScoreBadges"),
     chartValue: chartValues.has(source.chartValue as ChartValueMode)
       ? source.chartValue as ChartValueMode
       : chartValueFromLegacy(source) ?? DEFAULT_OPTIONS.chartValue,

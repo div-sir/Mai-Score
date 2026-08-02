@@ -25,6 +25,7 @@ export interface ImageOptions {
   showRatingBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
+  showScoreBadges: boolean;
   chartValue: ChartValueMode;
   showBucketRank: boolean;
   showGeneratedBy: boolean;
@@ -48,6 +49,7 @@ export const DEFAULT_IMAGE_OPTIONS: ImageOptions = {
   showRatingBreakdown: true,
   showAchievement: true,
   showChartRating: true,
+  showScoreBadges: true,
   chartValue: "level",
   showBucketRank: true,
   showGeneratedBy: true
@@ -102,6 +104,7 @@ export function normalizeImageOptions(value: unknown): ImageOptions {
     showRatingBreakdown: boolean("showRatingBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
+    showScoreBadges: boolean("showScoreBadges"),
     chartValue: chartValues.has(source.chartValue as ChartValueMode)
       ? source.chartValue as ChartValueMode
       : chartValueFromLegacy(source) ?? DEFAULT_IMAGE_OPTIONS.chartValue,

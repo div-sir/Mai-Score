@@ -14,7 +14,8 @@ import {
   saveStudioSnapshot,
   saveStudioSnapshotOnly
 } from "../lib/local-store";
-import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
+import { chartKey, diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
+import { recordBadgeNames } from "../lib/achievement-rank";
 import {
   mergeSettings,
   parseSyncDocument,
@@ -48,6 +49,7 @@ const UI_THEME_KEY = "mai-score-studio-ui-theme";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
 type StudioView = "export" | "progress";
+const PLATE_KINDS = new Set(["kiwami", "shou", "kami", "maimai"]);
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -62,6 +64,30 @@ type ExtensionResponse =
   | { ok: true; data: unknown; assets?: StudioAssets; language?: LanguageId }
   | { ok: false; error: string }
   | undefined;
+
+function parsePlateProgress(value: unknown): StudioData["plateProgress"] {
+  if (!Array.isArray(value)) return undefined;
+  const entries = value.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const entry = candidate as Record<string, unknown>;
+    const completed = Number(entry.completed);
+    const total = Number(entry.total);
+    if (!PLATE_KINDS.has(String(entry.kind))
+      || !Number.isInteger(completed)
+      || !Number.isInteger(total)
+      || completed < 0
+      || total < completed) return [];
+    return [{
+      kind: String(entry.kind) as "kiwami" | "shou" | "kami" | "maimai",
+      ...(typeof entry.version === "string" && entry.version.trim()
+        ? { version: entry.version.trim().slice(0, 48) }
+        : {}),
+      completed,
+      total
+    }];
+  });
+  return entries.length ? entries : undefined;
+}
 
 interface ExternalRuntime {
   lastError?: { message?: string };
@@ -96,15 +122,24 @@ function parseMaiScore(input: unknown): StudioData {
         achievementRate: Number(record.result?.achievementRate ?? 0),
         bucket: record.grouping?.bucket === "b15" ? "b15" : "b35",
         chartRating: Number(record.result?.rating?.value ?? 0),
-        imageName: record.song?.jacketId ? String(record.song.jacketId) : undefined
+        imageName: record.song?.jacketId ? String(record.song.jacketId) : undefined,
+        comboFlag: ["fc", "fc+", "ap", "ap+"].includes(record.gameSpecific?.comboFlag)
+          ? record.gameSpecific.comboFlag
+          : undefined,
+        syncFlag: ["fs", "fs+", "fsd", "fsd+"].includes(record.gameSpecific?.syncFlag)
+          ? record.gameSpecific.syncFlag
+          : undefined
       };
     });
-    const summary = Array.isArray(value.summaries)
-      ? (value.summaries as Array<Record<string, any>>).find((item) => item.system === "best50")
-      : undefined;
+    const summaries = Array.isArray(value.summaries) ? value.summaries as Array<Record<string, any>> : [];
+    const summary = summaries.find((item) => item.system === "best50");
+    const plateSummary = summaries.find((item) => item.system === "maimai-plate-progress");
     return normalizeB50({
       schema: String(value.schema),
       exportedAt: String(value.generatedAt ?? new Date().toISOString()),
+      source: typeof (value.source as { url?: unknown } | undefined)?.url === "string"
+        ? String((value.source as { url?: unknown }).url)
+        : undefined,
       player: {
         name: String(player?.displayName ?? "PLAYER"),
         title: String(player?.title ?? ""),
@@ -113,7 +148,8 @@ function parseMaiScore(input: unknown): StudioData {
       records,
       b15Rating: Number(summary?.groups?.b15 ?? 0),
       b35Rating: Number(summary?.groups?.b35 ?? 0),
-      b50Rating: Number(summary?.value ?? 0)
+      b50Rating: Number(summary?.value ?? 0),
+      plateProgress: parsePlateProgress(plateSummary?.entries)
     });
   }
 
@@ -124,6 +160,7 @@ function parseMaiScore(input: unknown): StudioData {
   return normalizeB50({
     schema: String(value.schema ?? "mai-score/v1"),
     exportedAt: String(value.exportedAt ?? new Date().toISOString()),
+    source: typeof value.source === "string" ? value.source : undefined,
     player: {
       name: String(player.name ?? "PLAYER"),
       title: String(player.title ?? ""),
@@ -141,7 +178,8 @@ function parseMaiScore(input: unknown): StudioData {
     })),
     b15Rating: Number(value.b15Rating ?? 0),
     b35Rating: Number(value.b35Rating ?? 0),
-    b50Rating: Number(value.b50Rating ?? 0)
+    b50Rating: Number(value.b50Rating ?? 0),
+    plateProgress: parsePlateProgress(value.plateProgress)
   });
 }
 
@@ -243,9 +281,20 @@ async function loadPublicAssets(data: StudioData): Promise<StudioAssets> {
     name,
     await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
   ] as const);
+  const badgeNames = [...new Set(data.records.flatMap(recordBadgeNames))];
+  const badgeBase = data.source && /^https:\/\/maimaidx(?:-eng\.com|\.jp)\//.test(data.source)
+    ? data.source
+    : "https://maimaidx-eng.com/maimai-mobile/home/ratingTargetMusic/";
+  const badgePairs = await mapConcurrent(badgeNames, 8, async (name) => [
+    name,
+    await fetchDataUrl(new URL(`/maimai-mobile/img/${name}`, badgeBase).href)
+  ] as const);
   return {
     covers: Object.fromEntries(
       coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
+    ),
+    badges: Object.fromEntries(
+      badgePairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
     )
   };
 }
@@ -265,6 +314,7 @@ export default function Studio() {
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [studioView, setStudioView] = useState<StudioView>("export");
+  const [highlightedChartKey, setHighlightedChartKey] = useState("");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -409,8 +459,8 @@ export default function Studio() {
   }, [uiTheme]);
 
   const rendered = useMemo(
-    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
-    [data, options, language, origin, generatedAt, assets]
+    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets, highlightedChartKey) : null,
+    [data, options, language, origin, generatedAt, assets, highlightedChartKey]
   );
   const previewUrl = useMemo(
     () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
@@ -427,6 +477,11 @@ export default function Studio() {
   function resetOptions() {
     setOptions(DEFAULT_OPTIONS);
     touchSettings();
+  }
+
+  function locateRecordInExport(record: StudioRecord) {
+    setHighlightedChartKey(chartKey(record));
+    setStudioView("export");
   }
 
   function changeLanguage(next: LanguageId) {
@@ -902,7 +957,14 @@ export default function Studio() {
       </div>
 
       {studioView === "progress" ? (
-        <ProgressDashboard data={data} assets={assets} history={history} language={language} />
+        <ProgressDashboard
+          data={data}
+          assets={assets}
+          history={history}
+          language={language}
+          onLocateRecord={locateRecordInExport}
+          initialSelectedKey={highlightedChartKey}
+        />
       ) : <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">
@@ -964,6 +1026,7 @@ export default function Studio() {
                 ["showPlate", copy.plate], ["showTrophy", copy.trophy],
                 ["showBreakdown", copy.breakdown],
                 ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
+                ["showScoreBadges", copy.scoreBadges],
                 ["showRank", copy.rank]
               ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
                 <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>
@@ -1025,7 +1088,20 @@ export default function Studio() {
         <section className={`preview-panel${data ? "" : " empty"}`}>
           <div className="preview-toolbar">
             <strong>{copy.livePreview}</strong>
-            <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
+            <div className="preview-locator">
+              {data ? <>
+                <select
+                  aria-label={copy.locateChart}
+                  value={highlightedChartKey}
+                  onChange={(event) => setHighlightedChartKey(event.target.value)}
+                >
+                  <option value="">{copy.locateChart}</option>
+                  {data.records.map((record) => <option key={chartKey(record)} value={chartKey(record)}>{record.title} · {record.difficulty.toUpperCase()}</option>)}
+                </select>
+                <button type="button" disabled={!highlightedChartKey} onClick={() => setStudioView("progress")}>{copy.viewInProgress}</button>
+              </> : null}
+              <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
+            </div>
           </div>
           <div className={`preview-stage theme-${options.theme}`}>
             {rendered
