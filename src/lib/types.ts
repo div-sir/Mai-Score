@@ -62,6 +62,8 @@ export interface CollectionResult {
   };
   player: PlayerProfile;
   records: ResolvedScore[];
+  /** DX NET's own near-miss lists from the Rating Target page, when present. */
+  candidateRecords?: ResolvedScore[];
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;

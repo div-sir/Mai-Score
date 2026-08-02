@@ -27,6 +27,8 @@ export interface HistoryEntry {
   /** Kept without cover art: assets are data URLs worth megabytes, and a
    *  history is only useful if a long one still fits. */
   records: StudioRecord[];
+  /** Optional DX NET near-miss lists captured with this B50 snapshot. */
+  candidateRecords?: StudioRecord[];
 }
 
 export interface ChartChange {
@@ -79,7 +81,10 @@ export function toHistoryEntry(
       observedAt: data.exportedAt,
       importedAt: savedAt
     },
-    records: data.records.map((record) => ({ ...record }))
+    records: data.records.map((record) => ({ ...record })),
+    ...(data.candidateRecords?.length
+      ? { candidateRecords: data.candidateRecords.map((record) => ({ ...record })) }
+      : {})
   };
 }
 
@@ -111,6 +116,7 @@ export function fromHistoryEntry(entry: HistoryEntry): StudioData {
       plateUrl: entry.playerPlateUrl
     },
     records: entry.records.map((record) => ({ ...record })),
+    candidateRecords: entry.candidateRecords?.map((record) => ({ ...record })),
     b15Rating,
     b35Rating,
     b50Rating: b15Rating + b35Rating,

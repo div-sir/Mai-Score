@@ -3,7 +3,6 @@ import { DEFAULT_IMAGE_OPTIONS } from "../src/lib/image-options";
 import { accentReach as extensionAccentReach, renderB50Document } from "../src/lib/render";
 import type { CollectionResult } from "../src/lib/types";
 import { accentReach as studioAccentReach, renderStudioSvg } from "../studio/lib/render";
-import { chartKey } from "../studio/lib/history";
 import { DEFAULT_OPTIONS, type AccentScope, type StudioData, type StudioOptions } from "../studio/lib/types";
 
 const data: StudioData = {
@@ -102,22 +101,22 @@ describe("Studio renderer", () => {
     expect(background("full")).not.toBe("#0a1022");
   });
 
-  it("renders the trophy under the name, in its rarity colour", () => {
+  it("renders the player title under the name, in its rarity colour", () => {
     const gold = { ...data, player: { ...data.player, titleColor: "gold" } };
     const svg = renderStudioSvg(gold, DEFAULT_OPTIONS, "en").svg;
     const nameY = Number(svg.match(/y="(\d+)" font-size="49"/)![1]);
-    const trophyY = Number(svg.match(/<g transform="translate\(\d+ (\d+)\)">\s*<rect width="\d+" height="36"/)![1]);
+    const titleY = Number(svg.match(/<g transform="translate\(\d+ (\d+)\)">\s*<rect width="\d+" height="36"/)![1]);
 
-    expect(trophyY).toBeGreaterThan(nameY);
+    expect(titleY).toBeGreaterThan(nameY);
     expect(svg).toContain('stop-color="#f8e5a6"');
   });
 
-  it("hides the trophy and nameplate when their toggles are off", () => {
+  it("hides the player title and nameplate when their toggles are off", () => {
     const assets = { covers: {}, plate: "data:image/png;base64,plate" };
     const shown = renderStudioSvg(data, DEFAULT_OPTIONS, "en", "", new Date(), assets).svg;
     const hidden = renderStudioSvg(
       data,
-      { ...DEFAULT_OPTIONS, showTrophy: false, showPlate: false },
+      { ...DEFAULT_OPTIONS, showPlayerTitle: false, showPlate: false },
       "en",
       "",
       new Date(),
@@ -125,12 +124,12 @@ describe("Studio renderer", () => {
     ).svg;
 
     expect(shown).toContain("plateClip");
-    expect(shown).toContain('fill="url(#trophyFill)"');
+    expect(shown).toContain('fill="url(#playerTitleFill)"');
     expect(hidden).not.toContain("plateClip");
-    expect(hidden).not.toContain("trophyFill");
+    expect(hidden).not.toContain("playerTitleFill");
   });
 
-  it("renders official score badges and can highlight a chart from Progress", () => {
+  it("renders official score badges", () => {
     const decorated = {
       ...data,
       records: data.records.map((record, index) => index === 0
@@ -142,11 +141,9 @@ describe("Studio renderer", () => {
       "music_icon_app.png": "data:image/png;base64,combo",
       "music_icon_fsdp.png": "data:image/png;base64,sync"
     };
-    const highlightedKey = chartKey(decorated.records[0]);
-    const svg = renderStudioSvg(decorated, DEFAULT_OPTIONS, "en", "", new Date(), { covers: {}, badges }, highlightedKey).svg;
+    const svg = renderStudioSvg(decorated, DEFAULT_OPTIONS, "en", "", new Date(), { covers: {}, badges }).svg;
     expect(svg).toContain("data:image/png;base64,rank");
     expect(svg).toContain("data:image/png;base64,combo");
-    expect(svg).toContain('stroke-width="7"');
   });
 
   it("truncates a full-width title to the card rather than past its edge", () => {

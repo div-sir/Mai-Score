@@ -94,7 +94,12 @@ describe("B50 image templates", () => {
       "music_icon_fsdp.png": "data:image/png;base64,sync"
     };
     const shown = renderB50Document(decorated, DEFAULT_IMAGE_OPTIONS, { badges }).svg;
-    const hidden = renderB50Document(decorated, { ...DEFAULT_IMAGE_OPTIONS, showScoreBadges: false }, { badges }).svg;
+    const hidden = renderB50Document(decorated, {
+      ...DEFAULT_IMAGE_OPTIONS,
+      showAchievementRank: false,
+      showComboBadge: false,
+      showSyncBadge: false
+    }, { badges }).svg;
     expect(shown).toContain("data:image/png;base64,rank");
     expect(shown).toContain("data:image/png;base64,combo");
     expect(shown).toContain("data:image/png;base64,sync");

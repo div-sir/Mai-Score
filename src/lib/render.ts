@@ -7,7 +7,7 @@ import {
   type ImageTheme
 } from "./image-options";
 import type { CollectionResult, ResolvedScore } from "./types";
-import { recordBadgeNames } from "./achievement-rank";
+import { recordBadgeNameSet } from "./achievement-rank";
 
 export interface RenderAssets {
   icon?: string;
@@ -277,25 +277,29 @@ function renderCard(
     ...chartValueParts(options, record)
   ].join(" · ");
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
-  const badgeNames = options.showScoreBadges ? recordBadgeNames(record) : [];
-  const rankAsset = badgeNames[0] ? badgeAssets[badgeNames[0]] : undefined;
-  const flagAssets = badgeNames.slice(1).flatMap((name) => badgeAssets[name] ? [badgeAssets[name]] : []);
-  // The official rank/FC/FS images have very different aspect ratios. Keep
-  // them as one compact ribbon over the jacket's lower edge so the percentage
-  // remains a full-width, readable line in every layout.
-  const badgeHeight = Math.max(16, Math.round(spec.achievementSize * .62));
-  const rankWidth = Math.round(badgeHeight * 68 / 31);
-  const flagWidth = Math.round(badgeHeight * 42 / 47);
+  const badgeNames = recordBadgeNameSet(record);
+  const rankAsset = options.showAchievementRank ? badgeAssets[badgeNames.rank] : undefined;
+  const flagAssets = [
+    options.showComboBadge && badgeNames.combo ? badgeAssets[badgeNames.combo] : undefined,
+    options.showSyncBadge && badgeNames.sync ? badgeAssets[badgeNames.sync] : undefined
+  ].filter((source): source is string => Boolean(source));
+  // Rank artwork is the primary result marker. Give it the open lower-right
+  // area at nearly the achievement text height; FC/AP and FS/FDX remain a
+  // compact ribbon near the jacket and can be toggled independently.
+  const rankHeight = Math.max(22, Math.round(spec.achievementSize * .96));
+  const rankWidth = Math.round(rankHeight * 68 / 31);
+  const rankX = spec.cardWidth - pad - rankWidth;
+  const rankY = stripY - rankHeight - 6;
+  const flagHeight = Math.max(16, Math.round(spec.achievementSize * .62));
+  const flagWidth = Math.round(flagHeight * 42 / 47);
+  const flagsX = pad;
+  const flagsY = stripY - flagHeight - 4;
   const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
-  const badgeWidth = (rankAsset ? rankWidth : 0) + (rankAsset && flagAssets.length ? 4 : 0) + flagsWidth;
-  const badgeX = pad;
-  const badgeY = stripY - badgeHeight - 4;
-  const flagsX = badgeX + (rankAsset ? rankWidth + 4 : 0);
-  const achievementX = reservesCover || badgeWidth === 0 ? contentX : badgeX + badgeWidth + 8;
+  const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
   const badgeMarkup = `${rankAsset
-    ? `<image href="${rankAsset}" x="${badgeX}" y="${badgeY}" width="${rankWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+    ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
     : ""}${flagAssets.map((source, badgeIndex) =>
-      `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${badgeY}" width="${flagWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`
     ).join("")}`;
 
   return `<g transform="translate(${x} ${y})">

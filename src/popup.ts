@@ -258,7 +258,8 @@ async function exportQuickPng() {
 async function prepareStudioAssets(): Promise<StudioTransferAssets> {
   if (!result) return { covers: {} };
   const source = result.source;
-  const coverNames = [...new Set(result.records.flatMap((record) => record.imageName ? [record.imageName] : []))];
+  const coverNames = [...new Set([...result.records, ...(result.candidateRecords ?? [])]
+    .flatMap((record) => record.imageName ? [record.imageName] : []))];
   const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
     name,
     await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)

@@ -61,6 +61,15 @@ describe("normalizing a stored or shared Studio style", () => {
     expect(normalizeStudioOptions({ watermark: "x".repeat(80) }).watermark).toHaveLength(48);
   });
 
+  it("migrates retired title and score badge toggles", () => {
+    expect(normalizeStudioOptions({ showTrophy: false, showScoreBadges: false })).toMatchObject({
+      showPlayerTitle: false,
+      showAchievementRank: false,
+      showComboBadge: false,
+      showSyncBadge: false
+    });
+  });
+
   it("falls back to English for an unknown language", () => {
     expect(normalizeLanguage("zh-Hant")).toBe("zh-Hant");
     expect(normalizeLanguage("kl")).toBe("en");

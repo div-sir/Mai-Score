@@ -35,9 +35,18 @@ export interface UpgradeTarget {
   targetAchievement: number;
   achievementNeeded: number;
   currentRating: number;
-  targetRating: number;
-  ratingGain: number;
-  theoreticalGain: number;
+  gainTo100: number;
+  gainTo1005: number;
+}
+
+export interface EntryCandidate {
+  key: string;
+  record: StudioRecord;
+  cutoff: number;
+  currentRating: number;
+  ratingNeeded: number;
+  targetAchievement: number;
+  achievementNeeded: number;
 }
 
 export interface CutoffRisk {
@@ -223,11 +232,7 @@ export function simulateWhatIf(
   };
 }
 
-/**
- * Recommends only improvements to charts already visible in the B50. DX NET's
- * target page does not expose every non-B50 candidate, so claiming replacement
- * recommendations from this document would be fabricated.
- */
+/** Recommends milestone gains for charts already visible in the B50. */
 export function buildUpgradeTargets(data: StudioData, limit = 8): UpgradeTarget[] {
   return data.records.flatMap((record): UpgradeTarget[] => {
     const level = Number(record.internalLevelValue);
@@ -237,27 +242,70 @@ export function buildUpgradeTargets(data: StudioData, limit = 8): UpgradeTarget[
     const currentRating = Number.isFinite(record.chartRating)
       ? Number(record.chartRating)
       : calculateInsightRating(level, record.achievementRate);
-    const targetRating = calculateInsightRating(level, targetAchievement);
-    const theoreticalRating = calculateInsightRating(level, 100.5);
+    const ratingAt100 = calculateInsightRating(level, 100);
+    const ratingAt1005 = calculateInsightRating(level, 100.5);
     return [{
       key: chartKey(record),
       record,
       targetAchievement,
       achievementNeeded: targetAchievement - record.achievementRate,
       currentRating,
-      targetRating,
-      ratingGain: Math.max(0, targetRating - currentRating),
-      theoreticalGain: Math.max(0, theoreticalRating - currentRating)
+      gainTo100: Math.max(0, ratingAt100 - currentRating),
+      gainTo1005: Math.max(0, ratingAt1005 - currentRating)
     }];
   })
-    .filter((target) => target.ratingGain > 0)
+    .filter((target) => target.gainTo1005 > 0)
     .sort((a, b) => {
-      const efficiencyA = a.ratingGain / Math.max(a.achievementNeeded, 0.0001);
-      const efficiencyB = b.ratingGain / Math.max(b.achievementNeeded, 0.0001);
+      const efficiencyA = a.gainTo1005 / Math.max(a.achievementNeeded, 0.0001);
+      const efficiencyB = b.gainTo1005 / Math.max(b.achievementNeeded, 0.0001);
       return efficiencyB - efficiencyA
-        || b.ratingGain - a.ratingGain
+        || b.gainTo1005 - a.gainTo1005
         || a.achievementNeeded - b.achievementNeeded;
     })
+    .slice(0, limit);
+}
+
+function achievementForRating(record: StudioRecord, requiredRating: number): number | undefined {
+  const level = Number(record.internalLevelValue);
+  if (!Number.isFinite(level) || level <= 0) return undefined;
+  if (calculateInsightRating(level, 100.5) < requiredRating) return undefined;
+  if (calculateInsightRating(level, record.achievementRate) >= requiredRating) return record.achievementRate;
+  let low = record.achievementRate;
+  let high = 100.5;
+  for (let index = 0; index < 32; index += 1) {
+    const middle = (low + high) / 2;
+    if (calculateInsightRating(level, middle) >= requiredRating) high = middle;
+    else low = middle;
+  }
+  // DX NET exposes four decimal places. Round upward so the displayed target
+  // never promises a score that still falls one Rating short after flooring.
+  let target = Math.ceil((high - 1e-9) * 10_000) / 10_000;
+  while (target <= 100.5 && calculateInsightRating(level, target) < requiredRating) target += 0.0001;
+  return target <= 100.5 ? Number(target.toFixed(4)) : undefined;
+}
+
+/** Uses only DX NET's own candidate sections; no out-of-B50 song is guessed. */
+export function buildEntryCandidates(data: StudioData, limit = 8): EntryCandidate[] {
+  const cutoffs = buildB50Cutoffs(data);
+  return (data.candidateRecords ?? []).flatMap((record): EntryCandidate[] => {
+    const cutoff = record.bucket === "b15" ? cutoffs.b15 : cutoffs.b35;
+    if (cutoff <= 0) return [];
+    const currentRating = chartRating(record);
+    const requiredRating = cutoff + 1;
+    const targetAchievement = achievementForRating(record, requiredRating);
+    if (targetAchievement === undefined) return [];
+    return [{
+      key: chartKey(record),
+      record,
+      cutoff,
+      currentRating,
+      ratingNeeded: Math.max(0, requiredRating - currentRating),
+      targetAchievement,
+      achievementNeeded: Math.max(0, targetAchievement - record.achievementRate)
+    }];
+  }).sort((a, b) => a.achievementNeeded - b.achievementNeeded
+    || a.ratingNeeded - b.ratingNeeded
+    || b.currentRating - a.currentRating)
     .slice(0, limit);
 }
 

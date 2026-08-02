@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildChartHistory,
   buildB50Cutoffs,
+  buildEntryCandidates,
   buildRatingTimeline,
   buildUpgradeTargets,
   calculateInsightRating,
@@ -76,7 +77,7 @@ describe("rating insights", () => {
     const targets = buildUpgradeTargets(data);
     expect(targets[0].record.title).toBe("Near target");
     expect(targets[0].targetAchievement).toBe(100);
-    expect(targets[0].ratingGain).toBeGreaterThan(0);
+    expect(targets[0].gainTo1005).toBeGreaterThan(0);
   });
 
   it("does not fabricate targets for charts without an internal level", () => {
@@ -99,6 +100,23 @@ describe("rating insights", () => {
     expect(cutoffs.atRisk.map((risk) => [risk.record.title, risk.margin])).toEqual([
       ["Old floor", 0], ["New floor", 0], ["Old risk", 2]
     ]);
+  });
+
+  it("uses only resolved DX NET candidates for potential B50 entries", () => {
+    const data = {
+      records: [
+        record({ title: "New floor", bucket: "b15", chartRating: 290 }),
+        record({ title: "Old floor", bucket: "b35", chartRating: 280 })
+      ],
+      candidateRecords: [
+        record({ title: "Reachable", bucket: "b15", achievementRate: 99.9, chartRating: calculateChartRating(13.7, 99.9) }),
+        record({ title: "Unknown constant", bucket: "b35", internalLevelValue: undefined, chartRating: 279 })
+      ]
+    } as StudioData;
+    const candidates = buildEntryCandidates(data);
+    expect(candidates.map((candidate) => candidate.record.title)).toEqual(["Reachable"]);
+    expect(candidates[0].targetAchievement).toBeGreaterThanOrEqual(99.9);
+    expect(candidates[0].targetAchievement).toBeLessThanOrEqual(100.5);
   });
 
   it("recalculates the chart and total B50 in a what-if simulation", () => {

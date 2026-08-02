@@ -14,7 +14,7 @@ import {
   saveStudioSnapshot,
   saveStudioSnapshotOnly
 } from "../lib/local-store";
-import { chartKey, diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
+import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
 import {
   mergeSettings,
@@ -176,6 +176,14 @@ function parseMaiScore(input: unknown): StudioData {
         ? Number(record.internalLevelValue)
         : undefined
     })),
+    candidateRecords: Array.isArray(value.candidateRecords)
+      ? (value.candidateRecords as StudioRecord[]).map((record) => ({
+          ...record,
+          internalLevelValue: Number.isFinite(Number(record.internalLevelValue))
+            ? Number(record.internalLevelValue)
+            : undefined
+        }))
+      : undefined,
     b15Rating: Number(value.b15Rating ?? 0),
     b35Rating: Number(value.b35Rating ?? 0),
     b50Rating: Number(value.b50Rating ?? 0),
@@ -207,6 +215,9 @@ function normalizeB50(data: StudioData): StudioData {
   return {
     ...data,
     records: [...b15, ...b35],
+    candidateRecords: data.candidateRecords?.filter((record) =>
+      record.bucket === "b15" || record.bucket === "b35"
+    ),
     b15Rating,
     b35Rating,
     b50Rating: b15Rating + b35Rating
@@ -276,7 +287,8 @@ async function mapConcurrent<T, R>(
 }
 
 async function loadPublicAssets(data: StudioData): Promise<StudioAssets> {
-  const coverNames = [...new Set(data.records.flatMap((record) => record.imageName ? [record.imageName] : []))];
+  const coverNames = [...new Set([...data.records, ...(data.candidateRecords ?? [])]
+    .flatMap((record) => record.imageName ? [record.imageName] : []))];
   const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
     name,
     await fetchDataUrl(`https://shama.dxrating.net/images/cover/v2/${name}.jpg`)
@@ -314,7 +326,6 @@ export default function Studio() {
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [studioView, setStudioView] = useState<StudioView>("export");
-  const [highlightedChartKey, setHighlightedChartKey] = useState("");
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -459,8 +470,8 @@ export default function Studio() {
   }, [uiTheme]);
 
   const rendered = useMemo(
-    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets, highlightedChartKey) : null,
-    [data, options, language, origin, generatedAt, assets, highlightedChartKey]
+    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
+    [data, options, language, origin, generatedAt, assets]
   );
   const previewUrl = useMemo(
     () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
@@ -477,11 +488,6 @@ export default function Studio() {
   function resetOptions() {
     setOptions(DEFAULT_OPTIONS);
     touchSettings();
-  }
-
-  function locateRecordInExport(record: StudioRecord) {
-    setHighlightedChartKey(chartKey(record));
-    setStudioView("export");
   }
 
   function changeLanguage(next: LanguageId) {
@@ -962,8 +968,6 @@ export default function Studio() {
           assets={assets}
           history={history}
           language={language}
-          onLocateRecord={locateRecordInExport}
-          initialSelectedKey={highlightedChartKey}
         />
       ) : <section className="workspace">
         <aside className="control-panel">
@@ -1023,10 +1027,12 @@ export default function Studio() {
             <div className="toggle-list">
               {([
                 ["showFrame", copy.frame], ["showIcon", copy.icon], ["showCovers", copy.covers],
-                ["showPlate", copy.plate], ["showTrophy", copy.trophy],
+                ["showPlate", copy.plate], ["showPlayerTitle", copy.playerTitle],
                 ["showBreakdown", copy.breakdown],
                 ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
-                ["showScoreBadges", copy.scoreBadges],
+                ["showAchievementRank", copy.achievementRankBadge],
+                ["showComboBadge", copy.comboBadge],
+                ["showSyncBadge", copy.syncBadge],
                 ["showRank", copy.rank]
               ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
                 <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>
@@ -1088,20 +1094,7 @@ export default function Studio() {
         <section className={`preview-panel${data ? "" : " empty"}`}>
           <div className="preview-toolbar">
             <strong>{copy.livePreview}</strong>
-            <div className="preview-locator">
-              {data ? <>
-                <select
-                  aria-label={copy.locateChart}
-                  value={highlightedChartKey}
-                  onChange={(event) => setHighlightedChartKey(event.target.value)}
-                >
-                  <option value="">{copy.locateChart}</option>
-                  {data.records.map((record) => <option key={chartKey(record)} value={chartKey(record)}>{record.title} · {record.difficulty.toUpperCase()}</option>)}
-                </select>
-                <button type="button" disabled={!highlightedChartKey} onClick={() => setStudioView("progress")}>{copy.viewInProgress}</button>
-              </> : null}
-              <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
-            </div>
+            <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
           </div>
           <div className={`preview-stage theme-${options.theme}`}>
             {rendered

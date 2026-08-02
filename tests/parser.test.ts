@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
-import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget } from "../src/lib/parser";
+import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget, parseRatingTargetPage } from "../src/lib/parser";
 
 const doc = (html: string) => new JSDOM(html, { url: "https://maimaidx-eng.com/maimai-mobile/home/" }).window.document;
 
@@ -85,6 +85,26 @@ describe("international DX NET parser", () => {
     expect(scores[0]).toMatchObject({ title: "New 0", type: "dx", difficulty: "expert", achievementRate: 99.5 });
     expect(scores[49].title).toBe("Old 34");
     expect(scores.some((score) => score.title.startsWith("Candidate"))).toBe(false);
+  });
+
+  it("returns DX NET candidate sections separately from the B50", () => {
+    const section = (count: number, prefix: string) => Array.from({ length: count }, (_, i) => `
+      <div class="music_master_score_back pointer w_450 m_15 p_3 f_0">
+        <img class="music_kind_icon" src="/maimai-mobile/img/music_dx.png">
+        <div class="music_lv_block">13+</div><div class="music_name_block">${prefix} ${i}</div>
+        <div class="music_score_block">99.9000%</div>
+      </div>`).join("");
+    const page = parseRatingTargetPage(doc(`
+      <div class="see_through_block"></div>
+      <div class="screw_block">New targets</div>${section(15, "New")}
+      <div class="screw_block">Old targets</div>${section(35, "Old")}
+      <div class="screw_block">New candidates</div>${section(10, "Candidate new")}
+      <div class="screw_block">Old candidates</div>${section(10, "Candidate old")}
+    `));
+    expect(page.records).toHaveLength(50);
+    expect(page.candidates).toHaveLength(20);
+    expect(page.candidates[0]).toMatchObject({ title: "Candidate new 0", bucket: "b15" });
+    expect(page.candidates[10]).toMatchObject({ title: "Candidate old 0", bucket: "b35" });
   });
 
   it("refuses to guess buckets when the target sections are missing", () => {
