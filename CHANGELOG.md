@@ -4,6 +4,10 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- B50 upgrade targets now show song jackets, larger target figures, the Rating gained at the next achievement threshold, and the total potential gain through 100.5%.
+
 ## [0.9.0] — 2026-08-02
 
 ### Added
