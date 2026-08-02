@@ -14,7 +14,7 @@ page and exports it as an image or JSON, plus **Studio** — a Next.js app at
 
 ## Released in v0.7.0
 
-The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and underlying experimental Drive work. The current packaged release is `v0.7.1`, described below.
+The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the Studio, multilingual export, local-history, connection-registry, and underlying experimental Drive work. Later releases listed below supersede it.
 
 ## Released in v0.7.1
 
@@ -50,7 +50,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
 | Packaged Extension baseline | Release `v0.9.1` | Published | Keep the generated installable ZIP and release notes available. |
-| Cross-device Studio + UI pass | PRs #17–#22 on `main`; production Studio at `c0194f9` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
+| Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
 | Next packaged release | Not scheduled | Backlog | Choose the next version only after its scope is defined. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
@@ -58,11 +58,11 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-PR #22 passed 184 tests across 21 files, Extension verification, Studio typecheck/build, desktop and 390 px Chromium checks, and Vercel Preview before merge. Nameplate parsing and cross-provider Drive behavior still need real authenticated services; these remain explicit experimental limitations rather than release blockers.
+PR #25 passed 192 tests across 22 files, Extension verification, Studio typecheck/build, and Vercel Preview before merge. Nameplate parsing and cross-provider Drive behavior still need real authenticated services; these remain explicit experimental limitations rather than release blockers.
 
 ## Capability snapshot
 
-| Area | Release candidate `v0.9.1` | Verification status |
+| Area | Release `v0.9.1` | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
