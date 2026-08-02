@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-08-02
+
 ### Added
 
 - Studio now has a dedicated **Progress** view with B50, New B15, and Old B35 timelines built from locally saved or Drive-synced snapshots.
