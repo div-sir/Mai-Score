@@ -43,6 +43,11 @@ describe("history entries", () => {
     expect(first.generatedAt).toBe("2026-07-02T03:04:05.000Z");
     expect(second.generatedAt).toBe(first.generatedAt);
     expect(second.savedAt).not.toBe(first.savedAt);
+    expect(second.provenance).toEqual({
+      sourceSchema: "mai-score/v1",
+      observedAt: "2026-07-02T03:04:05.000Z",
+      importedAt: "2026-07-03T09:00:00.000Z"
+    });
   });
 
   it("copies records so later edits cannot rewrite history", () => {
