@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 2, 2026. `v0.11.0` is the current packaged release and release tag.
+Accurate as of August 2, 2026. `v0.12.0` is the current packaged release and release tag.
 
-Package, lockfile, Studio, and Extension manifest metadata all use `0.11.0`.
+Package, lockfile, Studio, and Extension manifest metadata all use `0.12.0`.
 
 ## What this is
 
@@ -54,28 +54,36 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Cross-navigation between Progress records and highlighted Export cards.
 - Exact plate-progress transport and UI for Full Records adapters; B50-only snapshots continue to show that complete records are required.
 
+## Released in v0.12.0
+
+- Split achievement-rank, FC/AP, and FS/FDX artwork into independent export controls and enlarged the achievement-rank artwork on the right side of each chart card.
+- Replaced the misleading Trophy label with Title, while preserving older saved style links.
+- Simplified upgrade targets to Needed, To 100%, and To 100.5%; redesigned What-if and single-chart history; removed Progress-to-Export locating.
+- Added reachable B50-entry recommendations from DX NET's own New/Old candidate sections without guessing unobserved records.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release `v0.11.0` | Published | Keep the generated installable ZIP and release notes available. |
+| Packaged Extension baseline | Release `v0.12.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current packaged release | `v0.11.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
+| Current packaged release | `v0.12.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
+| Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-PR #29 passed 212 tests across 23 files, Extension verification, Studio typecheck/build, Vercel Preview, and real-account acceptance testing before merge. Nameplate parsing and cross-provider Drive behavior still need broader real authenticated service coverage; these remain explicit experimental limitations rather than release blockers.
+The v0.12.0 release candidate passed 216 tests across 23 files, Extension verification, and Studio typecheck/build before merge. Nameplate parsing, candidate sections, and cross-provider Drive behavior still need broader real authenticated service coverage; these remain explicit experimental limitations rather than release blockers.
 
 ## Capability snapshot
 
-| Area | Release `v0.11.0` | Verification status |
+| Area | Release `v0.12.0` | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
-| Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, trophy/nameplate controls, CJK-safe titles | Automated and Chromium visual checks pass |
+| Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, title/nameplate controls, CJK-safe titles | Automated checks pass; regenerate visual baselines for v0.12.0 |
 | JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Automated tests pass |
 | Studio | Latest B50 preview, Progress insights, local history, Web Share, mobile/web Drive, dark/light UI, curated accents, settings sync | Automated verification complete; real Drive matrix incomplete |
 | Google Drive | Experimental Extension and Google Identity Services providers | Shared `appDataFolder` behavior unverified |

@@ -25,7 +25,9 @@ export interface ImageOptions {
   showRatingBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
-  showScoreBadges: boolean;
+  showAchievementRank: boolean;
+  showComboBadge: boolean;
+  showSyncBadge: boolean;
   chartValue: ChartValueMode;
   showBucketRank: boolean;
   showGeneratedBy: boolean;
@@ -49,7 +51,9 @@ export const DEFAULT_IMAGE_OPTIONS: ImageOptions = {
   showRatingBreakdown: true,
   showAchievement: true,
   showChartRating: true,
-  showScoreBadges: true,
+  showAchievementRank: true,
+  showComboBadge: true,
+  showSyncBadge: true,
   chartValue: "level",
   showBucketRank: true,
   showGeneratedBy: true
@@ -81,9 +85,16 @@ export function chartValueFromLegacy(source: {
 
 export function normalizeImageOptions(value: unknown): ImageOptions {
   if (!value || typeof value !== "object") return { ...DEFAULT_IMAGE_OPTIONS };
-  const source = value as Partial<ImageOptions> & { showLevel?: unknown; showInternalLevel?: unknown };
+  const source = value as Partial<ImageOptions> & {
+    showLevel?: unknown;
+    showInternalLevel?: unknown;
+    showScoreBadges?: unknown;
+  };
   const boolean = <K extends keyof ImageOptions>(key: K) =>
     typeof source[key] === "boolean" ? source[key] as boolean : DEFAULT_IMAGE_OPTIONS[key] as boolean;
+  const legacyScoreBadges = typeof source.showScoreBadges === "boolean" ? source.showScoreBadges : undefined;
+  const badgeBoolean = (key: "showAchievementRank" | "showComboBadge" | "showSyncBadge") =>
+    typeof source[key] === "boolean" ? source[key] : legacyScoreBadges ?? DEFAULT_IMAGE_OPTIONS[key];
   return {
     ...DEFAULT_IMAGE_OPTIONS,
     layout: layouts.has(source.layout as ImageLayout) ? source.layout as ImageLayout : DEFAULT_IMAGE_OPTIONS.layout,
@@ -104,7 +115,9 @@ export function normalizeImageOptions(value: unknown): ImageOptions {
     showRatingBreakdown: boolean("showRatingBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
-    showScoreBadges: boolean("showScoreBadges"),
+    showAchievementRank: badgeBoolean("showAchievementRank"),
+    showComboBadge: badgeBoolean("showComboBadge"),
+    showSyncBadge: badgeBoolean("showSyncBadge"),
     chartValue: chartValues.has(source.chartValue as ChartValueMode)
       ? source.chartValue as ChartValueMode
       : chartValueFromLegacy(source) ?? DEFAULT_IMAGE_OPTIONS.chartValue,

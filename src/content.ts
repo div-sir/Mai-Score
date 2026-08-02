@@ -4,7 +4,7 @@ import {
   describeFetchError,
   FETCH_TIMEOUT_MS
 } from "./lib/collect-progress";
-import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget } from "./lib/parser";
+import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTargetPage } from "./lib/parser";
 import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
@@ -89,14 +89,20 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
   const player = parseProfile(home, `${ROOT}/home/`);
   player.frameUrl = parseCurrentFrame(frame, `${ROOT}/collection/frame`);
   player.plateUrl = plate ? parseCurrentPlate(plate, `${ROOT}/collection/plate`) : undefined;
-  const parsed = parseRatingTarget(ratingTarget);
+  const parsedPage = parseRatingTargetPage(ratingTarget);
+  const parsed = parsedPage.records;
   const parsedB15 = parsed.filter((record) => record.bucket === "b15");
   const parsedB35 = parsed.filter((record) => record.bucket === "b35");
   if (parsedB15.length !== 15 || parsedB35.length !== 35) {
     throw new Error(text("unexpectedTargetCounts", parsedB15.length, parsedB35.length));
   }
   reportProgress(createMatchingProgress());
-  const records = await resolveViaBackground([...parsedB15, ...parsedB35], connection.id, text);
+  const b50Count = parsedB15.length + parsedB35.length;
+  const resolved = await resolveViaBackground([...parsedB15, ...parsedB35, ...parsedPage.candidates], connection.id, text);
+  const records = resolved.slice(0, b50Count);
+  const candidateRecords = resolved.slice(b50Count);
+  // Candidate matching is advisory and must not make the official B50 look
+  // unresolved in the popup's 50/50 status or rating-gap explanation.
   const warnings = records.flatMap((record) => record.warning ? [record.warning] : []);
   const { b15Rating, b35Rating, b50Rating } = calculateB50Breakdown(records);
   return {
@@ -110,6 +116,7 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
     },
     player,
     records,
+    ...(candidateRecords.length ? { candidateRecords } : {}),
     b15Rating,
     b35Rating,
     b50Rating,

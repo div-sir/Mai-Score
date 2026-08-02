@@ -50,6 +50,14 @@ describe("image options", () => {
       .toBe(DEFAULT_IMAGE_OPTIONS.chartValue);
   });
 
+  it("migrates the former all-in-one score badge toggle", () => {
+    expect(normalizeImageOptions({ showScoreBadges: false })).toMatchObject({
+      showAchievementRank: false,
+      showComboBadge: false,
+      showSyncBadge: false
+    });
+  });
+
   it("formats visible and filename timestamps deterministically", () => {
     const date = new Date("2026-07-27T06:30:45.000Z");
     const options = {

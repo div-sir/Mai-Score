@@ -33,12 +33,21 @@ function difficultyFrom(card: Element): Difficulty | null {
 }
 
 export function parseRatingTarget(doc: Document): ParsedScore[] {
+  return parseRatingTargetPage(doc).records;
+}
+
+export interface RatingTargetPage {
+  records: ParsedScore[];
+  candidates: ParsedScore[];
+}
+
+export function parseRatingTargetPage(doc: Document): RatingTargetPage {
   const cardSelector = ".pointer.w_450.m_15.p_3.f_0";
   const anchor = doc.querySelector("div.see_through_block");
   const sections: Element[][] = [];
   let sibling = anchor?.nextElementSibling ?? null;
 
-  while (sibling && sections.length < 2) {
+  while (sibling && sections.length < 4) {
     if (sibling.matches("div.screw_block")) {
       const cards: Element[] = [];
       sibling = sibling.nextElementSibling;
@@ -52,25 +61,20 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
     sibling = sibling.nextElementSibling;
   }
 
-  // The candidate sections further down the page use the same card selector, so
-  // the buckets must come from the first two screw_block sections. Guessing by
-  // position instead would silently mis-file real targets if the page changes.
-  if (sections.length !== 2 || sections[0].length < 15 || sections[1].length < 35) {
+  // The candidate sections further down the page use the same card selector.
+  // The first two blocks are the official B15/B35; blocks three and four are
+  // DX NET's own near-miss lists and are optional on older page variants.
+  if (sections.length < 2 || sections[0].length < 15 || sections[1].length < 35) {
     const found = sections.map((cards) => cards.length).join(" / ") || "0";
     throw new Error(`無法辨識 DX NET 的 B50 版面（找到 ${sections.length} 個區塊，各 ${found} 筆），請回報以便更新解析規則。`);
   }
 
-  const targetGroups = [
-    { bucket: "b15" as const, cards: sections[0].slice(0, 15) },
-    { bucket: "b35" as const, cards: sections[1].slice(0, 35) }
-  ];
-
-  return targetGroups.flatMap(({ bucket, cards }) => cards.flatMap((card) => {
+  const parseGroups = (groups: Array<{ bucket: "b15" | "b35"; cards: Element[] }>) => groups.flatMap(({ bucket, cards }) => cards.flatMap((card) => {
     const difficulty = difficultyFrom(card);
     const title = card.querySelector(".music_name_block")?.textContent?.trim();
     const achievementRate = Number(card.querySelector(".music_score_block")?.textContent?.replace("%", "").trim());
     const src = card.querySelector<HTMLImageElement>(".music_kind_icon")?.getAttribute("src") ?? "";
-    const type = /music_dx\.png/i.test(src) ? "dx" : "std";
+    const type: ParsedScore["type"] = /music_dx\.png/i.test(src) ? "dx" : "std";
     if (!difficulty || !title || !Number.isFinite(achievementRate)) return [];
     const icons = [...card.querySelectorAll<HTMLImageElement>('img[src*="/music_icon_"]')].map((x) => x.src.toLowerCase());
     return [{
@@ -86,6 +90,16 @@ export function parseRatingTarget(doc: Document): ParsedScore[] {
         ?.replace("fsdp", "fsd+").replace("fsp", "fs+") as SyncFlag | undefined
     }];
   }));
+
+  const records = parseGroups([
+    { bucket: "b15" as const, cards: sections[0].slice(0, 15) },
+    { bucket: "b35" as const, cards: sections[1].slice(0, 35) }
+  ]);
+  const candidates = parseGroups([
+    { bucket: "b15", cards: sections[2] ?? [] },
+    { bucket: "b35", cards: sections[3] ?? [] }
+  ]);
+  return { records, candidates };
 }
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {

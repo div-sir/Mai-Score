@@ -1,6 +1,5 @@
 import type { AccentScope, LanguageId, LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
-import { recordBadgeNames } from "./achievement-rank";
-import { chartKey } from "./history";
+import { recordBadgeNameSet } from "./achievement-rank";
 
 interface Spec {
   width: number; height: number; columns: number; margin: number; startY: number;
@@ -28,8 +27,8 @@ const difficulty: Record<string, string> = {
 };
 
 // Matches DX NET's own trophy_* rarity classes, recorded as player.titleColor.
-// An unknown rarity reads as normal rather than losing the trophy entirely.
-const trophyStyles: Record<string, { stops: string[]; text: string }> = {
+// DX NET calls this field a title; trophy_* only describes its rarity style.
+const titleStyles: Record<string, { stops: string[]; text: string }> = {
   normal: { stops: ["#eef1f7", "#c3cbdb"], text: "#28304a" },
   bronze: { stops: ["#e9b78d", "#bd7746"], text: "#3a2010" },
   silver: { stops: ["#f1f4fa", "#b6c1d2"], text: "#28304a" },
@@ -120,11 +119,11 @@ function chartValueParts(options: StudioOptions, record: StudioRecord): string[]
 }
 
 /**
- * The trophy the game shows under a player's name, with its rarity colour.
+ * The title the game shows under a player's name, with its rarity colour.
  * Returns the markup plus the box it occupies, so the nameplate behind it can
  * be sized to the block rather than to a guessed constant.
  */
-function trophyBadge(
+function playerTitleBadge(
   title: string,
   titleColor: string | undefined,
   x: number,
@@ -132,7 +131,7 @@ function trophyBadge(
   maxWidth: number,
   compact: boolean
 ): { markup: string; width: number; height: number } {
-  const style = trophyStyles[String(titleColor ?? "").toLowerCase()] ?? trophyStyles.normal;
+  const style = titleStyles[String(titleColor ?? "").toLowerCase()] ?? titleStyles.normal;
   const fontSize = compact ? 17 : 20;
   const height = compact ? 30 : 36;
   const padding = compact ? 16 : 20;
@@ -145,9 +144,9 @@ function trophyBadge(
   return {
     width,
     height,
-    markup: `<defs><linearGradient id="trophyFill" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient></defs>
+    markup: `<defs><linearGradient id="playerTitleFill" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient></defs>
       <g transform="translate(${x} ${top})">
-        <rect width="${width}" height="${height}" rx="${Math.round(height / 2)}" fill="url(#trophyFill)" stroke="${alpha(style.text, .28)}"/>
+        <rect width="${width}" height="${height}" rx="${Math.round(height / 2)}" fill="url(#playerTitleFill)" stroke="${alpha(style.text, .28)}"/>
         <text x="${width / 2}" y="${height * .68}" text-anchor="middle" font-size="${fontSize}" font-weight="700" style="fill:${style.text}">${esc(label)}</text>
       </g>`
   };
@@ -206,8 +205,7 @@ export function renderStudioSvg(
   language: LanguageId,
   origin = "",
   generatedAt = new Date(),
-  assets: StudioAssets = { covers: {} },
-  highlightedChartKey = ""
+  assets: StudioAssets = { covers: {} }
 ) {
   const spec = specs[options.layout];
   const palette = accentedPalette(options.theme, options.accent, options.accentScope);
@@ -241,18 +239,18 @@ export function renderStudioSvg(
   // The breakdown boxes are the leftmost thing on the right-hand side, so the
   // name block may grow up to them and no further.
   const nameBlockWidth = Math.max(160, scoreBoxesX - textX - 28);
-  const trophyTop = nameY + (compact ? 14 : 16);
-  const trophy = options.showTrophy && data.player.title
-    ? trophyBadge(data.player.title, data.player.titleColor, textX, trophyTop, nameBlockWidth, compact)
+  const playerTitleTop = nameY + (compact ? 14 : 16);
+  const playerTitle = options.showPlayerTitle && data.player.title
+    ? playerTitleBadge(data.player.title, data.player.titleColor, textX, playerTitleTop, nameBlockWidth, compact)
     : undefined;
   const plateTop = nameY - nameSize - (compact ? 10 : 12);
-  const plateBottom = (trophy ? trophyTop + trophy.height : nameY + 10) + (compact ? 6 : 8);
+  const plateBottom = (playerTitle ? playerTitleTop + playerTitle.height : nameY + 10) + (compact ? 6 : 8);
   const platePad = compact ? 16 : 22;
-  // Hugs the name and trophy rather than filling the space up to the score
+  // Hugs the name and title rather than filling the space up to the score
   // boxes: a nameplate stretched across half the header stops reading as one.
   const plateWidth = Math.min(
     nameBlockWidth + platePad,
-    Math.round(Math.max(textWidth(data.player.name, nameSize) + nameSize / 2, trophy?.width ?? 0)) + platePad * 2
+    Math.round(Math.max(textWidth(data.player.name, nameSize) + nameSize / 2, playerTitle?.width ?? 0)) + platePad * 2
   );
 
   const renderCards = (records: StudioRecord[], sectionStartY: number, globalOffset: number) => records.map((record, sectionIndex) => {
@@ -280,28 +278,32 @@ export function renderStudioSvg(
     // a restyled export reads as one palette instead of five stray hues.
     const borderColor = mix(color, options.accent, accentReach(options.accentScope).outline);
     const borderOpacity = options.accentScope === "minimal" ? .45 : .62;
-    const isHighlighted = highlightedChartKey === chartKey(record);
-    const badgeNames = options.showScoreBadges ? recordBadgeNames(record) : [];
-    const rankAsset = badgeNames[0] ? assets.badges?.[badgeNames[0]] : undefined;
-    const flagAssets = badgeNames.slice(1).flatMap((name) => assets.badges?.[name] ? [assets.badges[name]] : []);
-    // Keep the official rank/FC/FS artwork in a compact jacket ribbon. The
-    // achievement percentage then keeps its own readable line on all layouts.
-    const badgeHeight = Math.max(16, Math.round(spec.rate * .62));
-    const rankWidth = Math.round(badgeHeight * 68 / 31);
-    const flagWidth = Math.round(badgeHeight * 42 / 47);
+    const badgeNames = recordBadgeNameSet(record);
+    const rankAsset = options.showAchievementRank ? assets.badges?.[badgeNames.rank] : undefined;
+    const flagAssets = [
+      options.showComboBadge && badgeNames.combo ? assets.badges?.[badgeNames.combo] : undefined,
+      options.showSyncBadge && badgeNames.sync ? assets.badges?.[badgeNames.sync] : undefined
+    ].filter((source): source is string => Boolean(source));
+    // Rank artwork is the primary result marker. Give it the open lower-right
+    // area at nearly the achievement text height; FC/AP and FS/FDX remain a
+    // compact ribbon near the jacket and can be toggled independently.
+    const rankHeight = Math.max(22, Math.round(spec.rate * .96));
+    const rankWidth = Math.round(rankHeight * 68 / 31);
+    const rankX = spec.cardW - spec.pad - rankWidth;
+    const rankY = stripY - rankHeight - 6;
+    const flagHeight = Math.max(16, Math.round(spec.rate * .62));
+    const flagWidth = Math.round(flagHeight * 42 / 47);
+    const flagsX = spec.pad;
+    const flagsY = stripY - flagHeight - 4;
     const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
-    const badgeWidth = (rankAsset ? rankWidth : 0) + (rankAsset && flagAssets.length ? 4 : 0) + flagsWidth;
-    const badgeX = spec.pad;
-    const badgeY = stripY - badgeHeight - 4;
-    const flagsX = badgeX + (rankAsset ? rankWidth + 4 : 0);
-    const achievementX = reservesCover || badgeWidth === 0 ? contentX : badgeX + badgeWidth + 8;
+    const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
     const badgeMarkup = `${rankAsset
-      ? `<image href="${rankAsset}" x="${badgeX}" y="${badgeY}" width="${rankWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
       : ""}${flagAssets.map((source, badgeIndex) =>
-        `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${badgeY}" width="${flagWidth}" height="${badgeHeight}" preserveAspectRatio="xMidYMid meet"/>`
+        `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`
       ).join("")}`;
     return `<g transform="translate(${x} ${y})">
-      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${isHighlighted ? options.accent : alpha(borderColor, borderOpacity)}" stroke-width="${isHighlighted ? 7 : 3}"/>
+      <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
       ${reservesCover ? coverSource
         ? `<image href="${coverSource}" x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" preserveAspectRatio="xMidYMid slice"/>`
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
@@ -335,7 +337,7 @@ export function renderStudioSvg(
         <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" fill="${alpha(palette.header, .55)}"/>
       </g>` : ""}
       <text x="${textX}" y="${nameY}" font-size="${nameSize}" font-weight="850" letter-spacing="2">${esc(data.player.name)}</text>
-      ${trophy?.markup ?? ""}
+      ${playerTitle?.markup ?? ""}
       <text x="${scoreX}" y="${titleY}" text-anchor="end" font-size="${options.layout === "compact" ? 17 : 21}" font-weight="700" letter-spacing="1.5" style="fill:${palette.muted}">BEST 50 · TOTAL</text>
       <text x="${scoreX}" y="${nameY + 10}" text-anchor="end" font-size="${options.layout === "compact" ? 56 : 68}" font-weight="900">${data.b50Rating}</text>
       ${options.showBreakdown ? `

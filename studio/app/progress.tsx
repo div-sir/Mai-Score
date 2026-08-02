@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { chartKey, diffHistory, type HistoryEntry } from "../lib/history";
 import {
+  ACHIEVEMENT_TARGETS,
   buildB50Cutoffs,
   buildChartHistory,
+  buildEntryCandidates,
   buildRatingTimeline,
   buildUpgradeTargets,
   listHistoryCharts,
@@ -21,8 +23,6 @@ interface ProgressDashboardProps {
   assets: StudioAssets;
   history: HistoryEntry[];
   language: LanguageId;
-  onLocateRecord: (record: StudioRecord) => void;
-  initialSelectedKey?: string;
 }
 
 function coverSource(record: StudioRecord, assets: StudioAssets) {
@@ -48,12 +48,12 @@ function signed(value: number | undefined) {
 
 const achievementLabel = (value: number) => `${value.toFixed(value % 1 ? 1 : 0)}%`;
 
-export default function ProgressDashboard({ data, assets, history, language, onLocateRecord, initialSelectedKey = "" }: ProgressDashboardProps) {
+export default function ProgressDashboard({ data, assets, history, language }: ProgressDashboardProps) {
   const copy = studioCopy(language);
   const plateLabel = { kiwami: "極", shou: language === "zh-Hant" ? "將" : "将", kami: "神", maimai: "舞舞" } as const;
   const timeline = useMemo(() => buildRatingTimeline(history), [history]);
   const charts = useMemo(() => listHistoryCharts(history), [history]);
-  const [selectedKey, setSelectedKey] = useState(initialSelectedKey);
+  const [selectedKey, setSelectedKey] = useState("");
   const [chartQuery, setChartQuery] = useState("");
   const [difficulty, setDifficulty] = useState("all");
   const [level, setLevel] = useState("all");
@@ -62,14 +62,13 @@ export default function ProgressDashboard({ data, assets, history, language, onL
 
   const activeKey = selectedKey || (charts[0] ? chartKey(charts[0]) : "");
   const activeChart = charts.find((chart) => chartKey(chart) === activeKey);
-  const activeCurrentRecord = data?.records.find((record) => chartKey(record) === activeKey);
   const chartHistory = useMemo(
     () => activeKey ? buildChartHistory(history, activeKey) : [],
     [history, activeKey]
   );
   const searchResults = useMemo(() => {
     const query = chartQuery.trim().toLocaleLowerCase(language);
-    return charts.filter((chart) => !query || `${chart.title} ${chart.difficulty} ${chart.displayedLevel}`.toLocaleLowerCase(language).includes(query)).slice(0, 10);
+    return charts.filter((chart) => !query || `${chart.title} ${chart.difficulty} ${chart.displayedLevel}`.toLocaleLowerCase(language).includes(query));
   }, [charts, chartQuery, language]);
 
   const allTargets = useMemo(() => data ? buildUpgradeTargets(data, 50) : [], [data]);
@@ -80,8 +79,12 @@ export default function ProgressDashboard({ data, assets, history, language, onL
     && (level === "all" || target.record.displayedLevel === level)
   ).slice(0, 8);
   const cutoffs = useMemo(() => data ? buildB50Cutoffs(data) : undefined, [data]);
+  const entryCandidates = useMemo(() => data ? buildEntryCandidates(data) : [], [data]);
+  const simulationRecords = useMemo(() => (data?.records ?? [])
+    .filter((record) => Number.isFinite(Number(record.internalLevelValue)))
+    .sort((a, b) => a.title.localeCompare(b.title)), [data]);
   const simulationRecord = data?.records.find((record) => chartKey(record) === simulationKey)
-    ?? targets[0]?.record;
+    ?? simulationRecords[0];
   const effectiveSimulationAchievement = simulationRecord
     ? Math.min(100.5, Math.max(simulationRecord.achievementRate, simulationAchievement))
     : simulationAchievement;
@@ -109,9 +112,10 @@ export default function ProgressDashboard({ data, assets, history, language, onL
     { label: "Old B35", field: "b35" as const, value: latestPoint.b35 }
   ];
 
-  const selectSimulation = (record: StudioRecord, targetAchievement?: number) => {
+  const selectSimulation = (record: StudioRecord) => {
     setSimulationKey(chartKey(record));
-    setSimulationAchievement(Math.max(record.achievementRate, targetAchievement ?? record.achievementRate));
+    const next = ACHIEVEMENT_TARGETS.find((target) => target > record.achievementRate + 0.00005) ?? 100.5;
+    setSimulationAchievement(next);
   };
 
   return (
@@ -156,16 +160,11 @@ export default function ProgressDashboard({ data, assets, history, language, onL
                   <div className="upgrade-song">
                     <strong>{target.record.title}</strong>
                     <span>{target.record.type.toUpperCase()} · {target.record.difficulty.toUpperCase()} · {target.record.displayedLevel}</span>
-                    <div className="row-actions">
-                      <button type="button" onClick={() => selectSimulation(target.record, target.targetAchievement)}>{copy.simulate}</button>
-                      <button type="button" onClick={() => onLocateRecord(target.record)}>{copy.viewInExport}</button>
-                    </div>
                   </div>
                   <dl>
-                    <div><dt>{copy.target}</dt><dd>{achievementLabel(target.targetAchievement)}</dd></div>
                     <div><dt>{copy.needed}</dt><dd>+{target.achievementNeeded.toFixed(4)}%</dd></div>
-                    <div><dt>{copy.nextGain}</dt><dd className="up">+{target.ratingGain}</dd></div>
-                    <div><dt>{copy.theoretical}</dt><dd>+{target.theoreticalGain}</dd></div>
+                    <div><dt>{copy.to100}</dt><dd className="up">+{target.gainTo100}</dd></div>
+                    <div><dt>{copy.to1005}</dt><dd className="up">+{target.gainTo1005}</dd></div>
                   </dl>
                 </li>
               ))}
@@ -176,9 +175,36 @@ export default function ProgressDashboard({ data, assets, history, language, onL
         <article className="insight-panel what-if-panel">
           <header><div><h2>{copy.simulate}</h2><p>{copy.simulateDescription}</p></div></header>
           {simulationRecord && simulation ? <>
-            <div className="simulated-song"><SongCover record={simulationRecord} assets={assets} /><div><strong>{simulationRecord.title}</strong><span>{achievementLabel(simulationRecord.achievementRate)} · {simulation.currentChartRating}</span></div></div>
+            <label className="simulation-chart-picker">
+              <span>{copy.selectChart}</span>
+              <select value={chartKey(simulationRecord)} onChange={(event) => {
+                const record = simulationRecords.find((candidate) => chartKey(candidate) === event.target.value);
+                if (record) selectSimulation(record);
+              }}>
+                {simulationRecords.map((record) => <option key={chartKey(record)} value={chartKey(record)}>
+                  {record.title} · {record.difficulty.toUpperCase()} {record.displayedLevel}
+                </option>)}
+              </select>
+            </label>
+            <div className="simulated-song"><SongCover record={simulationRecord} assets={assets} /><div><strong>{simulationRecord.title}</strong><span>{copy.current}: {achievementLabel(simulationRecord.achievementRate)} · {simulation.currentChartRating} Rating</span></div></div>
+            <div className="simulation-presets" aria-label={copy.quickTargets}>
+              {ACHIEVEMENT_TARGETS.filter((target) => target > simulationRecord.achievementRate + 0.00005).map((target) => (
+                <button key={target} type="button" aria-pressed={Math.abs(effectiveSimulationAchievement - target) < 0.00005} onClick={() => setSimulationAchievement(target)}>
+                  {achievementLabel(target)}
+                </button>
+              ))}
+            </div>
             <label className="achievement-slider">
-              <span>{copy.simulated} <strong>{effectiveSimulationAchievement.toFixed(4)}%</strong></span>
+              <span>{copy.simulated}</span>
+              <input
+                className="achievement-number"
+                type="number"
+                min={simulationRecord.achievementRate}
+                max="100.5"
+                step="0.0001"
+                value={effectiveSimulationAchievement.toFixed(4)}
+                onChange={(event) => setSimulationAchievement(Number(event.target.value))}
+              />
               <input
                 type="range"
                 min={simulationRecord.achievementRate}
@@ -190,11 +216,32 @@ export default function ProgressDashboard({ data, assets, history, language, onL
             </label>
             <div className="simulation-results">
               <div><span>{copy.chartRating}</span><strong>{simulation.currentChartRating} → {simulation.simulatedChartRating}</strong></div>
-              <div><span>{copy.b50Impact}</span><strong className={simulation.b50Delta >= 0 ? "up" : "down"}>{signed(simulation.b50Delta)}</strong></div>
+              <div className="simulation-impact"><span>{copy.b50Impact}</span><strong className={simulation.b50Delta >= 0 ? "up" : "down"}>{signed(simulation.b50Delta)}</strong></div>
               <div><span>B50</span><strong>{simulation.currentB50} → {simulation.simulatedB50}</strong></div>
             </div>
-            <button className="inline-primary" type="button" onClick={() => onLocateRecord(simulationRecord)}>{copy.viewInExport}</button>
           </> : <p className="panel-empty">{copy.noUpgradeTargets}</p>}
+        </article>
+
+        <article className="insight-panel candidate-panel">
+          <header><div><h2>{copy.potentialEntries}</h2><p>{copy.potentialEntriesDescription}</p></div></header>
+          {entryCandidates.length ? <ol className="candidate-list">
+            {entryCandidates.map((candidate) => <li key={candidate.key}>
+              <SongCover record={candidate.record} assets={assets} />
+              <div className="candidate-song">
+                <strong>{candidate.record.title}</strong>
+                <span>{candidate.record.type.toUpperCase()} · {candidate.record.difficulty.toUpperCase()} · {candidate.record.displayedLevel}</span>
+              </div>
+              <div className="candidate-goal">
+                <small>{copy.needed}</small>
+                <strong>+{candidate.achievementNeeded.toFixed(4)}%</strong>
+                <span>→ {candidate.targetAchievement.toFixed(4)}%</span>
+              </div>
+              <div className="candidate-cutoff">
+                <small>{candidate.record.bucket.toUpperCase()} {copy.cutoff}</small>
+                <strong>{candidate.cutoff} → {candidate.cutoff + 1}</strong>
+              </div>
+            </li>)}
+          </ol> : <p className="panel-empty">{copy.noEntryCandidates}</p>}
         </article>
 
         <article className="insight-panel cutoff-panel">
@@ -203,10 +250,8 @@ export default function ProgressDashboard({ data, assets, history, language, onL
             <div className="cutoff-values"><span>New B15 <strong>{cutoffs.b15}</strong></span><span>Old B35 <strong>{cutoffs.b35}</strong></span></div>
             <ul className="risk-list">
               {cutoffs.atRisk.slice(0, 6).map((risk) => <li key={risk.key}>
-                <button type="button" onClick={() => onLocateRecord(risk.record)}>
-                  <SongCover record={risk.record} assets={assets} />
-                  <span><strong>{risk.record.title}</strong><small>{risk.record.bucket.toUpperCase()} · {copy.margin} +{risk.margin}</small></span>
-                </button>
+                <SongCover record={risk.record} assets={assets} />
+                <span><strong>{risk.record.title}</strong><small>{risk.record.bucket.toUpperCase()} · {copy.margin} +{risk.margin}</small></span>
               </li>)}
             </ul>
           </> : null}
@@ -222,30 +267,28 @@ export default function ProgressDashboard({ data, assets, history, language, onL
             aria-label={copy.searchCharts}
             onChange={(event) => setChartQuery(event.target.value)}
           />
-          <div className="chart-search-results">
-            {searchResults.map((chart) => <button
-              type="button"
-              key={chartKey(chart)}
-              aria-pressed={chartKey(chart) === activeKey}
-              onClick={() => setSelectedKey(chartKey(chart))}
-            >{chart.title}<small>{chart.difficulty} · {chart.displayedLevel}</small></button>)}
-          </div>
-          {activeChart && <div className="selected-chart"><strong>{activeChart.title}</strong>{activeCurrentRecord
-            ? <button type="button" onClick={() => onLocateRecord(activeCurrentRecord)}>{copy.viewInExport}</button>
-            : null}</div>}
-          <div className="chart-history-table" role="table" aria-label={copy.chartHistory}>
-            <div className="chart-history-head" role="row"><span role="columnheader">{copy.observedAt}</span><span role="columnheader">{copy.achievement}</span><span role="columnheader">{copy.chartRating}</span><span role="columnheader">Δ</span></div>
+          <select className="chart-history-select" value={activeKey} onChange={(event) => setSelectedKey(event.target.value)} aria-label={copy.selectChart}>
+            {searchResults.map((chart) => <option key={chartKey(chart)} value={chartKey(chart)}>
+              {chart.title} · {chart.difficulty.toUpperCase()} {chart.displayedLevel}
+            </option>)}
+          </select>
+          {activeChart && <div className="selected-chart-summary">
+            <SongCover record={activeChart} assets={assets} />
+            <div><strong>{activeChart.title}</strong><span>{activeChart.type.toUpperCase()} · {activeChart.difficulty.toUpperCase()} · {activeChart.displayedLevel}</span></div>
+            <b>{chartHistory.length}<small>{copy.observations}</small></b>
+          </div>}
+          <ol className="chart-history-list" aria-label={copy.chartHistory}>
             {chartHistory.map((point, index) => {
               const previous = chartHistory[index - 1];
               const delta = previous ? point.chartRating - previous.chartRating : undefined;
-              return <div role="row" key={point.observedAt}>
-                <time role="cell" dateTime={point.observedAt}>{new Date(point.observedAt).toLocaleDateString(language)}</time>
-                <span role="cell">{point.achievementRate.toFixed(4)}%</span>
-                <strong role="cell">{point.chartRating}</strong>
-                <span role="cell" className={(delta ?? 0) > 0 ? "up" : delta && delta < 0 ? "down" : ""}>{signed(delta)}</span>
-              </div>;
+              return <li key={point.observedAt}>
+                <time dateTime={point.observedAt}><strong>{new Date(point.observedAt).toLocaleDateString(language)}</strong><small>{new Date(point.observedAt).toLocaleTimeString(language, { hour: "2-digit", minute: "2-digit" })}</small></time>
+                <span><small>{copy.achievement}</small><strong>{point.achievementRate.toFixed(4)}%</strong></span>
+                <span><small>{copy.chartRating}</small><strong>{point.chartRating}</strong></span>
+                <b className={(delta ?? 0) > 0 ? "up" : delta && delta < 0 ? "down" : ""}>{signed(delta)}</b>
+              </li>;
             })}
-          </div>
+          </ol>
         </article>
 
         <article className="insight-panel plate-panel">

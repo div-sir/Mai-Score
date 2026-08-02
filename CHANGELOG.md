@@ -6,6 +6,25 @@ All notable changes to Mai-Score are documented here.
 
 No changes yet.
 
+## [0.12.0] — 2026-08-02
+
+### Added
+
+- Studio can retain DX NET's New/Old candidate sections separately from the official B50 and show reachable songs that can beat the current B15 or B35 cutoff.
+- Achievement-rank, FC/AP, and FS/FDX artwork now have independent Visible content switches.
+
+### Changed
+
+- Achievement-rank artwork is larger and uses the open right side of each export card; combo and sync badges remain compact beside the jacket.
+- The player-title switch is labelled **Title** instead of the misleading **Trophy**.
+- Upgrade targets now present `Needed`, `To 100%`, and `To 100.5%` in that order.
+- What-if now has a chart picker, milestone shortcuts, exact numeric input, a slider, and a more prominent B50 impact.
+- Chart history now uses search plus a chart picker, selected-chart summary, and chronological observation cards.
+
+### Removed
+
+- Removed Progress-to-Export chart locating, highlighted export cards, and all **View in export** actions.
+
 ## [0.11.0] — 2026-08-02
 
 ### Added

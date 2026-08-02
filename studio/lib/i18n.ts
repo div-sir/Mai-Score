@@ -29,12 +29,14 @@ export interface StudioCopy {
   frame: string;
   icon: string;
   plate: string;
-  trophy: string;
+  playerTitle: string;
   covers: string;
   breakdown: string;
   achievement: string;
   chartRating: string;
-  scoreBadges: string;
+  achievementRankBadge: string;
+  comboBadge: string;
+  syncBadge: string;
   constant: string;
   level: string;
   rank: string;
@@ -61,6 +63,8 @@ export interface StudioCopy {
   noUpgradeTargets: string;
   target: string;
   needed: string;
+  to100: string;
+  to1005: string;
   nextGain: string;
   theoretical: string;
   chartHistory: string;
@@ -87,6 +91,10 @@ export interface StudioCopy {
   margin: string;
   simulate: string;
   simulateDescription: string;
+  quickTargets: string;
+  potentialEntries: string;
+  potentialEntriesDescription: string;
+  noEntryCandidates: string;
   current: string;
   simulated: string;
   b50Impact: string;
@@ -94,9 +102,7 @@ export interface StudioCopy {
   difficultyFilter: string;
   levelFilter: string;
   searchCharts: string;
-  viewInExport: string;
-  viewInProgress: string;
-  locateChart: string;
+  observations: string;
   plateProgress: string;
   plateRequiresFull: string;
   completed: string;
@@ -183,12 +189,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "Frame",
     icon: "Icon",
     plate: "Nameplate",
-    trophy: "Trophy",
+    playerTitle: "Title",
     covers: "Song jackets",
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
     chartRating: "Chart Rating",
-    scoreBadges: "Score badges",
+    achievementRankBadge: "Achievement rank (SSS+)",
+    comboBadge: "FC / AP badge",
+    syncBadge: "FS / FDX badge",
     constant: "Chart constant",
     level: "Chart level",
     rank: "B15 / B35 rank",
@@ -215,6 +223,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "No calculable upgrade targets. Internal chart levels may be unavailable.",
     target: "To",
     needed: "Needed",
+    to100: "To 100%",
+    to1005: "To 100.5%",
     nextGain: "Rating gain",
     theoretical: "To 100.5",
     chartHistory: "Chart history",
@@ -240,7 +250,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRiskDescription: "Charts within 3 Rating of the current B15 or B35 floor.",
     margin: "Margin",
     simulate: "What-if",
-    simulateDescription: "Move the achievement target to recalculate this chart and your B50.",
+    simulateDescription: "Choose a chart and target score to see the B50 result immediately.",
+    quickTargets: "Quick targets",
+    potentialEntries: "Potential B50 entries",
+    potentialEntriesDescription: "DX NET candidates that can beat your current B15 or B35 cutoff by 100.5%.",
+    noEntryCandidates: "No reachable candidate is available in the imported data.",
     current: "Current",
     simulated: "Simulated",
     b50Impact: "B50 impact",
@@ -248,9 +262,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "Difficulty",
     levelFilter: "Level",
     searchCharts: "Search chart history",
-    viewInExport: "View in export",
-    viewInProgress: "View in Progress",
-    locateChart: "Locate chart",
+    observations: "observations",
     plateProgress: "Plate progress",
     plateRequiresFull: "Full Records is required to calculate 極 / 将 / 神 / 舞舞 accurately.",
     completed: "completed",
@@ -336,12 +348,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "Frame",
     icon: "Icon",
     plate: "名牌版",
-    trophy: "稱號",
+    playerTitle: "稱號",
     covers: "歌曲封面",
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
     chartRating: "單曲 Rating",
-    scoreBadges: "成績徽章",
+    achievementRankBadge: "評價徽章（SSS+）",
+    comboBadge: "FC / AP 徽章",
+    syncBadge: "FS / FDX 徽章",
     constant: "譜面定數",
     level: "譜面等級",
     rank: "B15 / B35 排名",
@@ -368,6 +382,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "沒有可計算的升分目標，部分譜面可能缺少定數。",
     target: "至",
     needed: "尚需",
+    to100: "到 100%",
+    to1005: "到 100.5%",
     nextGain: "目標增分",
     theoretical: "到 100.5",
     chartHistory: "單曲歷史",
@@ -393,7 +409,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRiskDescription: "距離目前 B15 或 B35 最低分 3 Rating 以內的譜面。",
     margin: "餘裕",
     simulate: "升分模擬",
-    simulateDescription: "調整目標達成率，即時計算單曲 Rating 與 B50。",
+    simulateDescription: "選擇譜面與目標達成率，立即查看 B50 變化。",
+    quickTargets: "快速目標",
+    potentialEntries: "可能進入 B50",
+    potentialEntriesDescription: "DX NET 候選譜面中，在 100.5% 前可超過目前 B15／B35 分數線的歌曲。",
+    noEntryCandidates: "匯入資料中沒有可達成的上榜候選譜面。",
     current: "目前",
     simulated: "模擬後",
     b50Impact: "B50 變化",
@@ -401,9 +421,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "難度",
     levelFilter: "等級",
     searchCharts: "搜尋單曲歷史",
-    viewInExport: "在匯出圖查看",
-    viewInProgress: "在進度中查看",
-    locateChart: "定位譜面",
+    observations: "筆觀測",
     plateProgress: "牌子進度",
     plateRequiresFull: "需要 Full Records 才能正確計算極／將／神／舞舞。",
     completed: "已完成",
@@ -489,12 +507,14 @@ const COPY: Record<LanguageId, StudioCopy> = {
     frame: "フレーム",
     icon: "アイコン",
     plate: "プレート",
-    trophy: "称号",
+    playerTitle: "称号",
     covers: "ジャケット",
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
     chartRating: "譜面 Rating",
-    scoreBadges: "スコアバッジ",
+    achievementRankBadge: "達成率ランク（SSS+）",
+    comboBadge: "FC / AP バッジ",
+    syncBadge: "FS / FDX バッジ",
     constant: "譜面定数",
     level: "譜面レベル",
     rank: "B15 / B35 順位",
@@ -521,6 +541,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     noUpgradeTargets: "計算できる目標がありません。譜面定数が不足している可能性があります。",
     target: "まで",
     needed: "必要",
+    to100: "100% まで",
+    to1005: "100.5% まで",
     nextGain: "目標増分",
     theoretical: "100.5まで",
     chartHistory: "譜面履歴",
@@ -546,7 +568,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRiskDescription: "現在の B15 / B35 最低値から 3 Rating 以内の譜面です。",
     margin: "余裕",
     simulate: "What-if",
-    simulateDescription: "達成率を動かして、譜面 Rating と B50 を再計算します。",
+    simulateDescription: "譜面と目標達成率を選び、B50 の変化をすぐ確認できます。",
+    quickTargets: "クイック目標",
+    potentialEntries: "B50入り候補",
+    potentialEntriesDescription: "100.5% までに現在の B15 / B35 ボーダーを超えられる DX NET 候補譜面です。",
+    noEntryCandidates: "取り込んだデータに到達可能な候補譜面がありません。",
     current: "現在",
     simulated: "シミュレーション",
     b50Impact: "B50 増分",
@@ -554,9 +580,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "難易度",
     levelFilter: "レベル",
     searchCharts: "譜面履歴を検索",
-    viewInExport: "書き出しで表示",
-    viewInProgress: "進捗で表示",
-    locateChart: "譜面を指定",
+    observations: "件の観測",
     plateProgress: "プレート進捗",
     plateRequiresFull: "極・将・神・舞舞の正確な計算には Full Records が必要です。",
     completed: "完了",

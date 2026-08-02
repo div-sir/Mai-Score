@@ -1,6 +1,6 @@
 # Mai-Score
 
-> The latest packaged release is **v0.11.0**. It adds official DX NET result badges, Rating cutoffs and risk insights, What-if simulation, inspectable progress timelines, chart filters, and exact plate-progress transport for future Full Records adapters.
+> The latest packaged release is **v0.12.0**. It adds independent official result-badge controls, reachable DX NET candidate recommendations, a clearer What-if simulator, and a redesigned single-chart history view.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -28,14 +28,14 @@ Building from source instead? See [Development](#development).
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
-- Keeps image choices for timestamp, watermark, accent reach, equipped trophy/nameplate, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone.
+- Keeps image choices for timestamp, watermark, accent reach, equipped player title/nameplate, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone.
 - Offers a separate dark or light Studio interface without changing the selected export theme.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 - Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
-- Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
+- Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
 - Reserves exact 極／將／神／舞舞 progress in Rhythm Record and Studio for a future opt-in Full Records adapter; B50-only data is never presented as plate completion.
 
 ## Usage

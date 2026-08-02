@@ -17,12 +17,14 @@ export interface StudioOptions {
   showFrame: boolean;
   showIcon: boolean;
   showPlate: boolean;
-  showTrophy: boolean;
+  showPlayerTitle: boolean;
   showCovers: boolean;
   showBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
-  showScoreBadges: boolean;
+  showAchievementRank: boolean;
+  showComboBadge: boolean;
+  showSyncBadge: boolean;
   chartValue: ChartValueMode;
   showRank: boolean;
 }
@@ -63,6 +65,8 @@ export interface StudioData {
     plateUrl?: string;
   };
   records: StudioRecord[];
+  /** Resolved charts from DX NET's candidate sections, outside the current B50. */
+  candidateRecords?: StudioRecord[];
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;
@@ -87,12 +91,14 @@ export const DEFAULT_OPTIONS: StudioOptions = {
   showFrame: true,
   showIcon: true,
   showPlate: true,
-  showTrophy: true,
+  showPlayerTitle: true,
   showCovers: true,
   showBreakdown: true,
   showAchievement: true,
   showChartRating: true,
-  showScoreBadges: true,
+  showAchievementRank: true,
+  showComboBadge: true,
+  showSyncBadge: true,
   chartValue: "level",
   showRank: true
 };
@@ -128,9 +134,17 @@ function chartValueFromLegacy(source: { showLevel?: unknown; showConstant?: unkn
 /** Fills in anything a stored or shared style is missing, and drops the rest. */
 export function normalizeStudioOptions(value: unknown): StudioOptions {
   if (!value || typeof value !== "object") return { ...DEFAULT_OPTIONS };
-  const source = value as Partial<StudioOptions> & { showLevel?: unknown; showConstant?: unknown };
+  const source = value as Partial<StudioOptions> & {
+    showLevel?: unknown;
+    showConstant?: unknown;
+    showTrophy?: unknown;
+    showScoreBadges?: unknown;
+  };
   const boolean = <K extends keyof StudioOptions>(key: K) =>
     typeof source[key] === "boolean" ? source[key] as boolean : DEFAULT_OPTIONS[key] as boolean;
+  const legacyScoreBadges = typeof source.showScoreBadges === "boolean" ? source.showScoreBadges : undefined;
+  const badgeBoolean = (key: "showAchievementRank" | "showComboBadge" | "showSyncBadge") =>
+    typeof source[key] === "boolean" ? source[key] : legacyScoreBadges ?? DEFAULT_OPTIONS[key];
   return {
     layout: layouts.has(source.layout as LayoutId) ? source.layout as LayoutId : DEFAULT_OPTIONS.layout,
     theme: themes.has(source.theme as ThemeId) ? source.theme as ThemeId : DEFAULT_OPTIONS.theme,
@@ -145,12 +159,16 @@ export function normalizeStudioOptions(value: unknown): StudioOptions {
     showFrame: boolean("showFrame"),
     showIcon: boolean("showIcon"),
     showPlate: boolean("showPlate"),
-    showTrophy: boolean("showTrophy"),
+    showPlayerTitle: typeof source.showPlayerTitle === "boolean"
+      ? source.showPlayerTitle
+      : typeof source.showTrophy === "boolean" ? source.showTrophy : DEFAULT_OPTIONS.showPlayerTitle,
     showCovers: boolean("showCovers"),
     showBreakdown: boolean("showBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
-    showScoreBadges: boolean("showScoreBadges"),
+    showAchievementRank: badgeBoolean("showAchievementRank"),
+    showComboBadge: badgeBoolean("showComboBadge"),
+    showSyncBadge: badgeBoolean("showSyncBadge"),
     chartValue: chartValues.has(source.chartValue as ChartValueMode)
       ? source.chartValue as ChartValueMode
       : chartValueFromLegacy(source) ?? DEFAULT_OPTIONS.chartValue,

@@ -20,12 +20,24 @@ export function achievementRank(rate: number): AchievementRank {
 export const officialMusicIconName = (value: string): string =>
   `music_icon_${value.toLowerCase().replaceAll("+", "p")}.png`;
 
+export function recordBadgeNameSet(record: {
+  achievementRate: number;
+  comboFlag?: string;
+  syncFlag?: string;
+}): { rank: string; combo?: string; sync?: string } {
+  return {
+    rank: officialMusicIconName(achievementRank(record.achievementRate)),
+    combo: record.comboFlag ? officialMusicIconName(record.comboFlag) : undefined,
+    sync: record.syncFlag ? officialMusicIconName(record.syncFlag) : undefined
+  };
+}
+
 export function recordBadgeNames(record: {
   achievementRate: number;
   comboFlag?: string;
   syncFlag?: string;
 }): string[] {
-  return [achievementRank(record.achievementRate), record.comboFlag, record.syncFlag]
-    .filter((value): value is string => Boolean(value))
-    .map(officialMusicIconName);
+  const badges = recordBadgeNameSet(record);
+  return [badges.rank, badges.combo, badges.sync]
+    .filter((value): value is string => Boolean(value));
 }
