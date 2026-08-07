@@ -214,14 +214,23 @@ sandbox without the real services.
   none regress to the attribute form. **`<rect>` elements are unaffected** and
   correctly keep `fill=`, since the stylesheet rule only targets `text` — do
   not "fix" those.
-- **Three tables are duplicated by hand**, because Studio cannot import from
+- **Several tables are duplicated by hand**, because Studio cannot import from
   the extension package. Each has a test asserting the copies agree —
   keep them:
   - `rating-tier.ts` in `src/lib/` and `studio/lib/`
+  - the rating `COEFFICIENTS` table in `src/lib/rating.ts` and
+    `studio/lib/insights.ts`
   - `accentReach`, the trophy rarity table, and the text-measurement constants
     in both `render.ts` files
   - `SYNC_PROTOCOL_VERSION` (Studio) vs `CONNECTION_PROTOCOL_VERSION`
   - `manifest.json` host permissions vs the endpoints the code calls
+
+  The coefficient copy is the one to be most careful with. A B50 upgrade card
+  subtracts a rating the extension computed from one `insights.ts` computed, so
+  a drifted entry does not merely disagree — it shows a wrong gain, or drops a
+  target from the list entirely once the difference clamps to zero. Its guard
+  sweeps every band rather than sampling, because the reachable achievements in
+  a real B50 sit in the top few and would hide a drift lower down.
 - **`manifest.json` has a `key` field** pinning the unpacked extension ID to
   `bkdgjhjohcohclggjadimcamjcacfjpk`, which the OAuth client is registered
   against. Studio uses the same ID as its direct-visit fallback. Chrome ignores
