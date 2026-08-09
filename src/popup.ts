@@ -12,6 +12,7 @@ import {
 import { renderB50Document } from "./lib/render";
 import { ratingStars, ratingTier } from "./lib/rating-tier";
 import { recordBadgeNames } from "./lib/achievement-rank";
+import { CHART_DATA_SOURCE, chartDataIsStale } from "./lib/chart-data";
 import {
   connectDrive,
   disconnectDrive,
@@ -51,6 +52,18 @@ function applyLanguage() {
     const key = element.dataset.i18n;
     if (key) element.textContent = t(key);
   });
+  renderChartDataState();
+}
+
+function renderChartDataState() {
+  const element = $("chart-data");
+  const locale = intlLocale(language);
+  const updated = new Intl.DateTimeFormat(locale, { dateStyle: "medium" })
+    .format(new Date(CHART_DATA_SOURCE.updateTime));
+  const sheets = CHART_DATA_SOURCE.sheets.toLocaleString(locale);
+  const stale = chartDataIsStale();
+  element.textContent = t(stale ? "chartDataStale" : "chartDataUpdated", updated, sheets);
+  element.classList.toggle("stale", stale);
 }
 
 async function initializeLanguage() {

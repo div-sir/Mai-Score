@@ -4,6 +4,13 @@ export type Bucket = "b15" | "b35";
 export type ComboFlag = "fc" | "fc+" | "ap" | "ap+";
 export type SyncFlag = "fs" | "fs+" | "fsd" | "fsd+";
 
+export interface ChartDataMetadata {
+  source: string;
+  updateTime: string;
+  sha256: string;
+  sheets: number;
+}
+
 export interface SheetRecord {
   sheetId: string;
   songId: string;
@@ -60,6 +67,8 @@ export interface CollectionResult {
     protocolVersion: number;
     region?: string;
   };
+  /** Exact chart catalog used to resolve constants, versions, and jackets. */
+  chartData?: ChartDataMetadata;
   player: PlayerProfile;
   records: ResolvedScore[];
   /** DX NET's own near-miss lists from the Rating Target page, when present. */

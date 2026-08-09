@@ -308,7 +308,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
 
         <article className="insight-panel provenance-panel">
           <header><div><h2>{copy.sourceDetails}</h2><p>{copy.sourceDetailsDescription}</p></div></header>
-          {provenance && <dl><div><dt>{copy.observedAt}</dt><dd>{new Date(provenance.observedAt).toLocaleString(language)}</dd></div><div><dt>{copy.importedAt}</dt><dd>{new Date(provenance.importedAt).toLocaleString(language)}</dd></div><div><dt>{copy.sourceLabel}</dt><dd>{provenance.source}</dd></div><div><dt>{copy.sourceSchema}</dt><dd>{provenance.sourceSchema}</dd></div><div><dt>{copy.ratingModel}</dt><dd>{provenance.ratingModel}</dd></div></dl>}
+          {provenance && <dl><div><dt>{copy.observedAt}</dt><dd>{new Date(provenance.observedAt).toLocaleString(language)}</dd></div><div><dt>{copy.importedAt}</dt><dd>{new Date(provenance.importedAt).toLocaleString(language)}</dd></div><div><dt>{copy.sourceLabel}</dt><dd>{provenance.source}</dd></div><div><dt>{copy.sourceSchema}</dt><dd>{provenance.sourceSchema}</dd></div><div><dt>{copy.ratingModel}</dt><dd>{provenance.ratingModel}</dd></div>{provenance.chartData && <div><dt>{copy.chartData}</dt><dd>{new Date(provenance.chartData.updateTime).toLocaleDateString(language)} · {provenance.chartData.sheets.toLocaleString(language)}</dd></div>}</dl>}
         </article>
       </div>
     </section>

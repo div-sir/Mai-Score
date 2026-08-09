@@ -6,6 +6,24 @@ All notable changes to Mai-Score are documented here.
 
 No changes yet.
 
+## [0.12.1] — 2026-08-10
+
+### Added
+
+- Popup and Studio provenance now show the packaged chart-catalog date and sheet count.
+- Full JSON and saved local/Drive snapshots retain the exact catalog source, timestamp, hash, and sheet count used for Rating resolution.
+- A weekly GitHub Actions job synchronizes dxrating data, verifies the project, and opens or refreshes a reviewable data PR when the catalog changes.
+
+### Changed
+
+- Updated the international catalog from 5,865 to 6,195 sheets using dxrating data published on 2026-08-09.
+- End-user mismatch guidance now points to updating Mai-Score or reporting the discrepancy instead of suggesting a developer-only npm command.
+
+### Data notes
+
+- The refreshed catalog adds 330 international sheets across 78 song titles compared with v0.12.0 and incorporates current constant, displayed-level, and version metadata.
+- Authenticated DX NET collection remains the final check for upstream international-region changes before each data PR is merged.
+
 ## [0.12.0] — 2026-08-02
 
 ### Added

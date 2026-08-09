@@ -1,4 +1,4 @@
-import type { LanguageId, PlateProgress, StudioData, StudioRecord } from "./types";
+import type { ChartDataMetadata, LanguageId, PlateProgress, StudioData, StudioRecord } from "./types";
 
 export interface HistoryEntry {
   /** When the collection was taken. Doubles as the store key, so re-saving
@@ -18,6 +18,7 @@ export interface HistoryEntry {
   b35Rating?: number;
   b50Rating: number;
   plateProgress?: PlateProgress[];
+  chartData?: ChartDataMetadata;
   /** Optional and backward compatible: older Drive documents remain valid. */
   provenance?: {
     sourceSchema: string;
@@ -76,6 +77,7 @@ export function toHistoryEntry(
     b35Rating: data.b35Rating,
     b50Rating: data.b50Rating,
     plateProgress: data.plateProgress?.map((plate) => ({ ...plate })),
+    chartData: data.chartData ? { ...data.chartData } : undefined,
     provenance: {
       sourceSchema: data.schema,
       observedAt: data.exportedAt,
@@ -120,7 +122,8 @@ export function fromHistoryEntry(entry: HistoryEntry): StudioData {
     b15Rating,
     b35Rating,
     b50Rating: b15Rating + b35Rating,
-    plateProgress: entry.plateProgress?.map((plate) => ({ ...plate }))
+    plateProgress: entry.plateProgress?.map((plate) => ({ ...plate })),
+    chartData: entry.chartData ? { ...entry.chartData } : undefined
   };
 }
 
