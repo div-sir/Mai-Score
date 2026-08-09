@@ -79,6 +79,7 @@ export interface SnapshotProvenance {
   source: string;
   sourceSchema: string;
   ratingModel: typeof RATING_MODEL;
+  chartData?: HistoryEntry["chartData"];
 }
 
 function bucketTotal(entry: HistoryEntry, bucket: StudioRecord["bucket"]): number {
@@ -315,6 +316,7 @@ export function snapshotProvenance(entry: HistoryEntry): SnapshotProvenance {
     importedAt: entry.savedAt,
     source: entry.source || "unknown",
     sourceSchema: entry.provenance?.sourceSchema ?? "mai-score/v1 (legacy snapshot)",
-    ratingModel: RATING_MODEL
+    ratingModel: RATING_MODEL,
+    chartData: entry.chartData ? { ...entry.chartData } : undefined
   };
 }

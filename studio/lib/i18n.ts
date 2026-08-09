@@ -84,6 +84,7 @@ export interface StudioCopy {
   sourceLabel: string;
   sourceSchema: string;
   ratingModel: string;
+  chartData: string;
   timeline: string;
   cutoff: string;
   atRisk: string;
@@ -244,6 +245,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "Source",
     sourceSchema: "Schema",
     ratingModel: "Rating model",
+    chartData: "Chart data",
     timeline: "Rating timeline",
     cutoff: "Cutoff",
     atRisk: "Near the cutoff",
@@ -403,6 +405,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "來源",
     sourceSchema: "資料格式",
     ratingModel: "Rating 模型",
+    chartData: "譜面資料",
     timeline: "Rating 時間軸",
     cutoff: "分數線",
     atRisk: "接近分數線",
@@ -562,6 +565,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     sourceLabel: "ソース",
     sourceSchema: "スキーマ",
     ratingModel: "Ratingモデル",
+    chartData: "譜面データ",
     timeline: "Rating タイムライン",
     cutoff: "ボーダー",
     atRisk: "ボーダー付近",

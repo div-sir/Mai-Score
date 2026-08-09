@@ -50,10 +50,18 @@ export interface PlateProgress {
   total: number;
 }
 
+export interface ChartDataMetadata {
+  source: string;
+  updateTime: string;
+  sha256: string;
+  sheets: number;
+}
+
 export interface StudioData {
   schema: string;
   exportedAt: string;
   source?: string;
+  chartData?: ChartDataMetadata;
   player: {
     name: string;
     title: string;

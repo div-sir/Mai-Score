@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 2, 2026. `v0.12.0` is the current packaged release and release tag.
+Accurate as of August 10, 2026. `v0.12.0` is the current packaged release and `v0.12.1` is in development.
 
-Package, lockfile, Studio, and Extension manifest metadata all use `0.12.0`.
+Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.12.1`.
 
 ## What this is
 
@@ -61,6 +61,13 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Simplified upgrade targets to Needed, To 100%, and To 100.5%; redesigned What-if and single-chart history; removed Progress-to-Export locating.
 - Added reachable B50-entry recommendations from DX NET's own New/Old candidate sections without guessing unobserved records.
 
+## In development for v0.12.1
+
+- Refreshed the international catalog to 6,195 sheets from the 2026-08-09 dxrating snapshot.
+- Added visible and portable catalog provenance: update time, source hash, source URL, and sheet count.
+- Added a 30-day stale-data signal and replaced developer-only mismatch advice with actionable update/report guidance.
+- Added weekly synchronization that opens a reviewable data PR after full verification.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
@@ -69,6 +76,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
 | Current packaged release | `v0.12.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
+| Chart-data freshness | `v0.12.1` development branch | In progress | Pass Extension and Studio verification, then validate a fresh authenticated International collection. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |

@@ -1,6 +1,6 @@
 # Mai-Score
 
-> The latest packaged release is **v0.12.0**. It adds independent official result-badge controls, reachable DX NET candidate recommendations, a clearer What-if simulator, and a redesigned single-chart history view.
+> **v0.12.1 is in development; v0.12.0 remains the latest packaged release.** v0.12.1 refreshes the international chart catalog and makes its exact update date visible and portable with every snapshot.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -33,6 +33,7 @@ Building from source instead? See [Development](#development).
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
+- Shows the packaged chart-catalog date and sheet count, carries its provenance into JSON and history, and warns when the bundled data is older than 30 days.
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 - Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
 - Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
@@ -51,7 +52,7 @@ The normal collection and Studio handoff stay inside the browser: only a random,
 
 ## Data and compatibility
 
-The compact international chart dataset is generated from [gekichumai/dxrating](https://github.com/gekichumai/dxrating) `dxdata`, which is itself based on data from [zetaraku/arcade-songs](https://github.com/zetaraku/arcade-songs). Run `npm run sync-data` after game/data updates. Sheet IDs use dxrating's canonical `songId__dxrt__type__dxrt__difficulty` format. See [`public/THIRD_PARTY_NOTICES.md`](public/THIRD_PARTY_NOTICES.md) for both projects' MIT license text, reproduced as required by that license and shipped in every build under `THIRD_PARTY_NOTICES.md`.
+The compact international chart dataset is generated from [gekichumai/dxrating](https://github.com/gekichumai/dxrating) `dxdata`, which is itself based on data from [zetaraku/arcade-songs](https://github.com/zetaraku/arcade-songs). Run `npm run sync-data` after game/data updates. A weekly workflow performs the same synchronization, runs verification, and opens a data PR when the generated catalog changes; a human still reviews region/version changes before merge. Sheet IDs use dxrating's canonical `songId__dxrt__type__dxrt__difficulty` format. See [`public/THIRD_PARTY_NOTICES.md`](public/THIRD_PARTY_NOTICES.md) for both projects' MIT license text, reproduced as required by that license and shipped in every build under `THIRD_PARTY_NOTICES.md`.
 
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
 

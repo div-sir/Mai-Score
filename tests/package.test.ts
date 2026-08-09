@@ -102,10 +102,18 @@ describe("extension package", () => {
   it("contains a valid international chart database", async () => {
     const compressed = await readFile("public/data/sheets.json.gz");
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));
-    expect(sheets.length).toBeGreaterThan(5000);
+    const source = JSON.parse(await readFile("src/data/source.json", "utf8"));
+    expect(sheets.length).toBe(source.sheets);
+    expect(sheets.length).toBeGreaterThanOrEqual(6195);
     expect(sheets[0]).toMatchObject({
       sheetId: expect.stringContaining("__dxrt__"),
       internalLevelValue: expect.any(Number)
     });
+    expect(new Set(sheets.map((sheet: { sheetId: string }) => sheet.sheetId)).size).toBe(sheets.length);
+    expect(sheets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "Nine Point Eight", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "ANiMA", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "Usagi Flap", version: "CiRCLE PLUS" })
+    ]));
   });
 });

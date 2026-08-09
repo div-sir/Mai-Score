@@ -104,6 +104,31 @@ describe("history entries", () => {
     expect(saved.plateProgress![0].completed).toBe(182);
   });
 
+  it("preserves the chart catalog used to resolve a snapshot", () => {
+    const chartData = {
+      source: "https://example.com/dxdata.json",
+      updateTime: "2026-08-09T15:00:13.090Z",
+      sha256: "a".repeat(64),
+      sheets: 6195
+    };
+    const data = {
+      schema: "mai-score/v1",
+      exportedAt: "2026-08-10T00:00:00.000Z",
+      player: { name: "DIV", title: "", rating: 15000 },
+      records: [record()],
+      b15Rating: 280,
+      b35Rating: 0,
+      b50Rating: 280,
+      chartData
+    } as StudioData;
+
+    const saved = toHistoryEntry(data, "extension", "en");
+    expect(saved.chartData).toEqual(chartData);
+    expect(fromHistoryEntry(saved).chartData).toEqual(chartData);
+    chartData.sheets = 1;
+    expect(saved.chartData?.sheets).toBe(6195);
+  });
+
   it("distinguishes the same song across type and difficulty", () => {
     const master = record({ difficulty: "master" });
     expect(chartKey(master)).not.toBe(chartKey(record({ difficulty: "expert" })));

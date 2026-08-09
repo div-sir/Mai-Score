@@ -1,0 +1,53 @@
+name: Update chart data
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-chart-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run sync-data
+
+      - name: Read catalog metadata
+        id: catalog
+        run: |
+          node -e 'const x = JSON.parse(require("fs").readFileSync("src/data/source.json", "utf8")); console.log(`updated=${x.updateTime}\nsheets=${x.sheets}`)' >> "$GITHUB_OUTPUT"
+
+      - name: Verify changed catalog
+        if: ${{ hashFiles('src/data/source.json') != '' }}
+        run: npm run verify
+
+      - name: Open or refresh data PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/update-chart-data
+          delete-branch: true
+          commit-message: Update international chart data
+          title: Update international chart data
+          body: |
+            Automated synchronization from `gekichumai/dxrating`.
+
+            - Upstream timestamp: `${{ steps.catalog.outputs.updated }}`
+            - International sheets: `${{ steps.catalog.outputs.sheets }}`
+            - Validation: `npm run verify`
+
+            Review the upstream region/version changes before merging.

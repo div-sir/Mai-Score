@@ -8,6 +8,7 @@ import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTargetPa
 import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
+import { CHART_DATA_SOURCE } from "./lib/chart-data";
 import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
 
 // One content script runs on every registered DX NET region (see
@@ -114,6 +115,7 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
       protocolVersion: CONNECTION_PROTOCOL_VERSION,
       region: connection.region
     },
+    chartData: { ...CHART_DATA_SOURCE },
     player,
     records,
     ...(candidateRecords.length ? { candidateRecords } : {}),
