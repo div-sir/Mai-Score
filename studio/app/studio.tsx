@@ -16,6 +16,7 @@ import {
 } from "../lib/local-store";
 import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
+import { normalizeB50, parseMaiScore } from "../lib/import";
 import {
   mergeSettings,
   parseSyncDocument,
@@ -40,8 +41,7 @@ import {
   type LanguageId,
   type StudioAssets,
   type StudioData,
-  type StudioOptions,
-  type StudioRecord
+  type StudioOptions
 } from "../lib/types";
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
@@ -49,7 +49,6 @@ const UI_THEME_KEY = "mai-score-studio-ui-theme";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
 type StudioView = "export" | "progress";
-const PLATE_KINDS = new Set(["kiwami", "shou", "kami", "maimai"]);
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -65,30 +64,6 @@ type ExtensionResponse =
   | { ok: false; error: string }
   | undefined;
 
-function parsePlateProgress(value: unknown): StudioData["plateProgress"] {
-  if (!Array.isArray(value)) return undefined;
-  const entries = value.flatMap((candidate) => {
-    if (!candidate || typeof candidate !== "object") return [];
-    const entry = candidate as Record<string, unknown>;
-    const completed = Number(entry.completed);
-    const total = Number(entry.total);
-    if (!PLATE_KINDS.has(String(entry.kind))
-      || !Number.isInteger(completed)
-      || !Number.isInteger(total)
-      || completed < 0
-      || total < completed) return [];
-    return [{
-      kind: String(entry.kind) as "kiwami" | "shou" | "kami" | "maimai",
-      ...(typeof entry.version === "string" && entry.version.trim()
-        ? { version: entry.version.trim().slice(0, 48) }
-        : {}),
-      completed,
-      total
-    }];
-  });
-  return entries.length ? entries : undefined;
-}
-
 interface ExternalRuntime {
   lastError?: { message?: string };
   sendMessage(
@@ -96,132 +71,6 @@ interface ExternalRuntime {
     message: unknown,
     callback: (response: ExtensionResponse) => void
   ): void;
-}
-
-function parseMaiScore(input: unknown): StudioData {
-  if (!input || typeof input !== "object") throw new Error("The JSON root must be an object.");
-  const value = input as Record<string, unknown>;
-
-  if (value.schema === "mai-score/rhythm-record/v1") {
-    const source = value.source as { game?: string } | undefined;
-    if (source?.game !== "maimai-dx") throw new Error("B50 preview currently supports only maimai-dx Rhythm Record files.");
-    const player = value.player as { displayName?: string; title?: string; rating?: number } | undefined;
-    const universalRecords = Array.isArray(value.records) ? value.records : [];
-    const records: StudioRecord[] = universalRecords.map((entry) => {
-      const record = entry as Record<string, any>;
-      return {
-        title: String(record.song?.title ?? "Unknown"),
-        type: record.chart?.type === "std" ? "std" : "dx",
-        difficulty: ["basic", "advanced", "expert", "master", "remaster"].includes(record.chart?.difficulty)
-          ? record.chart.difficulty
-          : "master",
-        displayedLevel: String(record.chart?.level ?? "?"),
-        internalLevelValue: Number.isFinite(Number(record.chart?.levelValue))
-          ? Number(record.chart.levelValue)
-          : undefined,
-        achievementRate: Number(record.result?.achievementRate ?? 0),
-        bucket: record.grouping?.bucket === "b15" ? "b15" : "b35",
-        chartRating: Number(record.result?.rating?.value ?? 0),
-        imageName: record.song?.jacketId ? String(record.song.jacketId) : undefined,
-        comboFlag: ["fc", "fc+", "ap", "ap+"].includes(record.gameSpecific?.comboFlag)
-          ? record.gameSpecific.comboFlag
-          : undefined,
-        syncFlag: ["fs", "fs+", "fsd", "fsd+"].includes(record.gameSpecific?.syncFlag)
-          ? record.gameSpecific.syncFlag
-          : undefined
-      };
-    });
-    const summaries = Array.isArray(value.summaries) ? value.summaries as Array<Record<string, any>> : [];
-    const summary = summaries.find((item) => item.system === "best50");
-    const plateSummary = summaries.find((item) => item.system === "maimai-plate-progress");
-    return normalizeB50({
-      schema: String(value.schema),
-      exportedAt: String(value.generatedAt ?? new Date().toISOString()),
-      source: typeof (value.source as { url?: unknown } | undefined)?.url === "string"
-        ? String((value.source as { url?: unknown }).url)
-        : undefined,
-      player: {
-        name: String(player?.displayName ?? "PLAYER"),
-        title: String(player?.title ?? ""),
-        rating: Number(player?.rating ?? 0)
-      },
-      records,
-      b15Rating: Number(summary?.groups?.b15 ?? 0),
-      b35Rating: Number(summary?.groups?.b35 ?? 0),
-      b50Rating: Number(summary?.value ?? 0),
-      plateProgress: parsePlateProgress(plateSummary?.entries)
-    });
-  }
-
-  const player = value.player as StudioData["player"] | undefined;
-  const records = value.records;
-  if (!player || !Array.isArray(records)) throw new Error("Missing player or records. Select a Mai-Score full JSON file.");
-  if (records.length < 50) throw new Error(`Found ${records.length} records; B50 preview requires 50.`);
-  return normalizeB50({
-    schema: String(value.schema ?? "mai-score/v1"),
-    exportedAt: String(value.exportedAt ?? new Date().toISOString()),
-    source: typeof value.source === "string" ? value.source : undefined,
-    player: {
-      name: String(player.name ?? "PLAYER"),
-      title: String(player.title ?? ""),
-      titleColor: player.titleColor,
-      rating: Number(player.rating ?? 0),
-      iconUrl: player.iconUrl,
-      frameUrl: player.frameUrl,
-      plateUrl: player.plateUrl
-    },
-    records: (records as StudioRecord[]).map((record) => ({
-      ...record,
-      internalLevelValue: Number.isFinite(Number(record.internalLevelValue))
-        ? Number(record.internalLevelValue)
-        : undefined
-    })),
-    candidateRecords: Array.isArray(value.candidateRecords)
-      ? (value.candidateRecords as StudioRecord[]).map((record) => ({
-          ...record,
-          internalLevelValue: Number.isFinite(Number(record.internalLevelValue))
-            ? Number(record.internalLevelValue)
-            : undefined
-        }))
-      : undefined,
-    b15Rating: Number(value.b15Rating ?? 0),
-    b35Rating: Number(value.b35Rating ?? 0),
-    b50Rating: Number(value.b50Rating ?? 0),
-    plateProgress: parsePlateProgress(value.plateProgress)
-  });
-}
-
-const chartRatingOf = (record: StudioRecord) =>
-  Number.isFinite(Number(record.chartRating)) ? Number(record.chartRating) : 0;
-
-function normalizeB50(data: StudioData): StudioData {
-  // Imported files are not required to be in rank order, so take the highest
-  // rated charts rather than whichever ones happen to come first.
-  const topOf = (bucket: "b15" | "b35", limit: number) => data.records
-    .filter((record) => record.bucket === bucket)
-    .sort((a, b) => chartRatingOf(b) - chartRatingOf(a))
-    .slice(0, limit);
-  const b15 = topOf("b15", 15);
-  const b35 = topOf("b35", 35);
-  if (b15.length !== 15 || b35.length !== 35) {
-    throw new Error(`Expected 15 new and 35 old charts, found ${b15.length} and ${b35.length}.`);
-  }
-  const sum = (records: StudioRecord[]) => records.reduce(
-    (total, record) => total + chartRatingOf(record),
-    0
-  );
-  const b15Rating = sum(b15);
-  const b35Rating = sum(b35);
-  return {
-    ...data,
-    records: [...b15, ...b35],
-    candidateRecords: data.candidateRecords?.filter((record) =>
-      record.bucket === "b15" || record.bucket === "b35"
-    ),
-    b15Rating,
-    b35Rating,
-    b50Rating: b15Rating + b35Rating
-  };
 }
 
 function receiveFromExtension(
@@ -516,7 +365,11 @@ export default function Studio() {
       setAssets(loadedAssets);
       const timestamp = new Date().toISOString();
       setGeneratedAt(timestamp);
-      const loadedMessage = copy.loadedFile(file.name, parsed.records.length, Object.keys(loadedAssets.covers).length);
+      const loadedMessage = copy.loadedFile(
+        file.name,
+        parsed.fullRecords?.length ?? parsed.records.length,
+        Object.keys(loadedAssets.covers).length
+      );
       setMessage(loadedMessage);
       try {
         await saveStudioSnapshot({

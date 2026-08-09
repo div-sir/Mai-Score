@@ -7,6 +7,7 @@ import {
   buildB50Cutoffs,
   buildChartHistory,
   buildEntryCandidates,
+  buildLevelCompletion,
   buildRatingTimeline,
   buildUpgradeTargets,
   listHistoryCharts,
@@ -14,8 +15,9 @@ import {
   simulateWhatIf,
   snapshotProvenance
 } from "../lib/insights";
+import { achievementRank } from "../lib/achievement-rank";
 import { studioCopy } from "../lib/i18n";
-import type { LanguageId, StudioAssets, StudioData, StudioRecord } from "../lib/types";
+import type { LanguageId, StudioAssets, StudioChartRecord, StudioData, StudioRecord } from "../lib/types";
 import TimelineChart from "./timeline-chart";
 
 interface ProgressDashboardProps {
@@ -25,18 +27,18 @@ interface ProgressDashboardProps {
   language: LanguageId;
 }
 
-function coverSource(record: StudioRecord, assets: StudioAssets) {
+function coverSource(record: StudioChartRecord, assets: StudioAssets) {
   if (!record.imageName) return undefined;
   return assets.covers[record.imageName]
     ?? `/api/asset?url=${encodeURIComponent(`https://shama.dxrating.net/images/cover/v2/${record.imageName}.jpg`)}`;
 }
 
-function SongCover({ record, assets }: { record: StudioRecord; assets: StudioAssets }) {
+function SongCover({ record, assets }: { record: StudioChartRecord; assets: StudioAssets }) {
   const source = coverSource(record, assets);
   return (
     <div className="upgrade-cover" aria-hidden="true">
       <span>♪</span>
-      {source ? <img src={source} alt="" onError={(event) => { event.currentTarget.hidden = true; }} /> : null}
+      {source ? <img src={source} alt="" loading="lazy" onError={(event) => { event.currentTarget.hidden = true; }} /> : null}
     </div>
   );
 }
@@ -59,6 +61,9 @@ export default function ProgressDashboard({ data, assets, history, language }: P
   const [level, setLevel] = useState("all");
   const [simulationKey, setSimulationKey] = useState("");
   const [simulationAchievement, setSimulationAchievement] = useState(100.5);
+  const [fullLevel, setFullLevel] = useState("");
+  const [fullDifficulty, setFullDifficulty] = useState("all");
+  const [fullQuery, setFullQuery] = useState("");
 
   const activeKey = selectedKey || (charts[0] ? chartKey(charts[0]) : "");
   const activeChart = charts.find((chart) => chartKey(chart) === activeKey);
@@ -94,6 +99,26 @@ export default function ProgressDashboard({ data, assets, history, language }: P
   const latest = history[0];
   const latestDiff = history.length > 1 ? diffHistory(history[1], history[0]) : undefined;
   const provenance = latest ? snapshotProvenance(latest) : undefined;
+  const levelCompletion = useMemo(() => buildLevelCompletion(data?.fullRecords ?? []), [data]);
+  const effectiveFullLevel = fullLevel && levelCompletion.some((entry) => entry.level === fullLevel)
+    ? fullLevel
+    : levelCompletion.at(-1)?.level ?? "all";
+  const visibleFullRecords = useMemo(() => {
+    const query = fullQuery.trim().toLocaleLowerCase(language);
+    return (data?.fullRecords ?? []).filter((record) =>
+      (effectiveFullLevel === "all" || record.displayedLevel === effectiveFullLevel)
+      && (fullDifficulty === "all" || record.difficulty === fullDifficulty)
+      && (!query || `${record.title} ${record.type} ${record.difficulty}`.toLocaleLowerCase(language).includes(query))
+    ).sort((a, b) => b.achievementRate - a.achievementRate || a.title.localeCompare(b.title));
+  }, [data, effectiveFullLevel, fullDifficulty, fullQuery, language]);
+  const visibleCompletion = useMemo(() => visibleFullRecords.reduce((summary, record) => ({
+    total: summary.total + 1,
+    sss: summary.sss + (record.achievementRate >= 100 ? 1 : 0),
+    sssPlus: summary.sssPlus + (record.achievementRate >= 100.5 ? 1 : 0),
+    fullCombo: summary.fullCombo + (record.comboFlag ? 1 : 0),
+    allPerfect: summary.allPerfect + (record.comboFlag === "ap" || record.comboFlag === "ap+" ? 1 : 0),
+    fullSync: summary.fullSync + (record.syncFlag ? 1 : 0)
+  }), { total: 0, sss: 0, sssPlus: 0, fullCombo: 0, allPerfect: 0, fullSync: 0 }), [visibleFullRecords]);
 
   if (!latest) {
     return (
@@ -136,6 +161,37 @@ export default function ProgressDashboard({ data, assets, history, language }: P
           </article>
         ))}
       </div>
+
+      {data?.fullRecords?.length ? <article className="insight-panel full-records-panel">
+        <header>
+          <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
+          <div className="target-filters">
+            <label>{copy.levelFilter}<select value={effectiveFullLevel} onChange={(event) => setFullLevel(event.target.value)}>
+              <option value="all">{copy.all}</option>
+              {levelCompletion.map((entry) => <option key={entry.level} value={entry.level}>{entry.level} · {entry.total}</option>)}
+            </select></label>
+            <label>{copy.difficultyFilter}<select value={fullDifficulty} onChange={(event) => setFullDifficulty(event.target.value)}>
+              <option value="all">{copy.all}</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option>
+            </select></label>
+            <label>{copy.searchCharts}<input value={fullQuery} onChange={(event) => setFullQuery(event.target.value)} placeholder={copy.searchCharts} /></label>
+          </div>
+        </header>
+        <div className="completion-summary">
+          <span><b>{visibleFullRecords.length}</b>{copy.charts}</span>
+          <span><b>{visibleCompletion.sss}</b>SSS</span>
+          <span><b>{visibleCompletion.sssPlus}</b>SSS+</span>
+          <span><b>{visibleCompletion.fullCombo}</b>FC / AP</span>
+          <span><b>{visibleCompletion.allPerfect}</b>AP</span>
+          <span><b>{visibleCompletion.fullSync}</b>FS / FDX</span>
+        </div>
+        <div className="completion-grid">
+          {visibleFullRecords.map((record) => <article key={record.chartId ?? `${record.title}-${record.type}-${record.difficulty}`}>
+            <SongCover record={record} assets={assets} />
+            <div><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · {record.displayedLevel}</span></div>
+            <div className="completion-result"><b>{record.achievementRate.toFixed(4)}%</b><span>{achievementRank(record.achievementRate).toUpperCase()} {[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ")}</span></div>
+          </article>)}
+        </div>
+      </article> : null}
 
       <div className="insight-grid">
         <article className="insight-panel upgrade-panel">

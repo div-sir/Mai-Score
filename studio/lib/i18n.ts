@@ -104,6 +104,9 @@ export interface StudioCopy {
   levelFilter: string;
   searchCharts: string;
   observations: string;
+  levelCompletion: string;
+  levelCompletionDescription: string;
+  charts: string;
   plateProgress: string;
   plateRequiresFull: string;
   completed: string;
@@ -265,6 +268,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     levelFilter: "Level",
     searchCharts: "Search chart history",
     observations: "observations",
+    levelCompletion: "Level completion",
+    levelCompletionDescription: "Best result for every chart in the imported Full Records file.",
+    charts: "charts",
     plateProgress: "Plate progress",
     plateRequiresFull: "Full Records is required to calculate 極 / 将 / 神 / 舞舞 accurately.",
     completed: "completed",
@@ -425,6 +431,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     levelFilter: "等級",
     searchCharts: "搜尋單曲歷史",
     observations: "筆觀測",
+    levelCompletion: "等級完成表",
+    levelCompletionDescription: "完整成績檔案中每張譜面的最佳紀錄。",
+    charts: "張譜面",
     plateProgress: "牌子進度",
     plateRequiresFull: "需要 Full Records 才能正確計算極／將／神／舞舞。",
     completed: "已完成",
@@ -585,6 +594,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     levelFilter: "レベル",
     searchCharts: "譜面履歴を検索",
     observations: "件の観測",
+    levelCompletion: "レベル別達成表",
+    levelCompletionDescription: "Full Records に含まれる各譜面のベスト記録です。",
+    charts: "譜面",
     plateProgress: "プレート進捗",
     plateRequiresFull: "極・将・神・舞舞の正確な計算には Full Records が必要です。",
     completed: "完了",

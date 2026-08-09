@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 10, 2026. `v0.12.0` is the current packaged release and `v0.12.1` is in development.
+Accurate as of August 10, 2026. `v0.12.0` is the current packaged release; `v0.12.1` is awaiting review in PR #34 and `v0.13.0` is in stacked development.
 
-Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.12.1`.
+Package, lockfile, Studio, and Extension manifest metadata on the stacked development branch all use `0.13.0`.
 
 ## What this is
 
@@ -68,6 +68,14 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Added a 30-day stale-data signal and replaced developer-only mismatch advice with actionable update/report guidance.
 - Added weekly synchronization that opens a reviewable data PR after full verification.
 
+## In development for v0.13.0
+
+- Added validated, user-initiated maimai Rhythm Record Full Records import with explicit B15/B35 extraction and best-per-chart deduplication.
+- Added a level-completion grid with search, level/difficulty filters, achievement totals, FC/AP, and FS/FDX state.
+- Exact adapter-supplied plate summaries are shown with Full Records; no plate state is inferred from B50.
+- Full Records stay in the latest local IndexedDB snapshot and are excluded from compact Drive history.
+- Live DX NET `/record/` scraping remains out of scope until authenticated page fixtures can be verified.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
@@ -77,13 +85,14 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
 | Current packaged release | `v0.12.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
 | Chart-data freshness | `v0.12.1` development branch | In progress | Pass Extension and Studio verification, then validate a fresh authenticated International collection. |
+| Full Records foundation | `v0.13.0` stacked branch | In progress | Validate file import and completion UI with a real adapter-produced fixture; do not add live scraping before authenticated page fixtures exist. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-The v0.12.0 release candidate passed 216 tests across 23 files, Extension verification, and Studio typecheck/build before merge. Nameplate parsing, candidate sections, and cross-provider Drive behavior still need broader real authenticated service coverage; these remain explicit experimental limitations rather than release blockers.
+The stacked v0.13.0 branch passes 226 tests across 25 files, Extension verification, and Studio typecheck/build. Browser automation could not install Chromium in the managed environment because the external browser download certificate was rejected, so the completion grid still needs a manual desktop/mobile visual smoke test with a real Full Records fixture. Nameplate parsing, candidate sections, and cross-provider Drive behavior also still need broader real authenticated service coverage.
 
 ## Capability snapshot
 
@@ -248,20 +257,25 @@ sandbox without the real services.
 
 Follow the development-flow table above; these are the implementation notes behind its remaining phases.
 
-### 1. Publish and verify v0.9.1
+### 1. Finish v0.12.1
 
-- Merge the release metadata PR only after Extension and Studio CI pass.
-- Tag the merge commit as `v0.9.1`, then verify the Release workflow produces `mai-score-v0.9.1.zip`.
-- Install the packaged ZIP as an unpacked extension and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
-- Test `/collection/plate/` on a real logged-in DX NET account separately; failure is non-blocking for B50 collection by design.
+- Review and merge PR #34 after one fresh authenticated International collection confirms the 2026-08-09 catalog resolves current charts.
+- Tag the merge commit as `v0.12.1`, then verify the Release workflow produces `mai-score-v0.12.1.zip`.
+- Install the packaged ZIP and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
 
-### 2. Prove Drive cross-device behavior
+### 2. Validate v0.13 Full Records
+
+- Import one real adapter-produced maimai Rhythm Record file with an explicit B15/B35 and additional best-per-chart records.
+- Confirm duplicate plays collapse to the best chart result, completion filters remain responsive on a phone, and exact plate totals match the source.
+- Do not implement live `/record/` collection until authenticated International fixtures establish its request count, pagination, and DOM structure.
+
+### 3. Prove Drive cross-device behavior
 
 The first test is desktop Extension provider → mobile Studio-web provider using the same approved Google account. Confirm both see one `mai-score-history.json`, including PR #22's optional settings block. If they do not, stop: the two providers need a different shared-storage design before any other Drive matrix result matters.
 
 Then complete create, repeat sync, bidirectional merge, deletion, disconnect, reauthorization, token expiry, account choice, offline failure, and old-client compatibility. Only after that should the project begin Google sensitive-scope verification or remove the experimental label.
 
-### 3. Extend progress tracking
+### 4. Extend progress tracking
 
 The first progress view now ships rating timelines, current-B50 upgrade targets,
 per-chart observed history, latest membership changes, and provenance. Preserve
@@ -272,21 +286,21 @@ Before adding denser history features, decide an explicit retention policy. At
 roughly 7–8 KB per collection, the 4 MB sync limit is about 500 snapshots; avoid
 silent downsampling because it would damage long-range trends.
 
-### 4. Prepare the Store release
+### 5. Prepare the Store release
 
 - Regenerate all store screenshots; the built-in demo was removed and the Studio UI has changed substantially.
 - Test the Japan adapter against a real logged-in `maimaidx.jp` account.
 - Register the Web Store account and production Extension OAuth client.
 - Keep the listing framed as a user-initiated export of the player's own profile and publish unlisted first.
 
-### 5. Add other rhythm games through adapters
+### 6. Add other rhythm games through adapters
 
 Do not add pop'n, SOUND VOLTEX, and DDR as one large scraper project. Start with one explicit file import or documented user-authorized API, normalize it into `mai-score/rhythm-record/v1`, and require schema validation plus parser fixtures. Once that transport boundary is proven, reuse it for the other reserved adapters.
 
-### 6. Smaller quality work
+### 7. Smaller quality work
 
 - Add committed coverage around the remaining `content.ts` browser/DOM path.
-- Surface the chart database sync date when fewer than 50 charts resolve.
+- Keep catalog provenance and Full Records validation errors visible without exposing developer-only commands.
 - Keep Firefox out of scope until Studio handoff and Drive sync have a replacement for `externally_connectable`.
 
 ## Conventions

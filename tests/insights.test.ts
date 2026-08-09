@@ -3,6 +3,7 @@ import {
   buildChartHistory,
   buildB50Cutoffs,
   buildEntryCandidates,
+  buildLevelCompletion,
   buildRatingTimeline,
   buildUpgradeTargets,
   calculateInsightRating,
@@ -42,6 +43,18 @@ const entry = (overrides: Partial<HistoryEntry> = {}): HistoryEntry => ({
 });
 
 describe("rating insights", () => {
+  it("summarizes Full Records by displayed level", () => {
+    const summary = buildLevelCompletion([
+      record({ displayedLevel: "14", achievementRate: 100.5, comboFlag: "ap", syncFlag: "fsd+" }),
+      record({ displayedLevel: "14", achievementRate: 100, comboFlag: "fc" }),
+      record({ displayedLevel: "13+", achievementRate: 99.5 })
+    ]);
+    expect(summary).toEqual([
+      expect.objectContaining({ level: "13+", total: 1, sss: 0 }),
+      expect.objectContaining({ level: "14", total: 2, sss: 2, sssPlus: 1, fullCombo: 2, allPerfect: 1, fullSync: 1 })
+    ]);
+  });
+
   it("builds an oldest-first B15/B35/B50 timeline", () => {
     const timeline = buildRatingTimeline([
       entry({ generatedAt: "2026-07-10T00:00:00.000Z", b15Rating: 4400, b35Rating: 10100 }),

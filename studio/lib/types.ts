@@ -29,19 +29,29 @@ export interface StudioOptions {
   showRank: boolean;
 }
 
-export interface StudioRecord {
+export interface StudioChartRecord {
+  chartId?: string;
+  songId?: string;
   title: string;
   type: "std" | "dx";
   difficulty: "basic" | "advanced" | "expert" | "master" | "remaster";
   displayedLevel: string;
   achievementRate: number;
-  bucket: "b15" | "b35";
   internalLevelValue?: number;
   chartRating?: number;
   imageName?: string;
   comboFlag?: "fc" | "fc+" | "ap" | "ap+";
   syncFlag?: "fs" | "fs+" | "fsd" | "fsd+";
+  grade?: string;
+  clearStatus?: string;
+  version?: string;
 }
+
+export interface StudioRecord extends StudioChartRecord {
+  bucket: "b15" | "b35";
+}
+
+export type StudioFullRecord = StudioChartRecord;
 
 export interface PlateProgress {
   kind: "kiwami" | "shou" | "kami" | "maimai";
@@ -73,6 +83,8 @@ export interface StudioData {
     plateUrl?: string;
   };
   records: StudioRecord[];
+  /** Optional best-per-chart collection beyond the 50 Rating targets. */
+  fullRecords?: StudioFullRecord[];
   /** Resolved charts from DX NET's candidate sections, outside the current B50. */
   candidateRecords?: StudioRecord[];
   b15Rating: number;
