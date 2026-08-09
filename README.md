@@ -71,7 +71,7 @@ npm run build
 
 ### Releases
 
-Pushing a tag matching `v*` (e.g. `v0.9.1`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds the extension, zips `dist/`, and publishes it as a GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
+Pushing a tag matching `v*` (for example `v0.12.0`) or manually dispatching a version runs [`.github/workflows/release.yml`](.github/workflows/release.yml). The v0.12.0 workflow also accepts the exact one-time `release/v0.12.0` branch for connector-driven publication. The workflow builds the extension, zips `dist/`, and publishes the matching GitHub Release asset. See [CHANGELOG.md](CHANGELOG.md) for version details and known limitations.
 
 ### Automatic Studio handoff in v0.5.0
 
