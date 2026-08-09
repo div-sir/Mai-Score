@@ -129,6 +129,29 @@ describe("history entries", () => {
     expect(saved.chartData?.sheets).toBe(6195);
   });
 
+  it("keeps Full Records out of compact local and Drive history", () => {
+    const data = {
+      schema: "mai-score/rhythm-record/v1",
+      exportedAt: "2026-08-10T00:00:00.000Z",
+      player: { name: "DIV", title: "", rating: 15000 },
+      records: [record()],
+      fullRecords: [{
+        title: "Outside B50",
+        chartId: "outside-b50",
+        type: "dx" as const,
+        difficulty: "master" as const,
+        displayedLevel: "14",
+        achievementRate: 99.5
+      }],
+      b15Rating: 280,
+      b35Rating: 0,
+      b50Rating: 280
+    } as StudioData;
+
+    const saved = toHistoryEntry(data, "file.json", "en");
+    expect(saved).not.toHaveProperty("fullRecords");
+  });
+
   it("distinguishes the same song across type and difficulty", () => {
     const master = record({ difficulty: "master" });
     expect(chartKey(master)).not.toBe(chartKey(record({ difficulty: "expert" })));

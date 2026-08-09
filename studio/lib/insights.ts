@@ -1,6 +1,6 @@
 import type { HistoryEntry } from "./history";
 import { chartKey } from "./history";
-import type { StudioData, StudioRecord } from "./types";
+import type { StudioData, StudioFullRecord, StudioRecord } from "./types";
 
 // Kept in sync with src/lib/rating.ts. Studio is deployed as its own Next.js
 // package, so it cannot depend on Extension build internals at runtime.
@@ -13,6 +13,42 @@ const COEFFICIENTS: ReadonlyArray<readonly [number, number]> = [
 
 export const RATING_MODEL = "maimai-dx-rating/2026-08";
 export const ACHIEVEMENT_TARGETS = [97, 98, 99, 99.5, 100, 100.5] as const;
+
+export interface LevelCompletion {
+  level: string;
+  total: number;
+  sss: number;
+  sssPlus: number;
+  fullCombo: number;
+  allPerfect: number;
+  fullSync: number;
+}
+
+export function buildLevelCompletion(records: readonly StudioFullRecord[]): LevelCompletion[] {
+  const levels = new Map<string, LevelCompletion>();
+  for (const record of records) {
+    const level = record.displayedLevel || "?";
+    const group = levels.get(level) ?? {
+      level,
+      total: 0,
+      sss: 0,
+      sssPlus: 0,
+      fullCombo: 0,
+      allPerfect: 0,
+      fullSync: 0
+    };
+    group.total += 1;
+    if (record.achievementRate >= 100) group.sss += 1;
+    if (record.achievementRate >= 100.5) group.sssPlus += 1;
+    if (record.comboFlag) group.fullCombo += 1;
+    if (record.comboFlag === "ap" || record.comboFlag === "ap+") group.allPerfect += 1;
+    if (record.syncFlag) group.fullSync += 1;
+    levels.set(level, group);
+  }
+  return [...levels.values()].sort((a, b) =>
+    Number.parseFloat(a.level) - Number.parseFloat(b.level) || a.level.localeCompare(b.level)
+  );
+}
 
 export interface RatingTimelinePoint {
   observedAt: string;

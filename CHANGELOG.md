@@ -6,6 +6,20 @@ All notable changes to Mai-Score are documented here.
 
 No changes yet.
 
+## [0.13.0] — 2026-08-10
+
+### Added
+
+- Studio now validates and imports maimai `mai-score/rhythm-record/v1` Full Records files while extracting the explicit New B15 and Old B35 subset for image export.
+- Full Records retain one best result per chart and power a searchable level-completion grid with SSS, SSS+, FC/AP, and FS/FDX totals.
+- Exact `maimai-plate-progress` summaries from an adapter appear beside the completion data; Studio never guesses plate completion from B50.
+- Added parser fixtures for malformed records, duplicate record IDs, unsupported games, invalid achievements, B50 grouping, best-result deduplication, and plate summaries.
+
+### Data and privacy notes
+
+- Full Records file import is local and user initiated. v0.13.0 does not scrape DX NET `/record/` pages without verified authenticated fixtures.
+- The newest Full Records dataset remains in the browser's local snapshot. Compact B50 history and exact plate summaries can sync through Drive, but the full chart list is intentionally excluded from history sync.
+
 ## [0.12.1] — 2026-08-10
 
 ### Added

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "July 31, 2026";
+const UPDATED = "August 10, 2026";
 
 export default function Privacy() {
   return (
@@ -68,6 +68,13 @@ export default function Privacy() {
             <strong>In Studio</strong>, your most recent snapshot and history are saved in your
             browser&rsquo;s IndexedDB so the page survives a reload. They stay on your device,
             and <strong>Clear local data</strong> in Studio deletes the local copy.
+          </li>
+          <li>
+            <strong>Full Records files</strong> are loaded only after you select a JSON file.
+            The complete chart list is retained in the latest local browser snapshot so the
+            level-completion view survives a reload. It is deliberately excluded from compact
+            local and Google Drive history; only B50 records, provenance, and exact plate
+            summaries are included there.
           </li>
           <li>
             <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google

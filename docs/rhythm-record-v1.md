@@ -19,6 +19,14 @@ The machine-readable contract is [`schemas/rhythm-record-v1.schema.json`](../sch
 
 maimai plate progress uses a `summaries` item with `system: "maimai-plate-progress"` and an `entries` array. Each entry carries a normalized `kind` (`kiwami`, `shou`, `kami`, or `maimai`), optional version label, and exact completed/total chart counts. A B50-only adapter must omit this summary; it must not infer plate completion from the 50 rating targets.
 
+## maimai Full Records import
+
+Studio v0.13 accepts a user-selected `mai-score/rhythm-record/v1` envelope with more than 50 maimai records. The adapter must mark exactly 15 records with `grouping.bucket: "b15"` and exactly 35 with `grouping.bucket: "b35"`; those explicit records drive the B50 export. Other records omit the bucket and power the level-completion view.
+
+Every entry needs a unique `recordId`. If several entries describe the same `chart.id`, Studio keeps the highest achievement (then the higher Rating as a tiebreak) in Full Records. This lets an adapter transport play history without duplicating a chart in the completion grid.
+
+Full Records are saved only in the browser's latest local snapshot. Drive history remains intentionally compact and carries the B50, candidate sections, provenance, and exact plate summaries—not the complete record list.
+
 ```json
 {
   "system": "maimai-plate-progress",

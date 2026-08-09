@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.12.1 is in development; v0.12.0 remains the latest packaged release.** v0.12.1 refreshes the international chart catalog and makes its exact update date visible and portable with every snapshot.
+> **v0.13.0 is in development; v0.12.0 remains the latest packaged release.** v0.13.0 is stacked on the v0.12.1 data-refresh work and adds the first validated Full Records import and level-completion workflow.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -37,7 +37,8 @@ Building from source instead? See [Development](#development).
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
 - Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
 - Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
-- Reserves exact 極／將／神／舞舞 progress in Rhythm Record and Studio for a future opt-in Full Records adapter; B50-only data is never presented as plate completion.
+- Imports validated maimai Rhythm Record Full Records files with an explicit B50, keeps one best result per chart, and shows searchable level completion with SSS/FC/AP/FS totals.
+- Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter; B50-only data is never presented as plate completion.
 
 ## Usage
 
@@ -55,6 +56,8 @@ The normal collection and Studio handoff stay inside the browser: only a random,
 The compact international chart dataset is generated from [gekichumai/dxrating](https://github.com/gekichumai/dxrating) `dxdata`, which is itself based on data from [zetaraku/arcade-songs](https://github.com/zetaraku/arcade-songs). Run `npm run sync-data` after game/data updates. A weekly workflow performs the same synchronization, runs verification, and opens a data PR when the generated catalog changes; a human still reviews region/version changes before merge. Sheet IDs use dxrating's canonical `songId__dxrt__type__dxrt__difficulty` format. See [`public/THIRD_PARTY_NOTICES.md`](public/THIRD_PARTY_NOTICES.md) for both projects' MIT license text, reproduced as required by that license and shipped in every build under `THIRD_PARTY_NOTICES.md`.
 
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
+
+Studio's v0.13 Full Records path is an explicit JSON-file import, not a live `/record/` scraper. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. The complete list remains in the latest local browser snapshot and is excluded from compact Drive history. See [Rhythm Record v1](docs/rhythm-record-v1.md).
 
 ## Development
 
