@@ -36,6 +36,7 @@ const status = $("status");
 const exportButton = $<HTMLButtonElement>("export");
 const studioButton = $<HTMLButtonElement>("studio");
 const collectButton = $<HTMLButtonElement>("collect");
+const fullRecordsCheckbox = $<HTMLInputElement>("include-full-records");
 const languageSelect = $<HTMLSelectElement>("language");
 const driveConnectButton = $<HTMLButtonElement>("drive-connect");
 const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
@@ -206,7 +207,10 @@ async function collect() {
   const connection = connectionForUrl(tab.url);
   if (!connection) throw new Error(t("openDxnet"));
   if (connection.transport !== "content-script") throw new Error(t("unsupported", connection.label));
-  const response = await chrome.tabs.sendMessage(tab.id, createCollectRequest(connection.id)) as
+  const response = await chrome.tabs.sendMessage(
+    tab.id,
+    createCollectRequest(connection.id, fullRecordsCheckbox.checked)
+  ) as
     { ok: true; data: CollectionResult } | { ok: false; error: string };
   return { response, connection };
 }
@@ -313,8 +317,9 @@ collectButton.addEventListener("click", async () => {
   // starts a second run whose result races the first.
   if (collectButton.disabled) return;
   collectButton.disabled = true;
+  fullRecordsCheckbox.disabled = true;
   collectButton.classList.add("busy");
-  setStatus(t("fetching"));
+  setStatus(t(fullRecordsCheckbox.checked ? "fetchingFull" : "fetching"));
   try {
     const { response, connection } = await collect();
     if (!response.ok) throw new Error(response.error);
@@ -329,7 +334,9 @@ collectButton.addEventListener("click", async () => {
     $("b50-rating").textContent = gap === 0
       ? String(result.b50Rating)
       : `${result.b50Rating} (${gap > 0 ? "+" : ""}${gap})`;
-    $("resolved").textContent = `${result.records.length - result.warnings.length}/50`;
+    $("resolved").textContent = result.fullRecords
+      ? t("resolvedFull", result.records.length - result.warnings.length, result.fullRecords.length - (result.fullRecordsUnmatched ?? 0), result.fullRecords.length)
+      : `${result.records.length - result.warnings.length}/50`;
     exportButton.disabled = false;
     studioButton.disabled = false;
     setStatus(
@@ -337,13 +344,16 @@ collectButton.addEventListener("click", async () => {
         ? t("ratingGap", `${gap > 0 ? "+" : ""}${gap}`, result.warnings.length)
         : result.warnings.length
           ? t("unmatched", connection.label, result.warnings.length)
-          : t("collected"),
+          : result.fullRecords
+            ? t("collectedFull", result.fullRecords.length, result.fullRecordsUnmatched ?? 0)
+            : t("collected"),
       gap === 0 && !result.warnings.length ? "ok" : ""
     );
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   } finally {
     collectButton.disabled = false;
+    fullRecordsCheckbox.disabled = false;
     collectButton.classList.remove("busy");
   }
 });

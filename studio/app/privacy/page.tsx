@@ -41,6 +41,11 @@ export default function Privacy() {
         <ul>
           <li>your in-game player name and official rating</li>
           <li>your Best-50 chart entries: song title, difficulty, level, achievement, and cover image name</li>
+          <li>
+            if you enable <strong>Include Full Records</strong>, your played-chart best results
+            from five International DX NET difficulty pages, including achievement and
+            FC/AP/FS/FDX status
+          </li>
         </ul>
         <p>
           The extension does not read your SEGA password, payment details, or any page other
@@ -70,7 +75,8 @@ export default function Privacy() {
             and <strong>Clear local data</strong> in Studio deletes the local copy.
           </li>
           <li>
-            <strong>Full Records files</strong> are loaded only after you select a JSON file.
+            <strong>Full Records</strong> are loaded only after you select a JSON file or enable
+            the Extension&rsquo;s Full Records option.
             The complete chart list is retained in the latest local browser snapshot so the
             level-completion view survives a reload. It is deliberately excluded from compact
             local and Google Drive history; only B50 records, provenance, and exact plate

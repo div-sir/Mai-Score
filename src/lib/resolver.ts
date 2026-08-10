@@ -1,5 +1,12 @@
 import { calculateChartRating } from "./rating";
-import type { ParsedScore, ResolvedScore, SheetRecord } from "./types";
+import type {
+  ParsedChartScore,
+  ParsedFullScore,
+  ParsedScore,
+  ResolvedFullScore,
+  ResolvedScore,
+  SheetRecord
+} from "./types";
 
 const normalize = (value: string) => value.normalize("NFKC").trim().toLocaleLowerCase();
 const key = (title: string, type: string, difficulty: string) =>
@@ -25,7 +32,12 @@ async function getIndex(): Promise<Map<string, SheetRecord>> {
   return indexPromise;
 }
 
-export async function resolveScores(records: ParsedScore[]): Promise<ResolvedScore[]> {
+export function resolveScores(records: ParsedScore[]): Promise<ResolvedScore[]>;
+export function resolveScores(records: ParsedFullScore[]): Promise<ResolvedFullScore[]>;
+export async function resolveScores(records: ParsedChartScore[]): Promise<Array<ParsedChartScore & Partial<SheetRecord> & {
+  chartRating?: number;
+  warning?: string;
+}>> {
   const index = await getIndex();
   return records.map((record) => {
     const sheet = index.get(key(record.title, record.type, record.difficulty));

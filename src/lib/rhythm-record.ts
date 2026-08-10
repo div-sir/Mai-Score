@@ -71,6 +71,13 @@ export interface RhythmRecordEnvelope {
 
 export function toRhythmRecord(result: CollectionResult): RhythmRecordEnvelope {
   const ranks = { b15: 0, b35: 0 };
+  const chartIdOf = (record: CollectionResult["records"][number] | NonNullable<CollectionResult["fullRecords"]>[number]) => record.sheetId
+    ?? `${record.title}__mai-score__${record.type}__mai-score__${record.difficulty}`;
+  const b50Keys = new Set(result.records.map(chartIdOf));
+  const exportedRecords = [
+    ...result.records,
+    ...(result.fullRecords ?? []).filter((record) => !b50Keys.has(chartIdOf(record)))
+  ];
   return {
     schema: RHYTHM_RECORD_SCHEMA,
     generatedAt: new Date().toISOString(),
@@ -92,10 +99,12 @@ export function toRhythmRecord(result: CollectionResult): RhythmRecordEnvelope {
         ratingBase: result.player.ratingBaseUrl
       }).filter((entry): entry is [string, string] => Boolean(entry[1])))
     },
-    records: result.records.map((record, index) => {
-      ranks[record.bucket] += 1;
-      const chartId = record.sheetId
-        ?? `${record.title}__mai-score__${record.type}__mai-score__${record.difficulty}`;
+    records: exportedRecords.map((record, index) => {
+      const bucket = "bucket" in record && (record.bucket === "b15" || record.bucket === "b35")
+        ? record.bucket
+        : undefined;
+      if (bucket) ranks[bucket] += 1;
+      const chartId = chartIdOf(record);
       return {
         recordId: `${chartId}__${index + 1}`,
         song: {
@@ -116,10 +125,7 @@ export function toRhythmRecord(result: CollectionResult): RhythmRecordEnvelope {
             ? { rating: { value: record.chartRating, system: "maimai-dx-rating" } }
             : {})
         },
-        grouping: {
-          bucket: record.bucket,
-          rank: ranks[record.bucket]
-        },
+        ...(bucket ? { grouping: { bucket, rank: ranks[bucket] } } : {}),
         gameSpecific: {
           comboFlag: record.comboFlag,
           syncFlag: record.syncFlag,

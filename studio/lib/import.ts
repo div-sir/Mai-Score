@@ -8,7 +8,7 @@ import type {
 const DIFFICULTIES = new Set(["basic", "advanced", "expert", "master", "remaster"]);
 const PLATE_KINDS = new Set(["kiwami", "shou", "kami", "maimai"]);
 const COMBO_FLAGS = new Set(["fc", "fc+", "ap", "ap+"]);
-const SYNC_FLAGS = new Set(["fs", "fs+", "fsd", "fsd+"]);
+const SYNC_FLAGS = new Set(["fs", "fs+", "fsd", "fsd+", "fdx", "fdx+"]);
 
 function object(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
