@@ -21,7 +21,7 @@ maimai plate progress uses a `summaries` item with `system: "maimai-plate-progre
 
 ## maimai Full Records import
 
-Studio v0.13 accepts a user-selected `mai-score/rhythm-record/v1` envelope with more than 50 maimai records. The adapter must mark exactly 15 records with `grouping.bucket: "b15"` and exactly 35 with `grouping.bucket: "b35"`; those explicit records drive the B50 export. Other records omit the bucket and power the level-completion view.
+Studio accepts a user-selected or Extension-produced `mai-score/rhythm-record/v1` envelope with more than 50 maimai records. The adapter must mark exactly 15 records with `grouping.bucket: "b15"` and exactly 35 with `grouping.bucket: "b35"`; those explicit records drive the B50 export. Other records omit the bucket and power the level-completion view.
 
 Every entry needs a unique `recordId`. If several entries describe the same `chart.id`, Studio keeps the highest achievement (then the higher Rating as a tiebreak) in Full Records. This lets an adapter transport play history without duplicating a chart in the completion grid.
 
@@ -40,7 +40,7 @@ Full Records are saved only in the browser's latest local snapshot. Drive histor
 
 | Game ID | Expected common fields | `gameSpecific` examples |
 | --- | --- | --- |
-| `maimai-dx` | `achievementRate`, DX Rating, displayed/internal level | combo flag (`fc`, `fc+`, `ap`, `ap+`), sync flag (`fs`, `fs+`, `fsd`, `fsd+`), B15/B35 |
+| `maimai-dx` | `achievementRate`, DX Rating, displayed/internal level | combo flag (`fc`, `fc+`, `ap`, `ap+`), sync flag (`fs`, `fs+`, `fsd`, `fsd+`, `fdx`, `fdx+`), B15/B35 |
 | `popn-music` | raw score, clear status, miss/BAD count | button count, clear medal details |
 | `sound-voltex` | raw/EX score, grade, clear status, VOLFORCE rating | effective rate, skill analyzer context |
 | `dance-dance-revolution` | raw/EX score, grade, clear status, judgments | play style, flare skill, fast/slow counts |

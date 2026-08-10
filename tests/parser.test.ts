@@ -1,6 +1,13 @@
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
-import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTarget, parseRatingTargetPage } from "../src/lib/parser";
+import {
+  parseCurrentFrame,
+  parseCurrentPlate,
+  parseFullRecordsPage,
+  parseProfile,
+  parseRatingTarget,
+  parseRatingTargetPage
+} from "../src/lib/parser";
 
 const doc = (html: string) => new JSDOM(html, { url: "https://maimaidx-eng.com/maimai-mobile/home/" }).window.document;
 
@@ -155,5 +162,61 @@ describe("international DX NET parser", () => {
     expect(scores[6].syncFlag).toBe("fs+");
     expect(scores[7].syncFlag).toBe("fsd");
     expect(scores[8].syncFlag).toBe("fsd+");
+  });
+
+  it("parses a played-chart difficulty page and skips unplayed cards", () => {
+    const full = parseFullRecordsPage(doc(`
+      <div class="main_wrapper">
+        <div class="screw_block">POPS &amp; ANIME</div>
+        <div class="w_450 m_15 p_r f_0">
+          <div class="music_master_score_back pointer p_3">
+            <div class="music_lv_block">13+</div>
+            <div class="music_name_block">Standard song</div>
+            <div class="music_score_block">100.1234%</div>
+            <img class="music_kind_icon" src="/maimai-mobile/img/music_standard.png">
+            <img class="f_r" src="/maimai-mobile/img/music_icon_app.png">
+            <img class="f_r" src="/maimai-mobile/img/music_icon_fdxp.png">
+          </div>
+        </div>
+        <div id="dx_22" class="w_450 m_15 p_r f_0">
+          <div class="music_master_score_back pointer p_3">
+            <div class="music_lv_block">14</div>
+            <div class="music_name_block">DX song</div>
+            <div class="music_score_block">99.5000%</div>
+          </div>
+        </div>
+        <div class="w_450 m_15 p_r f_0">
+          <div class="music_master_score_back pointer p_3">
+            <div class="music_lv_block">12</div>
+            <div class="music_name_block">Not played</div>
+            <div class="music_score_block"></div>
+            <img class="music_kind_icon" src="/maimai-mobile/img/music_dx.png">
+          </div>
+        </div>
+      </div>
+    `), "master");
+
+    expect(full).toEqual([{
+      title: "Standard song",
+      type: "std",
+      difficulty: "master",
+      displayedLevel: "13+",
+      achievementRate: 100.1234,
+      comboFlag: "ap+",
+      syncFlag: "fdx+"
+    }, {
+      title: "DX song",
+      type: "dx",
+      difficulty: "master",
+      displayedLevel: "14",
+      achievementRate: 99.5,
+      comboFlag: undefined,
+      syncFlag: undefined
+    }]);
+  });
+
+  it("rejects a login or changed-layout page as Full Records", () => {
+    expect(() => parseFullRecordsPage(doc(`<div class="main_wrapper"><p>Sign in</p></div>`), "expert"))
+      .toThrow("FULL_RECORDS_LAYOUT_CHANGED");
   });
 });

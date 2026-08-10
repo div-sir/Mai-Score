@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.13.0 is in development; v0.12.0 remains the latest packaged release.** v0.13.0 is stacked on the v0.12.1 data-refresh work and adds the first validated Full Records import and level-completion workflow.
+> **v0.14.0 is in development; v0.13.0 remains the latest packaged release.** v0.14.0 adds an opt-in International DX NET Full Records collector to the import and level-completion foundation shipped in v0.13.0.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -38,14 +38,16 @@ Building from source instead? See [Development](#development).
 - Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
 - Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
 - Imports validated maimai Rhythm Record Full Records files with an explicit B50, keeps one best result per chart, and shows searchable level completion with SSS/FC/AP/FS totals.
+- Optionally collects all played International DX NET charts with five sequential difficulty-page requests and sends them directly to Studio; normal B50 collection remains the default.
 - Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter; B50-only data is never presented as plate completion.
 
 ## Usage
 
 1. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) or [maimai でらっくす NET](https://maimaidx.jp/maimai-mobile/home/) in the same browser.
 2. Click the Mai-Score icon in the toolbar. If needed, pick your language from the dropdown at the top (**English**, **繁體中文**, or **日本語**) — this also carries over to Studio and exported images.
-3. Click **Collect B50**. The popup fetches your profile and rating-target page and shows your official rating, B50 total, and how many charts resolved against the local chart database.
-4. Choose how to use the result:
+3. Leave **Include Full Records (Beta)** off for the fastest B50 export, or enable it to add all played charts for Studio completion/progress tools. Full Records currently supports International DX NET only.
+4. Click **Collect B50**. The popup fetches your profile and rating-target page, then (when selected) five difficulty pages, and shows separate B50 and Full Records matching totals.
+5. Choose how to use the result:
    - **Preview and customize online** opens [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded, for choosing a layout/theme and exporting PNG or SVG.
    - **Direct export** (collapsed section below the buttons) downloads a quick PNG in the default style, or JSON in the dxrating, Mai-Score full, or Rhythm Record format, without leaving the popup.
 
@@ -57,7 +59,7 @@ The compact international chart dataset is generated from [gekichumai/dxrating](
 
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
 
-Studio's v0.13 Full Records path is an explicit JSON-file import, not a live `/record/` scraper. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. The complete list remains in the latest local browser snapshot and is excluded from compact Drive history. See [Rhythm Record v1](docs/rhythm-record-v1.md).
+In v0.14, Full Records can come from an explicit Rhythm Record file or the Extension's opt-in International collector. The collector requests `musicGenre` once per difficulty (five requests total), keeps only played charts, and never stores raw authenticated HTML. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. The complete list remains in the latest local browser snapshot and is excluded from compact Drive history. See [Rhythm Record v1](docs/rhythm-record-v1.md).
 
 ## Development
 

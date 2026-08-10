@@ -2,7 +2,7 @@ export type ChartType = "std" | "dx";
 export type Difficulty = "basic" | "advanced" | "expert" | "master" | "remaster";
 export type Bucket = "b15" | "b35";
 export type ComboFlag = "fc" | "fc+" | "ap" | "ap+";
-export type SyncFlag = "fs" | "fs+" | "fsd" | "fsd+";
+export type SyncFlag = "fs" | "fs+" | "fsd" | "fsd+" | "fdx" | "fdx+";
 
 export interface ChartDataMetadata {
   source: string;
@@ -23,18 +23,23 @@ export interface SheetRecord {
   imageName: string;
 }
 
-export interface ParsedScore {
+export interface ParsedChartScore {
   title: string;
   type: ChartType;
   difficulty: Difficulty;
   displayedLevel: string;
   achievementRate: number;
-  bucket: Bucket;
   comboFlag?: ComboFlag;
   syncFlag?: SyncFlag;
 }
 
-export interface ResolvedScore extends ParsedScore {
+export interface ParsedScore extends ParsedChartScore {
+  bucket: Bucket;
+}
+
+export type ParsedFullScore = ParsedChartScore;
+
+export interface ResolvedChartScore extends ParsedChartScore {
   sheetId?: string;
   songId?: string;
   internalLevelValue?: number;
@@ -43,6 +48,12 @@ export interface ResolvedScore extends ParsedScore {
   chartRating?: number;
   warning?: string;
 }
+
+export interface ResolvedScore extends ResolvedChartScore {
+  bucket: Bucket;
+}
+
+export type ResolvedFullScore = ResolvedChartScore;
 
 export interface PlayerProfile {
   name: string;
@@ -71,6 +82,10 @@ export interface CollectionResult {
   chartData?: ChartDataMetadata;
   player: PlayerProfile;
   records: ResolvedScore[];
+  /** Optional best-per-chart results collected from all five DX NET difficulty pages. */
+  fullRecords?: ResolvedFullScore[];
+  /** Number of Full Records entries the bundled chart catalog could not resolve. */
+  fullRecordsUnmatched?: number;
   /** DX NET's own near-miss lists from the Rating Target page, when present. */
   candidateRecords?: ResolvedScore[];
   b15Rating: number;

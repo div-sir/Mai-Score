@@ -53,6 +53,34 @@ describe("Rhythm Record v1", () => {
     expect(JSON.stringify(exported)).not.toMatch(/cookie|password|authorization/i);
   });
 
+  it("adds Full Records without duplicating or mis-grouping B50 charts", () => {
+    const exported = toRhythmRecord({
+      ...syntheticResult,
+      fullRecords: [{ ...syntheticResult.records[0] }, {
+        title: "ANOTHER SONG",
+        type: "std",
+        difficulty: "expert",
+        displayedLevel: "12+",
+        achievementRate: 100.5,
+        sheetId: "another-chart",
+        songId: "another-song",
+        internalLevelValue: 12.7,
+        imageName: "another-cover",
+        comboFlag: "ap+",
+        syncFlag: "fdx+",
+        chartRating: 271
+      }]
+    });
+
+    expect(exported.records).toHaveLength(2);
+    expect(exported.records[0].grouping).toEqual({ bucket: "b15", rank: 1 });
+    expect(exported.records[1]).toMatchObject({
+      recordId: "another-chart__2",
+      gameSpecific: { comboFlag: "ap+", syncFlag: "fdx+" }
+    });
+    expect(exported.records[1]).not.toHaveProperty("grouping");
+  });
+
   it("reserves stable game IDs in the machine-readable schema", async () => {
     const schema = JSON.parse(await readFile("schemas/rhythm-record-v1.schema.json", "utf8"));
     expect(schema.properties.schema.const).toBe(RHYTHM_RECORD_SCHEMA);

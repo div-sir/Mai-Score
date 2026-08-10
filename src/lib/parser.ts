@@ -1,4 +1,4 @@
-import type { ComboFlag, Difficulty, ParsedScore, PlayerProfile, SyncFlag } from "./types";
+import type { ComboFlag, Difficulty, ParsedFullScore, ParsedScore, PlayerProfile, SyncFlag } from "./types";
 
 const absolute = (value: string | null, base: string): string | undefined => {
   if (!value) return undefined;
@@ -30,6 +30,21 @@ export function parseProfile(doc: Document, base = "https://maimaidx-eng.com/mai
 function difficultyFrom(card: Element): Difficulty | null {
   const className = [...card.classList].find((x) => /^music_(basic|advanced|expert|master|remaster)_score_back$/.test(x));
   return (className?.match(/^music_(.+?)_score_back$/)?.[1] as Difficulty | undefined) ?? null;
+}
+
+function flagsFrom(card: Element): Pick<ParsedFullScore, "comboFlag" | "syncFlag"> {
+  const icons = [...card.querySelectorAll<HTMLImageElement>('img[src*="/music_icon_"]')]
+    .map((image) => (image.getAttribute("src") ?? "").toLowerCase());
+  const combo = icons.find((src) => /music_icon_(fc|fcp|ap|app)\.png/.test(src))
+    ?.match(/music_icon_(fcp|fc|app|ap)\.png/)?.[1];
+  const sync = icons.find((src) => /music_icon_(fs|fsp|fsd|fsdp|fdx|fdxp)\.png/.test(src))
+    ?.match(/music_icon_(fsdp|fsd|fsp|fs|fdxp|fdx)\.png/)?.[1];
+  return {
+    comboFlag: combo
+      ?.replace("fcp", "fc+").replace("app", "ap+") as ComboFlag | undefined,
+    syncFlag: sync
+      ?.replace("fsdp", "fsd+").replace("fsp", "fs+").replace("fdxp", "fdx+") as SyncFlag | undefined
+  };
 }
 
 export function parseRatingTarget(doc: Document): ParsedScore[] {
@@ -76,18 +91,12 @@ export function parseRatingTargetPage(doc: Document): RatingTargetPage {
     const src = card.querySelector<HTMLImageElement>(".music_kind_icon")?.getAttribute("src") ?? "";
     const type: ParsedScore["type"] = /music_dx\.png/i.test(src) ? "dx" : "std";
     if (!difficulty || !title || !Number.isFinite(achievementRate)) return [];
-    const icons = [...card.querySelectorAll<HTMLImageElement>('img[src*="/music_icon_"]')].map((x) => x.src.toLowerCase());
     return [{
       title, type, difficulty,
       displayedLevel: card.querySelector(".music_lv_block")?.textContent?.trim() ?? "",
       achievementRate,
       bucket,
-      comboFlag: icons.find((x) => /music_icon_(fc|fcp|ap|app)/.test(x))
-        ?.match(/music_icon_(fcp|fc|app|ap)/)?.[1]
-        ?.replace("fcp", "fc+").replace("app", "ap+") as ComboFlag | undefined,
-      syncFlag: icons.find((x) => /music_icon_(fs|fsp|fsd|fsdp)/.test(x))
-        ?.match(/music_icon_(fsdp|fsd|fsp|fs)/)?.[1]
-        ?.replace("fsdp", "fsd+").replace("fsp", "fs+") as SyncFlag | undefined
+      ...flagsFrom(card)
     }];
   }));
 
@@ -100,6 +109,43 @@ export function parseRatingTargetPage(doc: Document): RatingTargetPage {
     { bucket: "b35", cards: sections[3] ?? [] }
   ]);
   return { records, candidates };
+}
+
+
+/**
+ * Parses one authenticated DX NET musicGenre result page. The endpoint is
+ * already filtered to one difficulty, so the caller supplies that difficulty
+ * instead of trusting decorative class names that have changed between site
+ * revisions. Unplayed cards are intentionally omitted.
+ */
+export function parseFullRecordsPage(doc: Document, difficulty: Difficulty): ParsedFullScore[] {
+  const cards = [...doc.querySelectorAll(".main_wrapper > .w_450")]
+    .filter((card) => card.querySelector(".music_name_block") && card.querySelector(".music_score_block"));
+  if (!cards.length) throw new Error("FULL_RECORDS_LAYOUT_CHANGED");
+
+  return cards.flatMap((card) => {
+    const title = card.querySelector(".music_name_block")?.textContent?.trim();
+    const displayedLevel = card.querySelector(".music_lv_block")?.textContent?.trim() ?? "";
+    const scoreText = card.querySelector(".music_score_block")?.textContent?.replace("%", "").trim() ?? "";
+    // DX NET renders an empty score block for charts that have not been played.
+    if (!scoreText) return [];
+    const achievementRate = Number(scoreText);
+    if (!title || !displayedLevel || !Number.isFinite(achievementRate)
+      || achievementRate < 0 || achievementRate > 101) {
+      throw new Error("FULL_RECORDS_LAYOUT_CHANGED");
+    }
+    const kindSrc = card.querySelector<HTMLImageElement>(".music_kind_icon")?.getAttribute("src") ?? "";
+    const id = card.getAttribute("id") ?? "";
+    const type: ParsedFullScore["type"] = /music_dx\.png/i.test(kindSrc) || /^dx_/i.test(id) ? "dx" : "std";
+    return [{
+      title,
+      type,
+      difficulty,
+      displayedLevel,
+      achievementRate,
+      ...flagsFrom(card)
+    }];
+  });
 }
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {

@@ -4,7 +4,19 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
-No changes yet.
+## [0.14.0] — 2026-08-10
+
+### Added
+
+- Added an explicit **Include Full Records (Beta)** option to the Extension. It reads the five International DX NET difficulty pages only after the player enables it.
+- Full Records collection includes each played chart's achievement, displayed level, STD/DX type, FC/AP flag, and FS/FDX flag, then resolves constants, versions, chart IDs, and jacket IDs through the bundled catalog.
+- Studio handoff, Mai-Score full JSON, and Rhythm Record JSON now carry the collected best-per-chart list. Rhythm Record keeps the exact B15/B35 grouping and omits grouping from all other charts.
+- Added localized fetch progress and separate B50/Full Records matching totals in English, Traditional Chinese, and Japanese.
+
+### Data and privacy notes
+
+- Full Records is off by default and currently enabled only for the verified International connection. It makes five sequential, authenticated, same-origin requests and does not retain raw DX NET HTML or session credentials.
+- The full chart list remains local to the latest Studio snapshot and is still excluded from compact local/Drive history.
 
 ## [0.13.0] — 2026-08-10
 

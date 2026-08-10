@@ -4,12 +4,25 @@ import {
   describeFetchError,
   FETCH_TIMEOUT_MS
 } from "./lib/collect-progress";
-import { parseCurrentFrame, parseCurrentPlate, parseProfile, parseRatingTargetPage } from "./lib/parser";
+import {
+  parseCurrentFrame,
+  parseCurrentPlate,
+  parseFullRecordsPage,
+  parseProfile,
+  parseRatingTargetPage
+} from "./lib/parser";
 import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
 import { CHART_DATA_SOURCE } from "./lib/chart-data";
-import type { CollectionResult, ParsedScore, ResolvedScore } from "./lib/types";
+import type {
+  CollectionResult,
+  Difficulty,
+  ParsedChartScore,
+  ParsedFullScore,
+  ResolvedChartScore,
+  ResolvedScore
+} from "./lib/types";
 
 // One content script runs on every registered DX NET region (see
 // manifest.json's content_scripts.matches); which region depends on where
@@ -47,11 +60,11 @@ async function fetchDocument(
   return new DOMParser().parseFromString(await response.text(), "text/html");
 }
 
-async function resolveViaBackground(
-  records: ParsedScore[],
+async function resolveViaBackground<T extends ParsedChartScore>(
+  records: T[],
   connectionId: string,
   text: (key: string, ...values: Array<string | number>) => string
-): Promise<ResolvedScore[]> {
+): Promise<Array<T & ResolvedChartScore>> {
   const response = await chrome.runtime.sendMessage({
     type: "MAI_SCORE_RESOLVE",
     protocolVersion: CONNECTION_PROTOCOL_VERSION,
@@ -60,15 +73,23 @@ async function resolveViaBackground(
   }) as { ok: true; records: ResolvedScore[] } | { ok: false; error: string } | undefined;
   if (!response) throw new Error(text("resolverNoResponse"));
   if (!response.ok) throw new Error(response.error);
-  return response.records;
+  return response.records as unknown as Array<T & ResolvedChartScore>;
 }
 
-async function collect(connection: ConnectionDescriptor): Promise<CollectionResult> {
+const FULL_RECORD_DIFFICULTIES: readonly Difficulty[] = ["basic", "advanced", "expert", "master", "remaster"];
+
+const recordKey = (record: ResolvedChartScore) => record.sheetId
+  ?? `${record.title.normalize("NFKC").trim().toLocaleLowerCase()}\u0000${record.type}\u0000${record.difficulty}`;
+
+async function collect(connection: ConnectionDescriptor, includeFullRecords: boolean): Promise<CollectionResult> {
   const language = await currentLanguage();
   const text = (key: string, ...values: Array<string | number>) => popupText(language, key, ...values);
 
   let fetched = 0;
-  const total = 3;
+  if (includeFullRecords && connection.id !== "dxnet-intl") {
+    throw new Error(text("fullRecordsIntlOnly"));
+  }
+  const total = 3 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
   const tracked = (promise: Promise<Document>) => promise.then((doc) => {
     fetched += 1;
     reportProgress(createFetchProgress(fetched, total));
@@ -97,11 +118,43 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
   if (parsedB15.length !== 15 || parsedB35.length !== 35) {
     throw new Error(text("unexpectedTargetCounts", parsedB15.length, parsedB35.length));
   }
+  const parsedFullRecords: ParsedFullScore[] = [];
+  if (includeFullRecords) {
+    for (const [index, difficulty] of FULL_RECORD_DIFFICULTIES.entries()) {
+      const label = text("labelFullRecordsDifficulty", index + 1, FULL_RECORD_DIFFICULTIES.length);
+      const document = await tracked(fetchDocument(
+        `/record/musicGenre/search/?genre=99&diff=${index}`,
+        label,
+        text
+      ));
+      try {
+        parsedFullRecords.push(...parseFullRecordsPage(document, difficulty));
+      } catch (error) {
+        if (error instanceof Error && error.message === "FULL_RECORDS_LAYOUT_CHANGED") {
+          throw new Error(text("fullRecordsLayoutChanged", difficulty));
+        }
+        throw error;
+      }
+    }
+  }
+
   reportProgress(createMatchingProgress());
   const b50Count = parsedB15.length + parsedB35.length;
-  const resolved = await resolveViaBackground([...parsedB15, ...parsedB35, ...parsedPage.candidates], connection.id, text);
-  const records = resolved.slice(0, b50Count);
-  const candidateRecords = resolved.slice(b50Count);
+  const resolved = await resolveViaBackground(
+    [...parsedB15, ...parsedB35, ...parsedPage.candidates, ...parsedFullRecords],
+    connection.id,
+    text
+  );
+  const records = resolved.slice(0, b50Count) as ResolvedScore[];
+  const candidateEnd = b50Count + parsedPage.candidates.length;
+  const candidateRecords = resolved.slice(b50Count, candidateEnd) as ResolvedScore[];
+  const resolvedFullRecords = resolved.slice(candidateEnd);
+  const fullByChart = new Map(resolvedFullRecords.map((record) => [recordKey(record), record]));
+  // Prefer the canonical Rating Target copy for charts in B50. It preserves
+  // the exact same score/flags used to calculate the visible B15/B35.
+  for (const record of records) fullByChart.set(recordKey(record), record);
+  const fullRecords = includeFullRecords ? [...fullByChart.values()] : undefined;
+  const fullRecordsUnmatched = fullRecords?.filter((record) => record.warning).length;
   // Candidate matching is advisory and must not make the official B50 look
   // unresolved in the popup's 50/50 status or rating-gap explanation.
   const warnings = records.flatMap((record) => record.warning ? [record.warning] : []);
@@ -118,6 +171,7 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
     chartData: { ...CHART_DATA_SOURCE },
     player,
     records,
+    ...(fullRecords ? { fullRecords, fullRecordsUnmatched } : {}),
     ...(candidateRecords.length ? { candidateRecords } : {}),
     b15Rating,
     b35Rating,
@@ -128,7 +182,7 @@ async function collect(connection: ConnectionDescriptor): Promise<CollectionResu
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!isCollectRequest(message) || !CONNECTION || message.connectionId !== CONNECTION.id) return;
-  collect(CONNECTION).then((data) => sendResponse({ ok: true, data })).catch((error: unknown) => {
+  collect(CONNECTION, message.includeFullRecords === true).then((data) => sendResponse({ ok: true, data })).catch((error: unknown) => {
     sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
   });
   return true;

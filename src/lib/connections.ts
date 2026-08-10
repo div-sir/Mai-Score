@@ -34,6 +34,7 @@ export interface CollectRequest {
   type: "MAI_SCORE_COLLECT";
   protocolVersion: number;
   connectionId: ConnectionId;
+  includeFullRecords?: boolean;
 }
 
 export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
@@ -59,7 +60,7 @@ export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
   // parser.ts throws its usual "couldn't find player data" style errors
   // rather than silently returning wrong data, but that assumption itself
   // has not been checked against the real site.
-  capabilities: { profile: true, assets: true, best50: true, records: true }
+  capabilities: { profile: true, assets: true, best50: true, records: false }
 }, {
   id: "rhythm-record-file",
   game: "maimai-dx",
@@ -99,11 +100,12 @@ export function connectionForUrl(url: string): ConnectionDescriptor | undefined 
     connection.status === "active" && connection.matches.some((prefix) => url.startsWith(prefix)));
 }
 
-export function createCollectRequest(connectionId: ConnectionId): CollectRequest {
+export function createCollectRequest(connectionId: ConnectionId, includeFullRecords = false): CollectRequest {
   return {
     type: "MAI_SCORE_COLLECT",
     protocolVersion: CONNECTION_PROTOCOL_VERSION,
-    connectionId
+    connectionId,
+    includeFullRecords
   };
 }
 
@@ -112,5 +114,6 @@ export function isCollectRequest(value: unknown): value is CollectRequest {
   const message = value as Partial<CollectRequest>;
   return message.type === "MAI_SCORE_COLLECT"
     && message.protocolVersion === CONNECTION_PROTOCOL_VERSION
+    && (message.includeFullRecords === undefined || typeof message.includeFullRecords === "boolean")
     && CONNECTIONS.some((connection) => connection.id === message.connectionId && connection.status === "active");
 }

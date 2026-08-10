@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 10, 2026. `v0.12.0` is the current packaged release; `v0.12.1` is awaiting review in PR #34 and `v0.13.0` is in stacked development.
+Accurate as of August 10, 2026. `v0.13.0` is the current packaged release; `v0.14.0` is in development on `agent/v0.14-full-records-collector`.
 
-Package, lockfile, Studio, and Extension manifest metadata on the stacked development branch all use `0.13.0`.
+Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.14.0`.
 
 ## What this is
 
@@ -61,44 +61,53 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Simplified upgrade targets to Needed, To 100%, and To 100.5%; redesigned What-if and single-chart history; removed Progress-to-Export locating.
 - Added reachable B50-entry recommendations from DX NET's own New/Old candidate sections without guessing unobserved records.
 
-## In development for v0.12.1
+## Released in v0.12.1
 
 - Refreshed the international catalog to 6,195 sheets from the 2026-08-09 dxrating snapshot.
 - Added visible and portable catalog provenance: update time, source hash, source URL, and sheet count.
 - Added a 30-day stale-data signal and replaced developer-only mismatch advice with actionable update/report guidance.
 - Added weekly synchronization that opens a reviewable data PR after full verification.
 
-## In development for v0.13.0
+## Released in v0.13.0
 
 - Added validated, user-initiated maimai Rhythm Record Full Records import with explicit B15/B35 extraction and best-per-chart deduplication.
 - Added a level-completion grid with search, level/difficulty filters, achievement totals, FC/AP, and FS/FDX state.
 - Exact adapter-supplied plate summaries are shown with Full Records; no plate state is inferred from B50.
 - Full Records stay in the latest local IndexedDB snapshot and are excluded from compact Drive history.
-- Live DX NET `/record/` scraping remains out of scope until authenticated page fixtures can be verified.
+
+## In development for v0.14.0
+
+- Added a disabled-by-default **Include Full Records (Beta)** collection option for International DX NET.
+- The collector makes five sequential `musicGenre` requests (Basic through Re:MASTER), omits unplayed charts, resolves each chart through the bundled catalog, and merges B50 charts without losing their exact New/Old grouping.
+- Full Records now flow through direct Studio handoff, Mai-Score full JSON, and Rhythm Record JSON; non-B50 Rhythm Records intentionally omit `grouping`.
+- Parser tests cover the public International score-card structure, empty scores, STD/DX identification, AP+, and FDX+.
+- Raw authenticated HTML, cookies, and request headers are never exported or retained.
 
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release `v0.12.0` | Published | Keep the generated installable ZIP and release notes available. |
+| Packaged Extension baseline | Release `v0.13.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current packaged release | `v0.12.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
-| Chart-data freshness | `v0.12.1` development branch | In progress | Pass Extension and Studio verification, then validate a fresh authenticated International collection. |
-| Full Records foundation | `v0.13.0` stacked branch | In progress | Validate file import and completion UI with a real adapter-produced fixture; do not add live scraping before authenticated page fixtures exist. |
+| Current packaged release | `v0.13.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
+| Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
+| Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
+| Full Records collector | `v0.14.0` development branch | In progress | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-The stacked v0.13.0 branch passes 226 tests across 25 files, Extension verification, and Studio typecheck/build. Browser automation could not install Chromium in the managed environment because the external browser download certificate was rejected, so the completion grid still needs a manual desktop/mobile visual smoke test with a real Full Records fixture. Nameplate parsing, candidate sections, and cross-provider Drive behavior also still need broader real authenticated service coverage.
+The v0.14.0 branch passes 229 tests across 25 files, Extension typecheck/build, and Studio typecheck/production build. The Full Records collector still requires a manual authenticated International smoke test because CI cannot hold a player DX NET session. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
 
 ## Capability snapshot
 
-| Area | Release `v0.12.0` | Verification status |
+| Area | Release `v0.13.0` / v0.14 development | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
+| Full Records | v0.13 file import; v0.14 opt-in International five-page collector | Parser fixtures automated; authenticated end-to-end collection pending |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
 | Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, title/nameplate controls, CJK-safe titles | Automated checks pass; regenerate visual baselines for v0.12.0 |
 | JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Automated tests pass |
@@ -257,17 +266,17 @@ sandbox without the real services.
 
 Follow the development-flow table above; these are the implementation notes behind its remaining phases.
 
-### 1. Finish v0.12.1
+### 1. Validate v0.14 Full Records collection
 
-- Review and merge PR #34 after one fresh authenticated International collection confirms the 2026-08-09 catalog resolves current charts.
-- Tag the merge commit as `v0.12.1`, then verify the Release workflow produces `mai-score-v0.12.1.zip`.
-- Install the packaged ZIP and smoke-test Collect B50 → Studio handoff → PNG/JSON export.
+- Load the built Extension, sign into International DX NET, enable **Include Full Records**, and confirm progress reaches 8/8 without simultaneous difficulty requests.
+- Compare the collected played-chart count and a sample of Basic, Expert, Master, and Re:MASTER achievements/lamps against DX NET.
+- Open Studio and verify B15/B35 totals are unchanged, completion filters use the complete list, and Full Records survive a reload only in the latest local snapshot.
+- Export Rhythm Record JSON and confirm exactly 15 `b15`, 35 `b35`, no grouping on other charts, and no cookies, headers, or raw HTML.
 
-### 2. Validate v0.13 Full Records
+### 2. Define exact plate progress
 
-- Import one real adapter-produced maimai Rhythm Record file with an explicit B15/B35 and additional best-per-chart records.
-- Confirm duplicate plays collapse to the best chart result, completion filters remain responsive on a phone, and exact plate totals match the source.
-- Do not implement live `/record/` collection until authenticated International fixtures establish its request count, pagination, and DOM structure.
+- Keep the existing plate panel in “complete records required” state for collected Full Records until chart-version totals and every 極／將／神／舞舞 rule are fixture-backed.
+- Do not infer exact plate completion merely from played charts; unplayed chart catalog membership and version-specific eligibility must be known.
 
 ### 3. Prove Drive cross-device behavior
 

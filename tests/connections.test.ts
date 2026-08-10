@@ -25,6 +25,9 @@ describe("connection registry", () => {
     expect(request.protocolVersion).toBe(CONNECTION_PROTOCOL_VERSION);
     expect(isCollectRequest(request)).toBe(true);
     expect(isCollectRequest({ ...request, protocolVersion: 99 })).toBe(false);
+    expect(isCollectRequest(createCollectRequest("dxnet-intl", true))).toBe(true);
+    expect(isCollectRequest({ ...request, includeFullRecords: undefined })).toBe(true);
+    expect(isCollectRequest({ ...request, includeFullRecords: "yes" })).toBe(false);
   });
 
   it("reserves adapters for shared rhythm-game records", () => {

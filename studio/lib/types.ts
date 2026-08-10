@@ -41,7 +41,7 @@ export interface StudioChartRecord {
   chartRating?: number;
   imageName?: string;
   comboFlag?: "fc" | "fc+" | "ap" | "ap+";
-  syncFlag?: "fs" | "fs+" | "fsd" | "fsd+";
+  syncFlag?: "fs" | "fs+" | "fsd" | "fsd+" | "fdx" | "fdx+";
   grade?: string;
   clearStatus?: string;
   version?: string;
