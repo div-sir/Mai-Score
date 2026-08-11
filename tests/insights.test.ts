@@ -80,6 +80,34 @@ describe("rating insights", () => {
     }
   });
 
+  it("agrees with the extension across every coefficient band", () => {
+    // insights.ts keeps its own copy of the coefficient table, because Studio
+    // ships as its own package. The case above only reaches the 97+ bands, so
+    // the twelve entries below that were unguarded — and a B50 upgrade card
+    // subtracts a rating the extension computed from one this file computes,
+    // so a drifted entry shows up as a wrong gain, or as a target silently
+    // dropped when the difference clamps to zero.
+    const mismatches: string[] = [];
+    for (let level = 10; level <= 155; level += 5) {
+      for (let rate = 0; rate <= 1005000; rate += 313) {
+        const internalLevel = level / 10;
+        const achievement = rate / 10000;
+        const extension = calculateChartRating(internalLevel, achievement);
+        const studio = calculateInsightRating(internalLevel, achievement);
+        if (extension !== studio && mismatches.length < 5) {
+          mismatches.push(`level ${internalLevel} at ${achievement}%: ${extension} vs ${studio}`);
+        }
+      }
+    }
+    expect(mismatches, "the two rating models disagree").toEqual([]);
+  });
+
+  it("clamps out-of-range achievement the same way on both sides", () => {
+    for (const achievement of [-5, 0, 101, 150]) {
+      expect(calculateInsightRating(13.7, achievement)).toBe(calculateChartRating(13.7, achievement));
+    }
+  });
+
   it("ranks practical B50 upgrades by gain per achievement needed", () => {
     const data = {
       records: [
