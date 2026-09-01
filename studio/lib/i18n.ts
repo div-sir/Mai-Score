@@ -109,6 +109,7 @@ export interface StudioCopy {
   charts: string;
   plateProgress: string;
   plateRequiresFull: string;
+  plateRemaining: (count: number) => string;
   completed: string;
   syncHeading: string;
   driveChecking: string;
@@ -273,6 +274,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     charts: "charts",
     plateProgress: "Plate progress",
     plateRequiresFull: "Full Records is required to calculate 極 / 将 / 神 / 舞舞 accurately.",
+    plateRemaining: (count) => `${count} to go`,
     completed: "completed",
     syncHeading: "Google Drive",
     driveChecking: "Checking…",
@@ -436,6 +438,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     charts: "張譜面",
     plateProgress: "牌子進度",
     plateRequiresFull: "需要 Full Records 才能正確計算極／將／神／舞舞。",
+    plateRemaining: (count) => `還差 ${count} 首`,
     completed: "已完成",
     syncHeading: "Google 雲端硬碟",
     driveChecking: "檢查中…",
@@ -599,6 +602,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     charts: "譜面",
     plateProgress: "プレート進捗",
     plateRequiresFull: "極・将・神・舞舞の正確な計算には Full Records が必要です。",
+    plateRemaining: (count) => `あと ${count} 譜面`,
     completed: "完了",
     syncHeading: "Google ドライブ",
     driveChecking: "確認中…",

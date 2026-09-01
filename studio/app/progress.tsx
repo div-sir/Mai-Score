@@ -16,6 +16,7 @@ import {
   snapshotProvenance
 } from "../lib/insights";
 import { achievementRank } from "../lib/achievement-rank";
+import { groupPlatesByVersion } from "../lib/plates";
 import { studioCopy } from "../lib/i18n";
 import type { LanguageId, StudioAssets, StudioChartRecord, StudioData, StudioRecord } from "../lib/types";
 import TimelineChart from "./timeline-chart";
@@ -83,6 +84,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
     (difficulty === "all" || target.record.difficulty === difficulty)
     && (level === "all" || target.record.displayedLevel === level)
   ).slice(0, 8);
+  const plateGroups = useMemo(() => groupPlatesByVersion(data?.plateProgress ?? []), [data?.plateProgress]);
   const cutoffs = useMemo(() => data ? buildB50Cutoffs(data) : undefined, [data]);
   const entryCandidates = useMemo(() => data ? buildEntryCandidates(data) : [], [data]);
   const simulationRecords = useMemo(() => (data?.records ?? [])
@@ -349,10 +351,24 @@ export default function ProgressDashboard({ data, assets, history, language }: P
 
         <article className="insight-panel plate-panel">
           <header><div><h2>{copy.plateProgress}</h2></div></header>
-          {data?.plateProgress?.length ? <div className="plate-grid">{data.plateProgress.map((plate) => {
-            const percent = plate.total ? Math.min(100, plate.completed / plate.total * 100) : 0;
-            return <div key={`${plate.kind}-${plate.version ?? "all"}`}><span>{plate.version ? `${plate.version} · ` : ""}{plateLabel[plate.kind]}</span><strong>{plate.completed} / {plate.total}</strong><i><b style={{ width: `${percent}%` }} /></i></div>;
-          })}</div> : <p className="panel-empty">{copy.plateRequiresFull}</p>}
+          {plateGroups.length ? <div className="plate-grid">{plateGroups.map((group) => (
+            <section key={group.version || "all"}>
+              <h3>
+                <span>{group.version || copy.plateProgress}</span>
+                {Number.isFinite(group.nearest) && <small>{copy.plateRemaining(group.nearest)}</small>}
+              </h3>
+              <div>{group.plates.map((plate) => {
+                const percent = plate.total ? Math.min(100, plate.completed / plate.total * 100) : 0;
+                return (
+                  <div key={plate.kind} className={plate.completed >= plate.total ? "plate-done" : undefined}>
+                    <span>{plateLabel[plate.kind]}</span>
+                    <strong>{plate.completed} / {plate.total}</strong>
+                    <i><b style={{ width: `${percent}%` }} /></i>
+                  </div>
+                );
+              })}</div>
+            </section>
+          ))}</div> : <p className="panel-empty">{copy.plateRequiresFull}</p>}
         </article>
 
         <article className="insight-panel change-panel">

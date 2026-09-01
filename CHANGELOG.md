@@ -4,6 +4,21 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-09-01
+
+### Added
+
+- Studio now computes exact 極 / 将 / 神 / 舞舞 plate progress from collected Full Records instead of only displaying what an adapter states.
+- The Extension ships per-version, per-difficulty chart counts from its bundled catalog, so plate denominators include charts the player has never touched.
+- The plate panel groups by version and leads with the plate closest to completion, replacing a flat list that reached 108 bars for a player who has touched every version.
+
+### Data notes
+
+- Plate rules are transcribed from community sources and are **not verified in game**. They live in one table in `studio/lib/plates.ts`; correcting a rule is a data edit that requires no re-collection.
+- A version is omitted rather than shown at a flattering percentage when its catalog totals are missing, and plate progress is withheld entirely from a B50-only document.
+- Adapter-supplied plate summaries continue to take precedence over the computed fallback.
+
+
 ## [0.14.0] — 2026-08-10
 
 ### Added
