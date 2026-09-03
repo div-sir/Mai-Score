@@ -3,15 +3,27 @@ import type { PlateProgress, StudioChartRecord, VersionChartTotals } from "./typ
 /**
  * Which difficulties a version plate counts, and what each chart must reach.
  *
- * TRANSCRIBED FROM COMMUNITY SOURCES, NOT VERIFIED IN GAME. Two independent
- * write-ups agree that DX version plates span BASIC through MASTER and exclude
- * Re:MASTER, but no primary SEGA page states it in a form this repository could
- * quote, so treat the table as the thing to fix first if a player reports a
- * wrong "N remaining" — every rule lives here, and correcting one is a data
- * edit that needs no re-collection.
+ * NOT VERIFIED AGAINST A LIVE ACCOUNT, but corroborated by reading a working
+ * implementation: TrueRou/maimai.py, a library players use for exactly this.
+ * Its `MaimaiPlates` drops Re:MASTER for every plate whose version is not the
+ * classic aggregate 舞 or 霸 — so every DX version plate spans BASIC through
+ * MASTER, which is what PLATE_DIFFICULTIES says. Its per-kind conditions read
+ * `rate <= SSS`, `fc <= FC`, and `fc <= AP` against enums ordered best-first,
+ * which is 将 / 極 / 神 exactly as written below.
  *
- * `者` (clear) is deliberately absent: StudioData's PlateProgress kind union
- * covers only the four skill plates the Progress panel renders.
+ * The one place we deliberately differ is 舞舞. That library tests
+ * `fs <= FSD` against an FSType ordered weakest-first, so it would admit FS and
+ * FS+ while rejecting FSD+ — the strongest lamp — which cannot be the rule.
+ * 舞舞 wants FSD or better, and that is what isFullSyncDx implements.
+ *
+ * So the residual risk is narrow, not broad: a rule could still be wrong in a
+ * way both this file and that library share. Treat the table as the thing to
+ * fix first if a player reports a wrong "N remaining" — every rule lives here,
+ * and correcting one is a data edit that needs no re-collection.
+ *
+ * `者` (clear, A or better) is absent because StudioData's PlateProgress kind
+ * union covers only the four skill plates the Progress panel renders; adding it
+ * would be one more entry here plus one more union member.
  */
 export const PLATE_DIFFICULTIES = ["basic", "advanced", "expert", "master"] as const;
 

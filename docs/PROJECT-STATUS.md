@@ -88,7 +88,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Studio computes exact 極 / 将 / 神 / 舞舞 progress from collected Full Records rather than only rendering adapter-supplied summaries.
 - The Extension ships per-version, per-difficulty catalog counts so a plate denominator includes unplayed charts.
 - The plate panel groups by version and leads with the closest plate; the flat list it replaced reached 108 bars.
-- **The plate rules themselves are unverified** — see the entry in Knowingly unverified.
+- The plate rules are corroborated against a working open-source implementation but **not yet checked on a live account** — see the entry in Knowingly unverified.
 
 ## Current development flow
 
@@ -216,14 +216,21 @@ sandbox without the real services.
    errors rather than returning wrong data — a safety net, not verification.
 3. **The plate rules** (`studio/lib/plates.ts`). `PLATE_RULES` and
    `PLATE_DIFFICULTIES` say that 極 / 将 / 神 / 舞舞 span BASIC through MASTER,
-   exclude Re:MASTER, and require FC / 100% / AP / FDX respectively. Two
-   independent community write-ups agree, but the egress policy blocked every
-   page that states it directly, so nothing here is quoted from a primary
-   source. A wrong rule shows a confident, wrong "N to go" rather than failing
-   — the most misleading shape. Everything needed to correct it is in that one
-   table, and no re-collection is required, because the Extension ships raw
-   per-difficulty catalog counts rather than a computed denominator. Confirm
-   against a real account before the plate panel is advertised as exact.
+   exclude Re:MASTER, and require FC / 100% / AP / FSD respectively.
+   Corroborated by reading `TrueRou/maimai.py`, a library players use for this:
+   its `MaimaiPlates` drops Re:MASTER for every plate outside the classic
+   aggregate 舞 / 霸, and its `rate <= SSS`, `fc <= FC`, `fc <= AP` tests match
+   将 / 極 / 神 against enums ordered best-first. **We deliberately differ on
+   舞舞**: that library compares `fs <= FSD` against an FSType ordered
+   weakest-first, which would admit FS and FS+ while rejecting FSD+, so it
+   cannot be right; 舞舞 wants FSD or better.
+
+   What remains is a live-account check. A wrong rule shows a confident, wrong
+   "N to go" rather than failing — the most misleading shape — and a rule both
+   we and that library get wrong the same way would still be invisible.
+   Everything needed to correct it is in that one table, and no re-collection
+   is required, because the Extension ships raw per-difficulty catalog counts
+   rather than a computed denominator.
 4. **The nameplate collection page** (`src/lib/parser.ts`, `src/content.ts`).
    `parseCurrentPlate` assumes `/collection/plate/` has the same shape as the
    frame page and serves `/img/Plate/` images. Never run against a live
