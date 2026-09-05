@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - "agent/release-v0.15.0"
   workflow_dispatch:
     inputs:
       version:
@@ -32,6 +34,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          elif [ "${GITHUB_REF_NAME}" = "agent/release-v0.15.0" ]; then
+            echo "tag=v0.15.0" >> "$GITHUB_OUTPUT"
           else
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
@@ -43,5 +47,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: 34bf34d493840b9e4902b2ae43be7604af04895c
           files: mai-score-*.zip
           generate_release_notes: true
