@@ -9,6 +9,7 @@ import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
 import SongCover from "./song-cover";
 import ChartDetail from "./chart-detail";
 import PlayQueuePanel from "./play-queue";
+import CatalogPanel from "./catalog";
 import type { HistoryEntry } from "../lib/history";
 import { searchRecords } from "../lib/record-search";
 
@@ -60,6 +61,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
         <span>▦</span>
         <h1>{copy.recordsHeading}</h1>
         <p>{copy.recordsEmpty}</p>
+        <CatalogPanel records={data?.records ?? []} language={language} />
       </section>
     );
   }
@@ -72,6 +74,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
       </header>
 
       <PlayQueuePanel records={data.fullRecords} language={language} />
+      <CatalogPanel records={data.fullRecords} language={language} />
       <article className="insight-panel full-records-panel">
         <header>
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>

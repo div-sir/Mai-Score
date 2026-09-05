@@ -3,6 +3,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import PlayQueuePanel from "../studio/app/play-queue";
+import CatalogPanel from "../studio/app/catalog";
 import { emptyQueue, parseQueue, QUEUE_KEY } from "../studio/lib/play-queue";
 
 let dom: JSDOM;
@@ -22,6 +23,25 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); dom.window.close(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function render() { await act(async () => root.render(React.createElement(PlayQueuePanel, { records: [record], language: "en" }))); }
+it("loads catalog on demand and requires explicit International comparison", async () => {
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ schema: "mai-score/catalog/v1", region: "intl", source: { sheets: 1, updateTime: "2026-08-09" }, sheets: [{ sheetId: "one", songId: "one", title: record.title, type: "dx", difficulty: "master", level: "14", version: "A" }] }) });
+  vi.stubGlobal("fetch", fetcher);
+  await act(async () => root.render(React.createElement(CatalogPanel, { records: [record], language: "en" })));
+  expect(fetcher).not.toHaveBeenCalled();
+  await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
+  expect(host.textContent).toContain("Test song");
+  expect(host.textContent).not.toContain("99.0000%");
+  await act(async () => host.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
+  expect(host.textContent).toContain("99.0000%");
+  expect(host.textContent).toContain("Below target: 1");
+});
+it("reports unavailable catalog without fabricating charts", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+  await act(async () => root.render(React.createElement(CatalogPanel, { records: [], language: "en" })));
+  await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
+  expect(host.querySelector('[role="alert"]')!.textContent).toContain("Load failed");
+  expect(host.querySelectorAll("li")).toHaveLength(0);
+});
 async function submit() { await act(async () => host.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }))); }
 async function selectChart() {
   const select = host.querySelector("select")!;

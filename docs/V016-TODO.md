@@ -12,6 +12,8 @@ Branch: agent/v0.16-records-center. Not released. Package versions remain 0.15.0
 - 100/100.5 target chart Rating (not B50 gain).
 
 ## Remaining
+- Catalog UI checkpoint: on-demand International catalog browsing, title/version/difficulty search, 50-row incremental rendering and explicit International score-comparison confirmation are connected to Records, including its empty state. Filtered completion summaries distinguish completed/below-target/unknown. Detailed gap selection and next-play integration are still pending.
+- Verification for this UI checkpoint: root and Studio typechecks pass; 269 tests pass including catalog loading and unavailable-response interaction tests. Browser visual verification and fresh CI remain pending. React review kept network loading in explicit user actions and memoized catalog joins.
 - Complete regional catalog including unplayed charts; explicit catalog/score identity matching.
 - Connect next-play simulation to selected song with valid B15/B35 eligibility.
 - Local persistent play queue and notes with storage validation.
