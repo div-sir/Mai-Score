@@ -4,7 +4,7 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of September 1, 2026. `v0.14.0` is the current packaged release; `v0.15.0` is in development on `claude/mai-score-progress-jvh3o7`.
+Accurate as of September 5, 2026. `v0.15.0` is the current packaged release and combines the information-architecture and exact-plate-progress work.
 
 Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.15.0`.
 
@@ -75,7 +75,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Exact adapter-supplied plate summaries are shown with Full Records; no plate state is inferred from B50.
 - Full Records stay in the latest local IndexedDB snapshot and are excluded from compact Drive history.
 
-## In development for v0.14.0
+## Released in v0.14.0
 
 - Added a disabled-by-default **Include Full Records (Beta)** collection option for International DX NET.
 - The collector makes five sequential `musicGenre` requests (Basic through Re:MASTER), omits unplayed charts, resolves each chart through the bundled catalog, and merges B50 charts without losing their exact New/Old grouping.
@@ -83,8 +83,13 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Parser tests cover the public International score-card structure, empty scores, STD/DX identification, AP+, and FDX+.
 - Raw authenticated HTML, cookies, and request headers are never exported or retained.
 
-## In development for v0.15.0
+## Released in v0.15.0
 
+- Extension collection uses explicit B50-only and B50-plus-Full-Records modes, with a matching primary action and consolidated data-health summary.
+- Studio navigation is persistent and separate from transient status. Import and destructive data management are contained in a Data menu.
+- Export controls are grouped by appearance, metadata, visible content, and output. The duplicate Export-side history list has been removed.
+- Studio now has separate Export, Progress, and Records tabs. Full Records completion and exact plate progress live in Records instead of interrupting B50 analysis.
+- Progress is ordered as Next plays, History, and Data details. Upgrade, candidate, cutoff-protection, and What-if tools share one action workspace, while provenance is collapsed by default.
 - Studio computes exact 極 / 将 / 神 / 舞舞 progress from collected Full Records rather than only rendering adapter-supplied summaries.
 - The Extension ships per-version, per-difficulty catalog counts so a plate denominator includes unplayed charts.
 - The plate panel groups by version and leads with the closest plate; the flat list it replaced reached 108 bars.
@@ -94,14 +99,15 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
 | --- | --- | --- | --- |
-| Packaged Extension baseline | Release `v0.13.0` | Published | Keep the generated installable ZIP and release notes available. |
+| Packaged Extension baseline | Release `v0.15.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current packaged release | `v0.13.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
+| Current packaged release | `v0.15.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
 | Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
-| Full Records collector | Release `v0.14.0` | Published | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
-| Exact plate progress | `v0.15.0` development branch | In progress | Confirm the 極 / 将 / 神 / 舞舞 rules against a real account, then drop the "unverified" caveat. |
+| Full Records collector | Release `v0.14.0` | Published; live validation remains | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
+| Information architecture | Release `v0.15.0` | Published; live validation remains | Validate Extension and Studio responsive layouts, then complete a real-data collection-to-export smoke test. |
+| Exact plate progress | Release `v0.15.0` | Published; live validation remains | Confirm the 極 / 将 / 神 / 舞舞 rules against a real account, then drop the "unverified" caveat. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |
@@ -112,7 +118,7 @@ The v0.15.0 branch passes 249 tests across 27 files, Extension typecheck/build, 
 
 ## Capability snapshot
 
-| Area | Release `v0.13.0` / v0.14 development | Verification status |
+| Area | Release `v0.15.0` | Verification status |
 | --- | --- | --- |
 | B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
 | Full Records | v0.13 file import; v0.14 opt-in International five-page collector | Parser fixtures automated; authenticated end-to-end collection pending |

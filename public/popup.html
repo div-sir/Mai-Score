@@ -17,22 +17,17 @@
       <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
       <section id="summary" class="summary" hidden>
         <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
-        <div><span data-i18n="officialRating">Official Rating</span>
-          <div class="rating-badge-row">
-            <div class="rating-badge" id="official-rating-badge">
-              <span class="rating-badge-label">RATING</span>
-              <span class="rating-badge-value" id="official-rating">—</span>
-            </div>
-            <span class="rating-badge-stars" id="official-rating-stars"></span>
-          </div>
-        </div>
         <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>
-        <div><span data-i18n="resolved">Resolved</span><strong id="resolved">—</strong></div>
+        <div class="summary-wide"><span data-i18n="dataHealth">Data health</span><strong id="resolved">—</strong></div>
       </section>
-      <label class="full-records-option">
-        <input id="include-full-records" type="checkbox">
-        <span><strong data-i18n="includeFullRecords">Include Full Records</strong><small data-i18n="includeFullRecordsHint">Adds five DX NET requests for completion and progress tools.</small></span>
-      </label>
+      <fieldset class="collection-mode">
+        <legend data-i18n="collectionMode">Collection mode</legend>
+        <div class="mode-options">
+          <label><input type="radio" name="collection-mode" value="b50" checked><span><strong data-i18n="b50Only">B50 only</strong><small>50</small></span></label>
+          <label><input id="include-full-records" type="radio" name="collection-mode" value="full"><span><strong data-i18n="includeFullRecords">B50 + Full Records</strong><small data-i18n="fullRecordsRequests">+5 requests</small></span></label>
+        </div>
+        <small class="mode-hint" data-i18n="includeFullRecordsHint">Full Records enables completion and progress tools.</small>
+      </fieldset>
       <button id="collect" class="primary" data-i18n="collect">Collect B50</button>
       <button id="studio" class="studio-button" disabled data-i18n="studio">Preview and customize online</button>
       <details class="direct-export">
