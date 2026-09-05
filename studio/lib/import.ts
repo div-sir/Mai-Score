@@ -1,8 +1,10 @@
+import { buildPlateProgress } from "./plates";
 import type {
   PlateProgress,
   StudioData,
   StudioFullRecord,
-  StudioRecord
+  StudioRecord,
+  VersionChartTotals
 } from "./types";
 
 const DIFFICULTIES = new Set(["basic", "advanced", "expert", "master", "remaster"]);
@@ -29,6 +31,34 @@ function optionalString(value: unknown): string | undefined {
 function optionalNumber(value: unknown): number | undefined {
   const number = Number(value);
   return Number.isFinite(number) ? number : undefined;
+}
+
+const orUndefined = <T>(entries: T[]): T[] | undefined => entries.length ? entries : undefined;
+
+const DIFFICULTY_COUNT_KEYS = ["basic", "advanced", "expert", "master", "remaster"] as const;
+
+/**
+ * Catalog totals arrive from the Extension, but a saved JSON file can be
+ * edited by hand, so every count is validated. A version whose counts are
+ * unusable is dropped rather than defaulted to zero: zero would silently
+ * remove that version from plate progress, while a wrong number would show a
+ * confident, wrong "N remaining".
+ */
+export function parseVersionTotals(value: unknown): VersionChartTotals[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return orUndefined(value.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const entry = candidate as Record<string, unknown>;
+    const version = optionalString(entry.version);
+    if (!version) return [];
+    const counts = {} as Record<typeof DIFFICULTY_COUNT_KEYS[number], number>;
+    for (const difficulty of DIFFICULTY_COUNT_KEYS) {
+      const count = Number(entry[difficulty]);
+      if (!Number.isInteger(count) || count < 0) return [];
+      counts[difficulty] = count;
+    }
+    return [{ version: version.slice(0, 48), ...counts }];
+  }));
 }
 
 export function parsePlateProgress(value: unknown): PlateProgress[] | undefined {
@@ -188,6 +218,10 @@ export function parseMaiScore(input: unknown): StudioData {
   const records = value.records;
   if (!player || !Array.isArray(records)) throw new Error("Missing player or records. Select a Mai-Score full JSON file.");
   if (records.length < 50) throw new Error(`Found ${records.length} records; B50 preview requires 50.`);
+  const fullRecords = Array.isArray(value.fullRecords)
+    ? value.fullRecords as StudioFullRecord[]
+    : undefined;
+  const versionTotals = parseVersionTotals(value.versionTotals);
   return normalizeB50({
     schema: String(value.schema ?? "mai-score/v1"),
     exportedAt: String(value.exportedAt ?? new Date().toISOString()),
@@ -212,10 +246,15 @@ export function parseMaiScore(input: unknown): StudioData {
           internalLevelValue: optionalNumber(record.internalLevelValue)
         }))
       : undefined,
-    fullRecords: Array.isArray(value.fullRecords) ? value.fullRecords as StudioFullRecord[] : undefined,
+    fullRecords,
+    versionTotals,
     b15Rating: Number(value.b15Rating ?? 0),
     b35Rating: Number(value.b35Rating ?? 0),
     b50Rating: Number(value.b50Rating ?? 0),
+    // An adapter that states plate completion outright is authoritative; the
+    // computed fallback only fills the gap for documents that carry the raw
+    // material instead of the conclusion.
     plateProgress: parsePlateProgress(value.plateProgress)
+      ?? orUndefined(buildPlateProgress(fullRecords, versionTotals))
   });
 }

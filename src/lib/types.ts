@@ -69,6 +69,16 @@ export interface PlayerProfile {
   ratingBaseUrl?: string;
 }
 
+/** Chart counts per game version, split by difficulty, from the bundled catalog. */
+export interface VersionChartTotals {
+  version: string;
+  basic: number;
+  advanced: number;
+  expert: number;
+  master: number;
+  remaster: number;
+}
+
 export interface CollectionResult {
   schema: "mai-score/v1";
   exportedAt: string;
@@ -86,6 +96,8 @@ export interface CollectionResult {
   fullRecords?: ResolvedFullScore[];
   /** Number of Full Records entries the bundled chart catalog could not resolve. */
   fullRecordsUnmatched?: number;
+  /** Per-version chart counts, so plate denominators include unplayed charts. */
+  versionTotals?: VersionChartTotals[];
   /** DX NET's own near-miss lists from the Rating Target page, when present. */
   candidateRecords?: ResolvedScore[];
   b15Rating: number;

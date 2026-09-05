@@ -1,4 +1,4 @@
-import { resolveScores } from "./lib/resolver";
+import { resolveScores, versionChartTotals } from "./lib/resolver";
 import { CONNECTIONS, CONNECTION_PROTOCOL_VERSION } from "./lib/connections";
 import { isDriveSyncRequest, performDriveSync, type DriveSyncResponse } from "./lib/drive-sync";
 import { driveEnabled, type AuthDeps } from "./lib/drive-auth";
@@ -27,8 +27,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== "MAI_SCORE_RESOLVE"
     || message.protocolVersion !== CONNECTION_PROTOCOL_VERSION
     || !isResolvableConnection(message.connectionId)) return;
-  resolveScores(message.records as ParsedScore[])
-    .then((records) => sendResponse({ ok: true, records }))
+  // Version totals ride along with the resolve that already loaded the
+  // catalog, rather than costing a second message and a second parse.
+  const wantsVersionTotals = message.includeVersionTotals === true;
+  Promise.all([
+    resolveScores(message.records as ParsedScore[]),
+    wantsVersionTotals ? versionChartTotals() : Promise.resolve(undefined)
+  ])
+    .then(([records, versionTotals]) => sendResponse({ ok: true, records, versionTotals }))
     .catch((error: unknown) => {
       sendResponse({
         ok: false,

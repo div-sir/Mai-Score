@@ -60,6 +60,16 @@ export interface PlateProgress {
   total: number;
 }
 
+/** Chart counts per game version, split by difficulty, from the Extension's catalog. */
+export interface VersionChartTotals {
+  version: string;
+  basic: number;
+  advanced: number;
+  expert: number;
+  master: number;
+  remaster: number;
+}
+
 export interface ChartDataMetadata {
   source: string;
   updateTime: string;
@@ -90,6 +100,8 @@ export interface StudioData {
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;
+  /** Per-version chart counts, so plate denominators include unplayed charts. */
+  versionTotals?: VersionChartTotals[];
   plateProgress?: PlateProgress[];
 }
 

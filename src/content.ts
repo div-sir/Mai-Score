@@ -21,7 +21,8 @@ import type {
   ParsedChartScore,
   ParsedFullScore,
   ResolvedChartScore,
-  ResolvedScore
+  ResolvedScore,
+  VersionChartTotals
 } from "./lib/types";
 
 // One content script runs on every registered DX NET region (see
@@ -63,17 +64,25 @@ async function fetchDocument(
 async function resolveViaBackground<T extends ParsedChartScore>(
   records: T[],
   connectionId: string,
-  text: (key: string, ...values: Array<string | number>) => string
-): Promise<Array<T & ResolvedChartScore>> {
+  text: (key: string, ...values: Array<string | number>) => string,
+  includeVersionTotals = false
+): Promise<{ records: Array<T & ResolvedChartScore>; versionTotals?: VersionChartTotals[] }> {
   const response = await chrome.runtime.sendMessage({
     type: "MAI_SCORE_RESOLVE",
     protocolVersion: CONNECTION_PROTOCOL_VERSION,
     connectionId,
-    records
-  }) as { ok: true; records: ResolvedScore[] } | { ok: false; error: string } | undefined;
+    records,
+    includeVersionTotals
+  }) as
+    | { ok: true; records: ResolvedScore[]; versionTotals?: VersionChartTotals[] }
+    | { ok: false; error: string }
+    | undefined;
   if (!response) throw new Error(text("resolverNoResponse"));
   if (!response.ok) throw new Error(response.error);
-  return response.records as unknown as Array<T & ResolvedChartScore>;
+  return {
+    records: response.records as unknown as Array<T & ResolvedChartScore>,
+    versionTotals: response.versionTotals
+  };
 }
 
 const FULL_RECORD_DIFFICULTIES: readonly Difficulty[] = ["basic", "advanced", "expert", "master", "remaster"];
@@ -140,10 +149,13 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
 
   reportProgress(createMatchingProgress());
   const b50Count = parsedB15.length + parsedB35.length;
-  const resolved = await resolveViaBackground(
+  const { records: resolved, versionTotals } = await resolveViaBackground(
     [...parsedB15, ...parsedB35, ...parsedPage.candidates, ...parsedFullRecords],
     connection.id,
-    text
+    text,
+    // Only meaningful next to Full Records: a plate denominator counts charts
+    // the player has never touched, which a B50-only document cannot support.
+    includeFullRecords
   );
   const records = resolved.slice(0, b50Count) as ResolvedScore[];
   const candidateEnd = b50Count + parsedPage.candidates.length;
@@ -172,6 +184,7 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
     player,
     records,
     ...(fullRecords ? { fullRecords, fullRecordsUnmatched } : {}),
+    ...(versionTotals ? { versionTotals } : {}),
     ...(candidateRecords.length ? { candidateRecords } : {}),
     b15Rating,
     b35Rating,

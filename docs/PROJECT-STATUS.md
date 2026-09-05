@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of August 10, 2026. `v0.13.0` is the current packaged release; `v0.14.0` is in development on `agent/v0.14-full-records-collector`.
+Accurate as of September 1, 2026. `v0.14.0` is the current packaged release; `v0.15.0` is in development on `claude/mai-score-progress-jvh3o7`.
 
-Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.14.0`.
+Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.15.0`.
 
 ## What this is
 
@@ -83,6 +83,13 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - Parser tests cover the public International score-card structure, empty scores, STD/DX identification, AP+, and FDX+.
 - Raw authenticated HTML, cookies, and request headers are never exported or retained.
 
+## In development for v0.15.0
+
+- Studio computes exact 極 / 将 / 神 / 舞舞 progress from collected Full Records rather than only rendering adapter-supplied summaries.
+- The Extension ships per-version, per-difficulty catalog counts so a plate denominator includes unplayed charts.
+- The plate panel groups by version and leads with the closest plate; the flat list it replaced reached 108 bars.
+- The plate rules are corroborated against a working open-source implementation but **not yet checked on a live account** — see the entry in Knowingly unverified.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
@@ -93,14 +100,15 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Current packaged release | `v0.13.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
 | Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
-| Full Records collector | `v0.14.0` development branch | In progress | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
+| Full Records collector | Release `v0.14.0` | Published | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
+| Exact plate progress | `v0.15.0` development branch | In progress | Confirm the 極 / 将 / 神 / 舞舞 rules against a real account, then drop the "unverified" caveat. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
 | Progress dashboard | Release `v0.9.0` | Published | Continue smoke-testing with real multi-snapshot history. |
 | Progress interaction refresh | Release `v0.12.0` | Published | Validate candidate sections and the revised What-if/history layouts with a fresh authenticated collection. |
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-The v0.14.0 branch passes 229 tests across 25 files, Extension typecheck/build, and Studio typecheck/production build. The Full Records collector still requires a manual authenticated International smoke test because CI cannot hold a player DX NET session. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
+The v0.15.0 branch passes 249 tests across 27 files, Extension typecheck/build, and Studio typecheck/production build. Two things CI structurally cannot settle: the Full Records collector needs a manual authenticated International smoke test because no runner can hold a player DX NET session, and the plate rules need a player to confirm them because no reachable page states them authoritatively. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
 
 ## Capability snapshot
 
@@ -206,14 +214,31 @@ sandbox without the real services.
    share a template. Never run against a live logged-in `maimaidx.jp`. If the
    markup differs, `parser.ts` throws its existing "couldn't find player data"
    errors rather than returning wrong data — a safety net, not verification.
-3. **The nameplate collection page** (`src/lib/parser.ts`, `src/content.ts`).
+3. **The plate rules** (`studio/lib/plates.ts`). `PLATE_RULES` and
+   `PLATE_DIFFICULTIES` say that 極 / 将 / 神 / 舞舞 span BASIC through MASTER,
+   exclude Re:MASTER, and require FC / 100% / AP / FSD respectively.
+   Corroborated by reading `TrueRou/maimai.py`, a library players use for this:
+   its `MaimaiPlates` drops Re:MASTER for every plate outside the classic
+   aggregate 舞 / 霸, and its `rate <= SSS`, `fc <= FC`, `fc <= AP` tests match
+   将 / 極 / 神 against enums ordered best-first. **We deliberately differ on
+   舞舞**: that library compares `fs <= FSD` against an FSType ordered
+   weakest-first, which would admit FS and FS+ while rejecting FSD+, so it
+   cannot be right; 舞舞 wants FSD or better.
+
+   What remains is a live-account check. A wrong rule shows a confident, wrong
+   "N to go" rather than failing — the most misleading shape — and a rule both
+   we and that library get wrong the same way would still be invisible.
+   Everything needed to correct it is in that one table, and no re-collection
+   is required, because the Extension ships raw per-difficulty catalog counts
+   rather than a computed denominator.
+4. **The nameplate collection page** (`src/lib/parser.ts`, `src/content.ts`).
    `parseCurrentPlate` assumes `/collection/plate/` has the same shape as the
    frame page and serves `/img/Plate/` images. Never run against a live
    logged-in account. It is fetched on a 5 s deadline, separately from the
    three pages the export needs, and both a failed request and an unrecognized
    page yield "no nameplate" rather than failing the collection — so the cost
    of the guess being wrong is a missing decoration, not a lost B50.
-4. **Whether the two OAuth clients share one `appDataFolder`.** This is the
+5. **Whether the two OAuth clients share one `appDataFolder`.** This is the
    load-bearing assumption of the whole two-provider design, and nothing in
    the repository establishes it. The extension and Studio-web paths use
    different client IDs in one Google Cloud project. If `appDataFolder` is
@@ -223,11 +248,11 @@ sandbox without the real services.
    successful syncs**. Verify this before anything else —
    [the test plan](drive-real-api-test.md) opens with the procedure and what
    to do if it fails.
-5. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+6. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
    complete multi-profile real-service matrix has not been recorded in the
    repository. Follow [the real-service test plan](drive-real-api-test.md)
    before declaring Drive generally available.
-6. **Collect latency.** The chart database was measured at ~95 ms and ruled
+7. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
 
@@ -273,10 +298,17 @@ Follow the development-flow table above; these are the implementation notes behi
 - Open Studio and verify B15/B35 totals are unchanged, completion filters use the complete list, and Full Records survive a reload only in the latest local snapshot.
 - Export Rhythm Record JSON and confirm exactly 15 `b15`, 35 `b35`, no grouping on other charts, and no cookies, headers, or raw HTML.
 
-### 2. Define exact plate progress
+### 2. Confirm the plate rules against a real account
 
-- Keep the existing plate panel in “complete records required” state for collected Full Records until chart-version totals and every 極／將／神／舞舞 rule are fixture-backed.
-- Do not infer exact plate completion merely from played charts; unplayed chart catalog membership and version-specific eligibility must be known.
+v0.15.0 computes plate progress: version totals come from the catalog, so
+unplayed charts are in the denominator, and a version without totals is dropped
+rather than shown at a flattering percentage. What is left is confirmation.
+
+- Compare a version's 極 / 将 / 神 / 舞舞 counts against the same version in game.
+- If a count is off, fix `PLATE_RULES` or `PLATE_DIFFICULTIES` in
+  `studio/lib/plates.ts` — the Extension ships raw per-difficulty counts, so a
+  rule correction never requires collecting again.
+- Only then drop the unverified caveat from the panel's description.
 
 ### 3. Prove Drive cross-device behavior
 

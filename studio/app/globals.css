@@ -460,11 +460,20 @@ button:active{transform:scale(.97)}
 .change-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .change-summary span{display:flex;min-height:66px;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;color:var(--muted-dim);font-size:8px;text-align:center}
 .change-summary strong{margin-bottom:4px;color:var(--text);font-size:16px}
-.plate-grid{display:grid;gap:8px}
-.plate-grid>div{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;color:var(--muted);font-size:8px;text-transform:uppercase}
+/* One section per version. A collection covering every version yields 27 of
+   them against four plates each, so the flat list this replaced ran to 108
+   bars in a side panel. */
+.plate-grid{display:grid;gap:9px;max-height:520px;overflow:auto;padding-right:3px}
+.plate-grid>section{content-visibility:auto;contain-intrinsic-size:96px;border:1px solid var(--line);border-radius:11px;background:color-mix(in srgb,var(--bg3) 52%,transparent);padding:8px 10px}
+.plate-grid h3{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 7px;font-size:10px;font-weight:750}
+.plate-grid h3 small{flex:0 0 auto;color:var(--accent);font-family:ui-monospace,"SFMono-Regular",monospace;font-size:8px;font-weight:800}
+.plate-grid>section>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+.plate-grid>section>div>div{display:grid;grid-template-columns:1fr auto;gap:4px 6px;align-items:center;color:var(--muted);font-size:8px;text-transform:uppercase}
 .plate-grid strong{color:var(--text);font-family:ui-monospace,monospace}
 .plate-grid i{grid-column:1/-1;height:5px;overflow:hidden;border-radius:999px;background:var(--bg3)}
 .plate-grid b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.plate-grid .plate-done strong{color:var(--green)}
+.plate-grid .plate-done b{background:var(--green)}
 .full-records-panel{margin:14px 0}
 .full-records-panel>header{align-items:flex-end}
 .full-records-panel .target-filters{flex-wrap:wrap}

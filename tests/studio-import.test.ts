@@ -81,3 +81,64 @@ describe("Studio Rhythm Record import", () => {
     expect(() => parseMaiScore(envelope)).toThrow(/Expected 15 new and 35 old charts/);
   });
 });
+
+describe("plate progress through a Mai-Score document", () => {
+  const b50 = (index: number) => ({
+    title: `Song ${index + 1}`,
+    type: "dx" as const,
+    difficulty: "master" as const,
+    displayedLevel: "13+",
+    internalLevelValue: 13.9,
+    achievementRate: 100,
+    bucket: index < 15 ? "b15" as const : "b35" as const,
+    chartRating: 300
+  });
+
+  const maiScore = (extra: Record<string, unknown> = {}) => ({
+    schema: "mai-score/v1",
+    exportedAt: "2026-09-01T00:00:00.000Z",
+    player: { name: "DIV", title: "TEST", rating: 15000 },
+    records: Array.from({ length: 50 }, (_, index) => b50(index)),
+    b15Rating: 4500,
+    b35Rating: 10500,
+    b50Rating: 15000,
+    ...extra
+  });
+
+  const versionTotals = [{ version: "PRiSM", basic: 2, advanced: 2, expert: 2, master: 2, remaster: 2 }];
+  const fullRecords = [
+    { ...b50(0), difficulty: "basic" as const, version: "PRiSM", comboFlag: "ap" as const },
+    { ...b50(0), difficulty: "master" as const, version: "PRiSM", comboFlag: "fc" as const }
+  ];
+
+  it("computes plate progress from Full Records and catalog totals", () => {
+    const parsed = parseMaiScore(maiScore({ fullRecords, versionTotals }));
+    const kiwami = parsed.plateProgress?.find((entry) => entry.kind === "kiwami");
+    const kami = parsed.plateProgress?.find((entry) => entry.kind === "kami");
+
+    // 8 = BASIC+ADVANCED+EXPERT+MASTER at 2 charts each; Re:MASTER excluded.
+    expect(kiwami).toMatchObject({ version: "PRiSM", completed: 2, total: 8 });
+    expect(kami).toMatchObject({ completed: 1, total: 8 });
+  });
+
+  it("reports no plate progress from a B50-only document", () => {
+    // Without Full Records there is nothing to count, and without totals there
+    // is no honest denominator. Either absence must yield silence, not zeroes.
+    expect(parseMaiScore(maiScore()).plateProgress).toBeUndefined();
+    expect(parseMaiScore(maiScore({ fullRecords })).plateProgress).toBeUndefined();
+    expect(parseMaiScore(maiScore({ versionTotals })).plateProgress).toBeUndefined();
+  });
+
+  it("prefers plate progress the document states outright", () => {
+    // An adapter that reports exact completion knows things the catalog does
+    // not; the computed fallback must not overwrite it.
+    const stated = [{ kind: "kiwami", version: "PRiSM", completed: 7, total: 8 }];
+    const parsed = parseMaiScore(maiScore({ fullRecords, versionTotals, plateProgress: stated }));
+    expect(parsed.plateProgress).toEqual(stated);
+  });
+
+  it("drops version totals that were tampered with rather than trusting them", () => {
+    const broken = [{ version: "PRiSM", basic: 2, advanced: 2, expert: 2, master: -1, remaster: 2 }];
+    expect(parseMaiScore(maiScore({ fullRecords, versionTotals: broken })).plateProgress).toBeUndefined();
+  });
+});
