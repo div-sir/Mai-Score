@@ -3,6 +3,8 @@
   "version": "0.15.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/prepare-catalog.mjs",
+    "prebuild": "node scripts/prepare-catalog.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
