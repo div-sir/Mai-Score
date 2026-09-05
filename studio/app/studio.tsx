@@ -834,7 +834,7 @@ export default function Studio() {
           language={language}
         />
       ) : studioView === "records" ? (
-        <RecordsDashboard data={data} assets={assets} language={language} />
+        <RecordsDashboard data={data} assets={assets} language={language} history={history} />
       ) : <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">

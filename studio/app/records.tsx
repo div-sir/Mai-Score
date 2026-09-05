@@ -7,30 +7,41 @@ import { studioCopy } from "../lib/i18n";
 import { groupPlatesByVersion } from "../lib/plates";
 import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
 import SongCover from "./song-cover";
+import ChartDetail from "./chart-detail";
+import type { HistoryEntry } from "../lib/history";
+import { searchRecords } from "../lib/record-search";
 
 interface RecordsDashboardProps {
   data: StudioData | null;
+  history: HistoryEntry[];
   assets: StudioAssets;
   language: LanguageId;
 }
 
-export default function RecordsDashboard({ data, assets, language }: RecordsDashboardProps) {
+export default function RecordsDashboard({ data, assets, language, history }: RecordsDashboardProps) {
   const copy = studioCopy(language);
-  const [level, setLevel] = useState("");
+  const [level, setLevel] = useState("all");
+  const [sort, setSort] = useState("achievement");
+  const [status, setStatus] = useState("all");
+  const [type, setType] = useState("all");
+  const [version, setVersion] = useState("all");
+  const versions = useMemo(() => [...new Set((data?.fullRecords ?? []).flatMap(r => r.version ? [r.version] : []))].sort(), [data]);
+  const text = language === "zh-Hant"
+    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本" }
+    : language === "ja"
+      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン" }
+      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version" };
+  const sortLabel = language === "zh-Hant" ? "排序" : language === "ja" ? "並び順" : "Sort";
+  const titleLabel = language === "en" ? "Title" : "曲名";
   const [difficulty, setDifficulty] = useState("all");
   const [query, setQuery] = useState("");
   const levelCompletion = useMemo(() => buildLevelCompletion(data?.fullRecords ?? []), [data]);
-  const effectiveLevel = level && levelCompletion.some((entry) => entry.level === level)
+  const effectiveLevel = level === "all" || levelCompletion.some((entry) => entry.level === level)
     ? level
-    : levelCompletion.at(-1)?.level ?? "all";
-  const visibleRecords = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase(language);
-    return (data?.fullRecords ?? []).filter((record) =>
-      (effectiveLevel === "all" || record.displayedLevel === effectiveLevel)
-      && (difficulty === "all" || record.difficulty === difficulty)
-      && (!normalizedQuery || `${record.title} ${record.type} ${record.difficulty}`.toLocaleLowerCase(language).includes(normalizedQuery))
-    ).sort((a, b) => b.achievementRate - a.achievementRate || a.title.localeCompare(b.title));
-  }, [data, effectiveLevel, difficulty, query, language]);
+    : "all";
+  const visibleRecords = useMemo(() => searchRecords(data?.fullRecords ?? [], {
+    level: effectiveLevel, difficulty, query, sort, status, type, version
+  }, language), [data, effectiveLevel, difficulty, query, language, sort, status, type, version]);
   const completion = useMemo(() => visibleRecords.reduce((summary, record) => ({
     total: summary.total + 1,
     sss: summary.sss + (record.achievementRate >= 100 ? 1 : 0),
@@ -64,12 +75,18 @@ export default function RecordsDashboard({ data, assets, language }: RecordsDash
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
           <div className="target-filters records-filters">
             <label>{copy.levelFilter}<select value={effectiveLevel} onChange={(event) => setLevel(event.target.value)}><option value="all">{copy.all}</option>{levelCompletion.map((entry) => <option key={entry.level} value={entry.level}>{entry.level} · {entry.total}</option>)}</select></label>
-            <label>{copy.difficultyFilter}<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="all">{copy.all}</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option></select></label>
+            <label>{copy.difficultyFilter}<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="all">{copy.all}</option><option value="basic">BASIC</option><option value="advanced">ADVANCED</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option></select></label>
+            <label>{sortLabel}<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="achievement">{copy.achievement} ↓</option><option value="low">{copy.achievement} ↑</option><option value="title">{titleLabel}</option><option value="constant">{text.constant} ↓</option></select></label>
             <label>{copy.searchRecords}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.searchRecords} /></label>
+            <label>STD / DX<select value={type} onChange={event => setType(event.target.value)}><option value="all">{copy.all}</option><option value="std">STD</option><option value="dx">DX</option></select></label>
+            <label>{text.version}<select value={version} onChange={event => setVersion(event.target.value)}><option value="all">{copy.all}</option>{versions.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+            <label>{text.status}<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{copy.all}</option><option value="sss">{text.below}</option><option value="fc">FC / AP</option><option value="ap">AP</option></select></label>
+            <button type="button" onClick={() => { setLevel("all"); setDifficulty("all"); setStatus("all"); setType("all"); setVersion("all"); setQuery(""); setSort("achievement"); }}>{text.reset}</button>
           </div>
         </header>
         <div className="completion-summary"><span><b>{completion.total}</b>{copy.charts}</span><span><b>{completion.sss}</b>SSS</span><span><b>{completion.sssPlus}</b>SSS+</span><span><b>{completion.fullCombo}</b>FC / AP</span><span><b>{completion.allPerfect}</b>AP</span><span><b>{completion.fullSync}</b>FS / FDX</span></div>
-        <div className="completion-grid">{visibleRecords.map((record) => <article key={record.chartId ?? `${record.title}-${record.type}-${record.difficulty}`}><SongCover record={record} assets={assets} /><div><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · {record.displayedLevel}</span></div><div className="completion-result"><b>{record.achievementRate.toFixed(4)}%</b><span>{achievementRank(record.achievementRate).toUpperCase()} {[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ")}</span></div></article>)}</div>
+        {!visibleRecords.length && <p role="status" className="panel-empty">{text.empty}</p>}
+        <div className="completion-grid">{visibleRecords.map((record) => <article key={record.chartId ?? `${record.title}-${record.type}-${record.difficulty}`}><SongCover record={record} assets={assets} /><div><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · {record.displayedLevel}</span></div><div className="completion-result"><b>{record.achievementRate.toFixed(4)}%</b><span>{achievementRank(record.achievementRate).toUpperCase()} {[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ")}</span></div><ChartDetail record={record} records={data.fullRecords ?? []} history={history} language={language} /></article>)}</div>
       </article>
 
       <details className="records-detail-panel">

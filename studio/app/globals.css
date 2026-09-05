@@ -532,6 +532,10 @@ button:active{transform:scale(.97)}
 .plate-grid i{grid-column:1/-1;height:5px;overflow:hidden;border-radius:999px;background:var(--bg3)}
 .plate-grid b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2))}
 .full-records-panel{grid-column:1/-1;margin:0}
+.chart-detail{grid-column:1/-1;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.chart-detail summary{cursor:pointer;padding:8px 0}
+.chart-detail h3{font-size:12px;margin:12px 0 4px}
+.chart-detail ul{padding-left:18px}
 .plate-grid .plate-done strong{color:var(--green)}
 .plate-grid .plate-done b{background:var(--green)}
 .full-records-panel>header{align-items:flex-end}
