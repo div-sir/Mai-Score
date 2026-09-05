@@ -29,6 +29,9 @@ Branch: agent/v0.16-records-center. Not released. Package versions remain 0.15.0
 - Follow-up self-check: records-center head is unchanged; Actions still has no runs for that head.
 - Added versioned local play-queue storage helpers: immutable goal updates, duplicate/size/range validation, and explicit storage-failure propagation. Queue UI and integration remain pending.
 - Focused verification: 11 tests pass across play-queue, catalog-records, and record-search. This does not replace browser or complete application verification.
+- Queue UI checkpoint: Records now includes a collapsible local queue with chart selection, target achievement, notes, edit and remove. Explicitly browser-wide across imported players; no synchronization or upload. Mutations reread validated storage and report failures without claiming success.
+- React review: storage only after hydration or user actions; no automatic write effect; labels and status feedback included. Desktop/mobile browser interaction verification remains pending.
+- Latest check: records-center head remains unchanged with no Actions runs. Studio TypeScript and 11 focused tests pass. Broader run: 251 tests passed in 29 suites, but parser suite could not load jsdom; this is NOT a full test pass. Production build verification was interrupted by environment network approval cancellation and remains pending.
 
 Do not claim all competitor features are covered. Community, friends, rankings and external account integration require separate backend and authorization work. Do not publish or merge automatically.
 

@@ -658,3 +658,9 @@ button:active{transform:scale(.97)}
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
   body::after{filter:blur(60px)}
 }
+.play-queue .target-filters { flex-wrap: wrap; }
+.play-queue label { min-width: 0; max-width: 100%; }
+.play-queue select, .play-queue input { max-width: 100%; }
+.play-queue ul { padding-inline-start: 1.25rem; }
+.play-queue li { overflow-wrap: anywhere; margin-block: .75rem; }
+.play-queue li button { margin-inline-start: .5rem; }

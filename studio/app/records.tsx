@@ -8,6 +8,7 @@ import { groupPlatesByVersion } from "../lib/plates";
 import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
 import SongCover from "./song-cover";
 import ChartDetail from "./chart-detail";
+import PlayQueuePanel from "./play-queue";
 import type { HistoryEntry } from "../lib/history";
 import { searchRecords } from "../lib/record-search";
 
@@ -70,6 +71,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
         <time dateTime={data.exportedAt}>{copy.observedAt}: {new Date(data.exportedAt).toLocaleString(language)}</time>
       </header>
 
+      <PlayQueuePanel records={data.fullRecords} language={language} />
       <article className="insight-panel full-records-panel">
         <header>
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
