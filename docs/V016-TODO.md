@@ -32,6 +32,9 @@ Branch: agent/v0.16-records-center. Not released. Package versions remain 0.15.0
 - Queue UI checkpoint: Records now includes a collapsible local queue with chart selection, target achievement, notes, edit and remove. Explicitly browser-wide across imported players; no synchronization or upload. Mutations reread validated storage and report failures without claiming success.
 - React review: storage only after hydration or user actions; no automatic write effect; labels and status feedback included. Desktop/mobile browser interaction verification remains pending.
 - Latest check: records-center head remains unchanged with no Actions runs. Studio TypeScript and 11 focused tests pass. Broader run: 251 tests passed in 29 suites, but parser suite could not load jsdom; this is NOT a full test pass. Production build verification was interrupted by environment network approval cancellation and remains pending.
+- Superseding test checkpoint: repaired isolated-worktree dependency resolution. All 31 suites / 264 tests now pass, including four new jsdom queue interaction tests (save/reload/edit/remove, invalid stored data, quota failure, and preserving another tab's saved goal). Root TypeScript and diff checks pass.
+- Added explicit root React test dependencies, reusing the exact versions and integrity entries already pinned by Studio, plus JSX typechecking. Clean npm installation still needs CI verification; local runs use existing installed dependencies.
+- Records-center head and Actions remain unchanged. Production build was retried but again interrupted by environment network approval cancellation. Browser layout and end-to-end verification are still pending; jsdom is not desktop/mobile visual evidence.
 
 Do not claim all competitor features are covered. Community, friends, rankings and external account integration require separate backend and authorization work. Do not publish or merge automatically.
 
