@@ -20,6 +20,13 @@ Branch: agent/v0.16-records-center. Not released. Package versions remain 0.15.0
 - Add interaction coverage for song details and remaining features.
 - Build and document final verification, then prepare reviewable PR.
 
+## Self-check checkpoint: 2026-09-05
+- Remote records-center head: 23e358b24afb4bf1b3dceca7a632b13033e87e37.
+- GitHub Actions returned no runs for that head. Vercel Preview Comments succeeded; this is not application CI evidence.
+- Isolated catalog-identity checkpoint adds joinCatalogRecords with exact-ID matching, unique legacy fallback, ambiguous-match rejection, and explicit unobserved records. Four focused tests pass.
+- This is a data-layer foundation only. Catalog loading, UI, regional eligibility, and completion gaps remain pending.
+- Separate worktree/branch avoids touching the existing records-center worktree. Integrate this checkpoint before continuing catalog UI.
+
 Do not claim all competitor features are covered. Community, friends, rankings and external account integration require separate backend and authorization work. Do not publish or merge automatically.
 
 Hourly self-check is scheduled. Inspect actual files/tests/CI; do not mark pending work done merely because a timer ran. Avoid concurrent edits if another active worker owns this branch.
