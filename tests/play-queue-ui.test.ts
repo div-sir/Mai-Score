@@ -34,6 +34,13 @@ it("loads catalog on demand and requires explicit International comparison", asy
   await act(async () => host.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
   expect(host.textContent).toContain("99.0000%");
   expect(host.textContent).toContain("Below target: 1");
+  const range = [...host.querySelectorAll("select")].find(s => [...s.options].some(o => o.value === "below-target"))!;
+  await act(async () => { range.value = "below-target"; range.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  expect(host.querySelectorAll("li")).toHaveLength(1);
+  await act(async () => host.querySelector<HTMLButtonElement>("li button")!.click());
+  expect(host.textContent).toContain("Needs explicit B15/B35 eligibility");
+  await act(async () => { range.value = "unobserved"; range.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  expect(host.querySelectorAll("li")).toHaveLength(0);
 });
 it("reports unavailable catalog without fabricating charts", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));

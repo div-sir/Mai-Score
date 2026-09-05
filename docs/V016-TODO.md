@@ -12,6 +12,9 @@ Branch: agent/v0.16-records-center. Not released. Package versions remain 0.15.0
 - 100/100.5 target chart Rating (not B50 gain).
 
 ## Remaining
+- Selected catalog charts now open an inline B50 simulator. Eligibility is restricted to explicit imported B50/candidate buckets; incomplete buckets, unknown constants and lower-than-current targets are withheld. Candidate gains subtract the bucket cutoff. Detailed gaps can be filtered into known below-target, unobserved and ambiguous rows.
+- Upstream catalog was fetched successfully and pinned to updateTime 2026-09-05T15:00:29.141287228+00:00, SHA-256 2d9ada482d178d9c43faa6f9316e68a15ab0fdf870aa11ca4f17f1f7fdb6065b, 6195 International charts. This confirms parity with the fetched source, not independent official catalog completeness.
+- Verification: 272 tests pass; root and Studio typechecks pass; focused gap-selection/simulation interaction tests pass. Cloud-browser Preview navigation reaches Vercel login due to Deployment Protection. Desktop/mobile interaction and visual verification are blocked by Preview authentication and are NOT complete. No authentication, player upload, merge or release was performed.
 - Catalog UI checkpoint: on-demand International catalog browsing, title/version/difficulty search, 50-row incremental rendering and explicit International score-comparison confirmation are connected to Records, including its empty state. Filtered completion summaries distinguish completed/below-target/unknown. Detailed gap selection and next-play integration are still pending.
 - Verification for this UI checkpoint: root and Studio typechecks pass; 269 tests pass including catalog loading and unavailable-response interaction tests. Browser visual verification and fresh CI remain pending. React review kept network loading in explicit user actions and memoized catalog joins.
 - Complete regional catalog including unplayed charts; explicit catalog/score identity matching.

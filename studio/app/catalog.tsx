@@ -1,11 +1,15 @@
 "use client";
 import { useMemo, useState } from "react";
 import type { SheetRecord } from "../../src/lib/types";
-import type { LanguageId, StudioChartRecord } from "../lib/types";
+import type { LanguageId, StudioChartRecord, StudioData } from "../lib/types";
+import { simulateCatalogChart } from "../lib/catalog-simulation";
 import { joinCatalogRecords } from "../lib/catalog-records";
 import { catalogCompletion, type CompletionGoal } from "../lib/catalog-completion";
 
-export default function CatalogPanel({ records, language }: { records: StudioChartRecord[]; language: LanguageId }) {
+export default function CatalogPanel({ records, language, data }: { records: StudioChartRecord[]; language: LanguageId; data?: StudioData | null }) {
+  const [gap, setGap] = useState("all");
+  const [selected, setSelected] = useState<SheetRecord | null>(null);
+  const [target, setTarget] = useState("100.5");
   const [catalog, setCatalog] = useState<SheetRecord[]>([]);
   const [date, setDate] = useState("");
   const [state, setState] = useState("idle");
@@ -32,6 +36,9 @@ export default function CatalogPanel({ records, language }: { records: StudioCha
   const rows = useMemo(() => joinCatalogRecords(catalog, compare ? records : []), [catalog, records, compare]);
   const filtered = useMemo(() => rows.filter(r => `${r.sheet.title} ${r.sheet.version} ${r.sheet.difficulty}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())), [rows, query]);
   const summary = useMemo(() => catalogCompletion(filtered, goal), [filtered, goal]);
+  const visible = compare && gap !== "all" ? summary.gaps.filter(g => gap === "gaps" || g.reason === gap).map(g => g.chart) : filtered;
+  const simulation = compare && data && selected && target.trim() ? simulateCatalogChart(data, selected, Number(target)) : undefined;
+  const labels = language === "zh-Hant" ? ["顯示範圍", "全部", "所有缺口", "已知未達標", "未觀測", "匹配不明", "模擬", "目標達成率 %", "缺少明確 B15/B35 資格、完整分組或定數，或目標低於目前成績，無法計算。"] : language === "ja" ? ["表示範囲", "すべて", "未達・不明", "既知の未達", "未観測", "照合不能", "シミュレーション", "目標達成率 %", "B15/B35 資格・完全なグループ・定数が不足、または目標が現在の成績未満です。"] : ["Show", "All", "All gaps", "Known below target", "Unobserved", "Ambiguous", "Simulate", "Target achievement %", "Needs explicit B15/B35 eligibility, complete buckets and a constant; target must not be below the current score."];
   return <details className="records-detail-panel">
     <summary>{t[0]}</summary>
     {state !== "ready" && <button type="button" disabled={state === "loading"} onClick={load}>{t[1]}{state === "loading" ? "…" : ""}</button>}
@@ -42,8 +49,11 @@ export default function CatalogPanel({ records, language }: { records: StudioCha
       <label><input type="checkbox" checked={compare} onChange={e => setCompare(e.target.checked)} />{t[3]}</label>
       <label>SSS / SSS+ / FC / AP<select value={goal} onChange={e => setGoal(e.target.value as CompletionGoal)}>{(["sss", "sssPlus", "fc", "ap"] as const).map(g => <option key={g} value={g}>{g === "sssPlus" ? "SSS+" : g.toUpperCase()}</option>)}</select></label>
       {compare && <p>{t[4]}: {summary.completed} · {t[5]}: {summary.belowTarget} · {t[6]}: {summary.unknown}</p>}
-      <ul>{filtered.slice(0, limit).map(r => <li key={r.sheet.sheetId}>{r.sheet.title} · {r.sheet.type.toUpperCase()} · {r.sheet.difficulty.toUpperCase()} · {r.sheet.level} · {r.sheet.version}{compare ? ` · ${r.score ? r.score.achievementRate.toFixed(4) + "%" : t[6]}` : ""}</li>)}</ul>
-      {filtered.length > limit && <button type="button" onClick={() => setLimit(n => n + 50)}>{t[7]} ({Math.min(limit, filtered.length)}/{filtered.length})</button>}
+      {compare && <label>{labels[0]}<select value={gap} onChange={e => { setGap(e.target.value); setLimit(50); }}>{["all", "gaps", "below-target", "unobserved", "ambiguous"].map((g, i) => <option key={g} value={g}>{labels[i + 1]}</option>)}</select></label>}
+      {selected && compare && <section aria-label={labels[6]}><h3>{selected.title} · {selected.type.toUpperCase()} · {selected.difficulty}</h3><label>{labels[7]}<input type="number" min="0" max="100.5" step="0.0001" value={target} onChange={e => setTarget(e.target.value)} /></label><p role="status">{simulation ? `${simulation.bucket.toUpperCase()} · Rating ${simulation.rating} · B50 +${simulation.gain} → ${simulation.total}` : labels[8]}</p></section>}
+      <ul>{visible.slice(0, limit).map(r => <li key={r.sheet.sheetId}>{r.sheet.title} · {r.sheet.type.toUpperCase()} · {r.sheet.difficulty.toUpperCase()} · {r.sheet.level} · {r.sheet.version}{compare ? ` · ${r.score ? r.score.achievementRate.toFixed(4) + "%" : t[6]}` : ""}{compare && <button type="button" onClick={() => setSelected(r.sheet)}>{labels[6]}</button>}</li>)}</ul>
+      <p role="status">{visible.length}</p>
+      {visible.length > limit && <button type="button" onClick={() => setLimit(n => n + 50)}>{t[7]} ({Math.min(limit, visible.length)}/{visible.length})</button>}
     </>}
   </details>;
 }

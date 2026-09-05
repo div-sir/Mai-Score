@@ -61,7 +61,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
         <span>▦</span>
         <h1>{copy.recordsHeading}</h1>
         <p>{copy.recordsEmpty}</p>
-        <CatalogPanel records={data?.records ?? []} language={language} />
+        <CatalogPanel records={data?.records ?? []} language={language} data={data} />
       </section>
     );
   }
@@ -74,7 +74,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
       </header>
 
       <PlayQueuePanel records={data.fullRecords} language={language} />
-      <CatalogPanel records={data.fullRecords} language={language} />
+      <CatalogPanel records={data.fullRecords} language={language} data={data} />
       <article className="insight-panel full-records-panel">
         <header>
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
