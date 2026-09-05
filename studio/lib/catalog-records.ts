@@ -14,7 +14,9 @@ export function joinCatalogRecords(catalog: readonly SheetRecord[], scores: read
   const byId = new Map<string, StudioChartRecord[]>();
   const byIdentity = new Map<string, StudioChartRecord[]>();
   const counts = new Map<string, number>();
+  const idCounts = new Map<string, number>();
   for (const sheet of catalog) {
+    idCounts.set(sheet.sheetId, (idCounts.get(sheet.sheetId) ?? 0) + 1);
     const key = identity(sheet.title, sheet.type, sheet.difficulty);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
@@ -31,6 +33,7 @@ export function joinCatalogRecords(catalog: readonly SheetRecord[], scores: read
     }
   }
   return catalog.map(sheet => {
+    if (idCounts.get(sheet.sheetId) !== 1) return { sheet, status: "ambiguous" };
     const key = identity(sheet.title, sheet.type, sheet.difficulty);
     const exact = byId.get(sheet.sheetId);
     const candidates = exact ?? byIdentity.get(key) ?? [];
