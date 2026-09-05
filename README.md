@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.14.0 is in development; v0.13.0 remains the latest packaged release.** v0.14.0 adds an opt-in International DX NET Full Records collector to the import and level-completion foundation shipped in v0.13.0.
+> **v0.15.0 is the latest packaged release.** It separates Studio into Export, Progress, and Records, clarifies collection and data-management paths, and adds exact plate-progress calculation from Full Records.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 

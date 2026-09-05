@@ -10,7 +10,6 @@ import {
   type PopupLanguage
 } from "./lib/i18n";
 import { renderB50Document } from "./lib/render";
-import { ratingStars, ratingTier } from "./lib/rating-tier";
 import { recordBadgeNames } from "./lib/achievement-rank";
 import { CHART_DATA_SOURCE, chartDataIsStale } from "./lib/chart-data";
 import {
@@ -40,6 +39,7 @@ const fullRecordsCheckbox = $<HTMLInputElement>("include-full-records");
 const languageSelect = $<HTMLSelectElement>("language");
 const driveConnectButton = $<HTMLButtonElement>("drive-connect");
 const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
+const collectionModeInputs = document.querySelectorAll<HTMLInputElement>('input[name="collection-mode"]');
 let language: PopupLanguage = DEFAULT_LANGUAGE;
 
 function t(key: string, ...values: Array<string | number>) {
@@ -54,6 +54,7 @@ function applyLanguage() {
     if (key) element.textContent = t(key);
   });
   renderChartDataState();
+  updateCollectLabel();
 }
 
 function renderChartDataState() {
@@ -82,15 +83,12 @@ function setStatus(text: string, kind = "") {
   status.className = `status ${kind}`;
 }
 
-function applyRatingBadge(rating: number) {
-  const tier = ratingTier(rating);
-  const label = document.querySelector<HTMLElement>("#official-rating-badge .rating-badge-label");
-  if (label) {
-    label.style.background = `linear-gradient(135deg, ${tier.gradient.join(", ")})`;
-    label.style.color = tier.labelColor;
-  }
-  const stars = document.getElementById("official-rating-stars");
-  if (stars) stars.textContent = "★".repeat(ratingStars(rating));
+function updateCollectLabel() {
+  collectButton.textContent = t(fullRecordsCheckbox.checked ? "collectFull" : "collect");
+}
+
+function setCollectionModeDisabled(disabled: boolean) {
+  collectionModeInputs.forEach((input) => { input.disabled = disabled; });
 }
 
 const authDeps: AuthDeps = {
@@ -317,7 +315,7 @@ collectButton.addEventListener("click", async () => {
   // starts a second run whose result races the first.
   if (collectButton.disabled) return;
   collectButton.disabled = true;
-  fullRecordsCheckbox.disabled = true;
+  setCollectionModeDisabled(true);
   collectButton.classList.add("busy");
   setStatus(t(fullRecordsCheckbox.checked ? "fetchingFull" : "fetching"));
   try {
@@ -326,8 +324,6 @@ collectButton.addEventListener("click", async () => {
     result = response.data;
     $("summary").hidden = false;
     $("player").textContent = result.player.name;
-    $("official-rating").textContent = String(result.player.rating);
-    applyRatingBadge(result.player.rating);
     // The official rating is the sum of the same 50 charts, so any gap means
     // this build disagrees with the game. Show it rather than let it pass.
     const gap = result.b50Rating - result.player.rating;
@@ -353,7 +349,7 @@ collectButton.addEventListener("click", async () => {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   } finally {
     collectButton.disabled = false;
-    fullRecordsCheckbox.disabled = false;
+    setCollectionModeDisabled(false);
     collectButton.classList.remove("busy");
   }
 });
@@ -419,6 +415,10 @@ languageSelect.addEventListener("change", () => {
   void chrome.storage.local.set({ [LANGUAGE_STORAGE_KEY]: language });
   void refreshDriveState();
   if (!result) setStatus(t("login"));
+});
+
+collectionModeInputs.forEach((input) => {
+  input.addEventListener("change", updateCollectLabel);
 });
 
 async function initializePopup() {

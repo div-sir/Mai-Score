@@ -4,20 +4,32 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
-## [0.15.0] — 2026-09-01
+## [0.15.0] — 2026-09-05
 
 ### Added
 
-- Studio now computes exact 極 / 将 / 神 / 舞舞 plate progress from collected Full Records instead of only displaying what an adapter states.
+- Added a dedicated **Records** Studio tab for Full Records search, completion totals, and exact plate progress. Progress now stays focused on B50 Rating decisions and history.
+- Studio now computes exact 極 / 将 / 神 / 舞舞 plate progress from collected Full Records when an adapter summary is unavailable.
 - The Extension ships per-version, per-difficulty chart counts from its bundled catalog, so plate denominators include charts the player has never touched.
-- The plate panel groups by version and leads with the plate closest to completion, replacing a flat list that reached 108 bars for a player who has touched every version.
+- Plate progress is grouped by version and leads with the closest plate instead of rendering one long flat list.
+
+### Changed
+
+- Simplified the Extension collection path into explicit **B50 only** and **B50 + Full Records** modes. The primary action now states the selected scope, and the result summary groups matching information under one data-health field.
+- Moved Studio Export/Progress navigation into the persistent header and separated data management from transient status messages.
+- Reorganized export controls into Appearance, Footer & metadata, grouped Visible content, and Output sections. JSON import, privacy, and destructive local-data removal now live in a dedicated Data menu.
+- Removed the duplicate compact history list from Export. Progress is now the single place for history and rating analysis.
+- Reordered Progress into numbered **Next plays**, **History**, and **Data details** sections so B50 recommendations and changes have a stable reading order.
+- Moved plate progress out of Progress and into Records, alongside the Full Records data used to calculate it.
+- Consolidated Upgrade targets, Potential entries, cutoff protection, and What-if into one **Next plays** workspace with four short action tabs instead of four competing panels.
+- Collapsed source provenance into an advanced details control and added Records-specific search wording in all three languages.
+- Replaced three equal-weight Progress metric cards with one B50 overview and a subordinate New B15 / Old B35 breakdown. Studio's dataset summary now shows snapshot time instead of repeating the official account Rating.
 
 ### Data notes
 
 - Plate rules are transcribed from community sources and are **not verified in game**. They live in one table in `studio/lib/plates.ts`; correcting a rule is a data edit that requires no re-collection.
 - A version is omitted rather than shown at a flattering percentage when its catalog totals are missing, and plate progress is withheld entirely from a B50-only document.
 - Adapter-supplied plate summaries continue to take precedence over the computed fallback.
-
 
 ## [0.14.0] — 2026-08-10
 

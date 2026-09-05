@@ -6,6 +6,7 @@ export interface StudioCopy {
   emptyMessage: string;
   emptyPreview: string;
   loadJson: string;
+  dataMenu: string;
   exportStyle: string;
   reset: string;
   language: string;
@@ -26,6 +27,11 @@ export interface StudioCopy {
   watermark: string;
   watermarkPlaceholder: string;
   displayContent: string;
+  metadata: string;
+  playerContent: string;
+  chartContent: string;
+  scoreContent: string;
+  badgeContent: string;
   frame: string;
   icon: string;
   plate: string;
@@ -53,7 +59,20 @@ export interface StudioCopy {
   studioSections: string;
   exportTab: string;
   progressTab: string;
+  recordsTab: string;
+  recordsHeading: string;
+  recordsEmpty: string;
   progressHeading: string;
+  nextActions: string;
+  nextActionsDescription: string;
+  easyGains: string;
+  newEntries: string;
+  protectB50: string;
+  whatIf: string;
+  historySection: string;
+  historySectionDescription: string;
+  detailsSection: string;
+  detailsSectionDescription: string;
   progressEmpty: string;
   observedSnapshots: string;
   allTime: string;
@@ -103,6 +122,7 @@ export interface StudioCopy {
   difficultyFilter: string;
   levelFilter: string;
   searchCharts: string;
+  searchRecords: string;
   observations: string;
   levelCompletion: string;
   levelCompletionDescription: string;
@@ -171,6 +191,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     emptyMessage: "No B50 loaded. Open Studio from Mai-Score or load a full JSON file.",
     emptyPreview: "Load B50 data to preview an export.",
     loadJson: "Load JSON",
+    dataMenu: "Data",
     exportStyle: "Export style",
     reset: "Reset",
     language: "Language",
@@ -191,6 +212,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     watermark: "Watermark",
     watermarkPlaceholder: "@username / event",
     displayContent: "Visible content",
+    metadata: "Footer & metadata",
+    playerContent: "Player",
+    chartContent: "Chart",
+    scoreContent: "Score",
+    badgeContent: "Badges",
     frame: "Frame",
     icon: "Icon",
     plate: "Nameplate",
@@ -218,7 +244,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     studioSections: "Studio sections",
     exportTab: "Export",
     progressTab: "Progress",
+    recordsTab: "Records",
+    recordsHeading: "Full Records",
+    recordsEmpty: "Collect again with B50 + Full Records, or load a compatible Rhythm Record JSON file.",
     progressHeading: "Rating progress",
+    nextActions: "Next plays",
+    nextActionsDescription: "Choose the most useful score to improve or protect next.",
+    easyGains: "Easy gains",
+    newEntries: "New entries",
+    protectB50: "Protect B50",
+    whatIf: "What-if",
+    historySection: "History",
+    historySectionDescription: "Review recent changes and individual chart observations.",
+    detailsSection: "Data details",
+    detailsSectionDescription: "Advanced progress and source information.",
     progressEmpty: "Collect or import a B50 to see upgrade targets. Collect again later to build progress history.",
     observedSnapshots: "observed snapshots",
     allTime: "All time",
@@ -268,9 +307,10 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "Difficulty",
     levelFilter: "Level",
     searchCharts: "Search chart history",
+    searchRecords: "Search Full Records",
     observations: "observations",
     levelCompletion: "Level completion",
-    levelCompletionDescription: "Best result for every chart in the imported Full Records file.",
+    levelCompletionDescription: "Best result for every chart in the collected Full Records dataset.",
     charts: "charts",
     plateProgress: "Plate progress",
     plateRequiresFull: "Full Records is required to calculate 極 / 将 / 神 / 舞舞 accurately.",
@@ -335,6 +375,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     emptyMessage: "尚未載入 B50。請從 Mai-Score 開啟 Studio，或載入完整 JSON。",
     emptyPreview: "載入 B50 資料後即可預覽匯出圖片。",
     loadJson: "載入 JSON",
+    dataMenu: "資料",
     exportStyle: "匯出樣式",
     reset: "重設",
     language: "語言",
@@ -355,6 +396,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     watermark: "浮水印",
     watermarkPlaceholder: "@使用者名稱 / 活動",
     displayContent: "顯示內容",
+    metadata: "頁尾與資訊",
+    playerContent: "玩家",
+    chartContent: "譜面",
+    scoreContent: "分數",
+    badgeContent: "標章",
     frame: "Frame",
     icon: "Icon",
     plate: "名牌版",
@@ -382,7 +428,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     studioSections: "Studio 區域",
     exportTab: "匯出",
     progressTab: "進度",
+    recordsTab: "完整成績",
+    recordsHeading: "完整成績",
+    recordsEmpty: "請使用 B50＋完整成績重新收集，或載入相容的 Rhythm Record JSON。",
     progressHeading: "Rating 進度",
+    nextActions: "下一步選曲",
+    nextActionsDescription: "集中查看最值得提升或需要守住的成績。",
+    easyGains: "容易提升",
+    newEntries: "上榜候選",
+    protectB50: "守住 B50",
+    whatIf: "分數模擬",
+    historySection: "歷史",
+    historySectionDescription: "查看近期變化與單曲觀測紀錄。",
+    detailsSection: "資料詳情",
+    detailsSectionDescription: "進階進度與資料來源資訊。",
     progressEmpty: "收集或匯入一筆 B50 即可查看升分目標；之後再次收集就能建立進度歷史。",
     observedSnapshots: "筆觀測快照",
     allTime: "全部期間",
@@ -432,9 +491,10 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "難度",
     levelFilter: "等級",
     searchCharts: "搜尋單曲歷史",
+    searchRecords: "搜尋完整成績",
     observations: "筆觀測",
     levelCompletion: "等級完成表",
-    levelCompletionDescription: "完整成績檔案中每張譜面的最佳紀錄。",
+    levelCompletionDescription: "已收集完整成績中每張譜面的最佳紀錄。",
     charts: "張譜面",
     plateProgress: "牌子進度",
     plateRequiresFull: "需要 Full Records 才能正確計算極／將／神／舞舞。",
@@ -499,6 +559,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     emptyMessage: "B50 はまだ読み込まれていません。Mai-Score から Studio を開くか、完全 JSON を読み込んでください。",
     emptyPreview: "B50 データを読み込むと書き出し画像をプレビューできます。",
     loadJson: "JSON を読み込む",
+    dataMenu: "データ",
     exportStyle: "書き出しスタイル",
     reset: "リセット",
     language: "言語",
@@ -519,6 +580,11 @@ const COPY: Record<LanguageId, StudioCopy> = {
     watermark: "透かし",
     watermarkPlaceholder: "@ユーザー名 / イベント",
     displayContent: "表示項目",
+    metadata: "フッターと情報",
+    playerContent: "プレイヤー",
+    chartContent: "譜面",
+    scoreContent: "スコア",
+    badgeContent: "バッジ",
     frame: "フレーム",
     icon: "アイコン",
     plate: "プレート",
@@ -546,7 +612,20 @@ const COPY: Record<LanguageId, StudioCopy> = {
     studioSections: "Studio セクション",
     exportTab: "書き出し",
     progressTab: "進捗",
+    recordsTab: "全成績",
+    recordsHeading: "全成績",
+    recordsEmpty: "B50＋全成績でもう一度取得するか、対応する Rhythm Record JSON を読み込んでください。",
     progressHeading: "Rating の推移",
+    nextActions: "次に遊ぶ譜面",
+    nextActionsDescription: "次に伸ばす、または維持するべきスコアをまとめて確認します。",
+    easyGains: "伸ばしやすい譜面",
+    newEntries: "B50入り候補",
+    protectB50: "B50を維持",
+    whatIf: "スコア試算",
+    historySection: "履歴",
+    historySectionDescription: "最近の変化と譜面ごとの観測履歴を確認します。",
+    detailsSection: "データ詳細",
+    detailsSectionDescription: "高度な進捗情報とデータソースを表示します。",
     progressEmpty: "B50 を取得または読み込むと更新目標を表示し、次回以降は進捗履歴も確認できます。",
     observedSnapshots: "件の観測スナップショット",
     allTime: "全期間",
@@ -596,9 +675,10 @@ const COPY: Record<LanguageId, StudioCopy> = {
     difficultyFilter: "難易度",
     levelFilter: "レベル",
     searchCharts: "譜面履歴を検索",
+    searchRecords: "全成績を検索",
     observations: "件の観測",
     levelCompletion: "レベル別達成表",
-    levelCompletionDescription: "Full Records に含まれる各譜面のベスト記録です。",
+    levelCompletionDescription: "取得した全成績に含まれる各譜面のベスト記録です。",
     charts: "譜面",
     plateProgress: "プレート進捗",
     plateRequiresFull: "極・将・神・舞舞の正確な計算には Full Records が必要です。",

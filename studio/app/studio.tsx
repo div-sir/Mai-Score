@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import ProgressDashboard from "./progress";
+import RecordsDashboard from "./records";
 import { renderStudioSvg } from "../lib/render";
 import { studioCopy } from "../lib/i18n";
 import {
@@ -14,7 +15,7 @@ import {
   saveStudioSnapshot,
   saveStudioSnapshotOnly
 } from "../lib/local-store";
-import { diffHistory, fromHistoryEntry, type HistoryEntry } from "../lib/history";
+import { fromHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
 import { normalizeB50, parseMaiScore } from "../lib/import";
 import {
@@ -48,7 +49,7 @@ const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
-type StudioView = "export" | "progress";
+type StudioView = "export" | "progress" | "records";
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -710,15 +711,22 @@ export default function Studio() {
     <main className="studio-shell" data-ui-theme={uiTheme}>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark">M</span>
-          <div><strong>Mai-Score Studio</strong><small>{copy.subtitle}</small></div>
+        <div className="topbar-primary">
+          <div className="brand">
+            <span className="brand-mark">M</span>
+            <div><strong>Mai-Score Studio</strong><small>{copy.subtitle}</small></div>
+          </div>
+          <nav className="studio-tabs" aria-label={copy.studioSections}>
+            <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
+            <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
+            <button type="button" aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
+          </nav>
         </div>
         <div className="data-actions">
           <div className="data-summary">
             <span>{source || copy.emptySource}</span>
             <strong>{data?.player.name ?? "—"}</strong>
-            <small>{data ? `Rating ${data.player.rating} · B50 ${data.b50Rating}` : copy.emptyPreview}</small>
+            <small>{data ? `B50 ${data.b50Rating} · ${new Date(data.exportedAt).toLocaleString(language)}` : copy.emptyPreview}</small>
           </div>
           <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading}>
             <span className="drive-logo" aria-hidden="true">
@@ -803,16 +811,19 @@ export default function Studio() {
             </select>
           </span>
           <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
-          <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
+          <details className="data-menu">
+            <summary>{copy.dataMenu}</summary>
+            <div>
+              <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
+              <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
+              <a href="/privacy">{copy.privacyLink}</a>
+            </div>
+          </details>
         </div>
       </header>
 
       <div className="status-line">
         <div className="status-message"><span />{message}</div>
-        <nav className="studio-tabs" aria-label={copy.studioSections}>
-          <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
-          <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
-        </nav>
       </div>
 
       {studioView === "progress" ? (
@@ -822,6 +833,8 @@ export default function Studio() {
           history={history}
           language={language}
         />
+      ) : studioView === "records" ? (
+        <RecordsDashboard data={data} assets={assets} language={language} />
       ) : <section className="workspace">
         <aside className="control-panel">
           <div className="panel-heading">
@@ -829,119 +842,63 @@ export default function Studio() {
             <button className="reset-button" onClick={resetOptions}>{copy.reset}</button>
           </div>
 
-          <div className="field-grid">
-            <label>{copy.layout}<select value={options.layout} onChange={(event) => set("layout", event.target.value as StudioOptions["layout"])}>
-              <option value="classic">Classic 5×10</option><option value="compact">Compact 5×10</option><option value="landscape">Landscape 10×5</option>
-            </select></label>
-            <label>{copy.theme}<select value={options.theme} onChange={(event) => set("theme", event.target.value as StudioOptions["theme"])}>
-              <option value="night">Night</option><option value="light">Light</option><option value="maimai">maimai</option>
-            </select></label>
-            <label>{copy.timestamp}<select value={options.timestamp} onChange={(event) => set("timestamp", event.target.value as StudioOptions["timestamp"])}>
-              <option value="off">{copy.off}</option><option value="date">{copy.date}</option><option value="datetime">{copy.dateTime}</option>
-            </select></label>
-            <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}>
-              <option value="png">PNG</option><option value="svg">SVG</option>
-            </select></label>
-            <label>{copy.chartValue}<select value={options.chartValue} onChange={(event) => set("chartValue", event.target.value as StudioOptions["chartValue"])}>
-              <option value="level">{copy.level}</option>
-              <option value="constant">{copy.constant}</option>
-              <option value="both">{copy.chartValueBoth}</option>
-              <option value="none">{copy.off}</option>
-            </select></label>
-            <label>{copy.accentScope}<select value={options.accentScope} onChange={(event) => set("accentScope", event.target.value as StudioOptions["accentScope"])}>
-              <option value="minimal">{copy.accentMinimal}</option>
-              <option value="outline">{copy.accentOutline}</option>
-              <option value="full">{copy.accentFull}</option>
-            </select></label>
-            <fieldset className="accent-field wide-field">
-              <legend>{copy.accent}</legend>
-              <div className="accent-presets">
-                {ACCENT_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    aria-label={preset.name}
-                    aria-pressed={options.accent.toLowerCase() === preset.value}
-                    style={{ backgroundColor: preset.value }}
-                    onClick={() => set("accent", preset.value)}
-                  />
-                ))}
-                <label className="custom-accent">
-                  <span>HEX</span>
-                  <input type="color" value={options.accent} onChange={(event) => set("accent", event.target.value)} />
-                </label>
-              </div>
-            </fieldset>
-            <label className="wide-field">{copy.watermark}<input value={options.watermark} maxLength={48} placeholder={copy.watermarkPlaceholder} onChange={(event) => set("watermark", event.target.value)} /></label>
-          </div>
-
-          <section className="display-options" aria-labelledby="visible-content-heading">
-            <h3 id="visible-content-heading">{copy.displayContent}</h3>
-            <div className="toggle-list">
-              {([
-                ["showFrame", copy.frame], ["showIcon", copy.icon], ["showCovers", copy.covers],
-                ["showPlate", copy.plate], ["showPlayerTitle", copy.playerTitle],
-                ["showBreakdown", copy.breakdown],
-                ["showAchievement", copy.achievement], ["showChartRating", copy.chartRating],
-                ["showAchievementRank", copy.achievementRankBadge],
-                ["showComboBadge", copy.comboBadge],
-                ["showSyncBadge", copy.syncBadge],
-                ["showRank", copy.rank]
-              ] as Array<[keyof StudioOptions, string]>).map(([key, label]) => (
-                <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>
-              ))}
+          <section className="settings-section">
+            <h2>{copy.appearance}</h2>
+            <div className="field-grid">
+              <label>{copy.layout}<select value={options.layout} onChange={(event) => set("layout", event.target.value as StudioOptions["layout"])}>
+                <option value="classic">Classic 5×10</option><option value="compact">Compact 5×10</option><option value="landscape">Landscape 10×5</option>
+              </select></label>
+              <label>{copy.theme}<select value={options.theme} onChange={(event) => set("theme", event.target.value as StudioOptions["theme"])}>
+                <option value="night">Night</option><option value="light">Light</option><option value="maimai">maimai</option>
+              </select></label>
+              <label>{copy.chartValue}<select value={options.chartValue} onChange={(event) => set("chartValue", event.target.value as StudioOptions["chartValue"])}>
+                <option value="level">{copy.level}</option><option value="constant">{copy.constant}</option><option value="both">{copy.chartValueBoth}</option><option value="none">{copy.off}</option>
+              </select></label>
+              <label>{copy.accentScope}<select value={options.accentScope} onChange={(event) => set("accentScope", event.target.value as StudioOptions["accentScope"])}>
+                <option value="minimal">{copy.accentMinimal}</option><option value="outline">{copy.accentOutline}</option><option value="full">{copy.accentFull}</option>
+              </select></label>
+              <fieldset className="accent-field wide-field">
+                <legend>{copy.accent}</legend>
+                <div className="accent-presets">
+                  {ACCENT_PRESETS.map((preset) => <button key={preset.value} type="button" aria-label={preset.name} aria-pressed={options.accent.toLowerCase() === preset.value} style={{ backgroundColor: preset.value }} onClick={() => set("accent", preset.value)} />)}
+                  <label className="custom-accent"><span>HEX</span><input type="color" value={options.accent} onChange={(event) => set("accent", event.target.value)} /></label>
+                </div>
+              </fieldset>
             </div>
           </section>
 
-          <button className="export-button" disabled={busy || !data} onClick={exportImage}>
-            {busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}
-          </button>
-          <details className="history-panel">
-            <summary>{copy.history}{history.length ? ` (${history.length})` : ""}</summary>
-            {history.length === 0
-              ? <p className="history-empty">{copy.historyEmpty}</p>
-              : (
-                <ol className="history-list">
-                  {history.map((point, index) => {
-                    const previous = history[index + 1];
-                    const diff = previous ? diffHistory(previous, point) : undefined;
-                    return (
-                      <li key={point.generatedAt}>
-                        <div className="history-head">
-                          <time dateTime={point.generatedAt}>
-                            {new Date(point.generatedAt).toLocaleDateString(language)}
-                          </time>
-                          <strong>{point.b50Rating}</strong>
-                          {diff && diff.ratingDelta !== 0 && (
-                            <span className={diff.ratingDelta > 0 ? "delta up" : "delta down"}>
-                              {diff.ratingDelta > 0 ? "+" : ""}{diff.ratingDelta}
-                            </span>
-                          )}
-                        </div>
-                        {diff && (diff.entered.length > 0 || diff.changed.length > 0) && (
-                          <div className="history-detail">
-                            {diff.entered.length > 0 && <span>{copy.historyEntered(diff.entered.length)}</span>}
-                            {diff.left.length > 0 && <span>{copy.historyLeft(diff.left.length)}</span>}
-                            {diff.changed.length > 0 && <span>{copy.historyImproved(diff.changed.length)}</span>}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
+          <details className="settings-section metadata-section">
+            <summary>{copy.metadata}</summary>
+            <div className="field-grid">
+              <label>{copy.timestamp}<select value={options.timestamp} onChange={(event) => set("timestamp", event.target.value as StudioOptions["timestamp"])}>
+                <option value="off">{copy.off}</option><option value="date">{copy.date}</option><option value="datetime">{copy.dateTime}</option>
+              </select></label>
+              <label>{copy.watermark}<input value={options.watermark} maxLength={48} placeholder={copy.watermarkPlaceholder} onChange={(event) => set("watermark", event.target.value)} /></label>
+            </div>
           </details>
+
+          <section className="display-options" aria-labelledby="visible-content-heading">
+            <h3 id="visible-content-heading">{copy.displayContent}</h3>
+            {([
+              [copy.playerContent, [["showFrame", copy.frame], ["showIcon", copy.icon], ["showPlate", copy.plate], ["showPlayerTitle", copy.playerTitle]]],
+              [copy.chartContent, [["showCovers", copy.covers], ["showRank", copy.rank]]],
+              [copy.scoreContent, [["showAchievement", copy.achievement], ["showChartRating", copy.chartRating], ["showBreakdown", copy.breakdown]]],
+              [copy.badgeContent, [["showAchievementRank", copy.achievementRankBadge], ["showComboBadge", copy.comboBadge], ["showSyncBadge", copy.syncBadge]]]
+            ] as Array<[string, Array<[keyof StudioOptions, string]>]>).map(([group, items]) => <div className="toggle-group" key={group}>
+              <h4>{group}</h4><div className="toggle-list">{items.map(([key, label]) => <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>)}</div>
+            </div>)}
+          </section>
+
+          <section className="output-section">
+            <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}><option value="png">PNG</option><option value="svg">SVG</option></select></label>
+            <button className="export-button" disabled={busy || !data} onClick={exportImage}>{busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}</button>
+          </section>
           {canShare && (
             <button className="share-button" disabled={busy || !data} onClick={shareImage}>
               {copy.share}
             </button>
           )}
           <button className="preset-button" onClick={copyPreset}>{copy.copyStyle}</button>
-          <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
-          <p className="privacy-note">
-            {copy.privacy}{" "}
-            <a href="/privacy">{copy.privacyLink}</a>
-          </p>
         </aside>
 
         <section className={`preview-panel${data ? "" : " empty"}`}>
