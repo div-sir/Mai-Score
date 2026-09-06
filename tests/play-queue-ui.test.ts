@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import PlayQueuePanel from "../studio/app/play-queue";
 import CatalogPanel from "../studio/app/catalog";
+import ChartDetail from "../studio/app/chart-detail";
 import { emptyQueue, parseQueue, QUEUE_KEY } from "../studio/lib/play-queue";
 
 let dom: JSDOM;
@@ -33,7 +34,7 @@ it("loads catalog on demand and requires explicit International comparison", asy
   expect(host.textContent).not.toContain("99.0000%");
   await act(async () => host.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
   expect(host.textContent).toContain("99.0000%");
-  expect(host.textContent).toContain("Below target: 1");
+  expect(host.textContent).toContain("1Below target");
   const range = [...host.querySelectorAll("select")].find(s => [...s.options].some(o => o.value === "below-target"))!;
   await act(async () => { range.value = "below-target"; range.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
   expect(host.querySelectorAll("li")).toHaveLength(1);
@@ -48,6 +49,19 @@ it("reports unavailable catalog without fabricating charts", async () => {
   await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
   expect(host.querySelector('[role="alert"]')!.textContent).toContain("Load failed");
   expect(host.querySelectorAll("li")).toHaveLength(0);
+});
+it("opens collected sibling difficulties and only claims B50 observations", async () => {
+  const sibling = { ...record, difficulty: "expert" as const, displayedLevel: "12", achievementRate: 100.5 };
+  const otherType = { ...record, type: "std" as const, difficulty: "expert" as const, achievementRate: 100 };
+  const history = [{ generatedAt: "2026-08-01T00:00:00.000Z", savedAt: "2026-08-01T00:01:00.000Z", source: "test", language: "en" as const, playerName: "P", officialRating: 0, b50Rating: 290, records: [{ ...record, chartRating: 290, bucket: "b15" as const }] }];
+  await act(async () => root.render(React.createElement(ChartDetail, { record, records: [record, sibling, otherType], history, language: "en" })));
+  const details = host.querySelector("details")!;
+  await act(async () => { Object.defineProperty(details, "open", { configurable: true, value: true }); details.dispatchEvent(new dom.window.Event("toggle")); });
+  expect(host.textContent).toContain("MASTER · 14 · 99.0000%");
+  expect(host.textContent).toContain("EXPERT · 12 · 100.5000%");
+  expect(host.textContent).not.toContain("100.0000%");
+  expect(host.textContent).toContain("B50 observation history");
+  expect(host.textContent).toContain("99.0000% · 290");
 });
 async function submit() { await act(async () => host.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }))); }
 async function selectChart() {

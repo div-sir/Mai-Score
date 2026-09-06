@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of September 5, 2026. `v0.15.0` is the current packaged release and combines the information-architecture and exact-plate-progress work.
+Accurate as of September 6, 2026. `v0.15.0` is the current packaged release and combines the information-architecture and exact-plate-progress work. Draft PR #39 prepares the unreleased v0.16 Records Center work described in `docs/V016-TODO.md`.
 
-Package, lockfile, Studio, and Extension manifest metadata on the development branch all use `0.15.0`.
+Package, lockfile, Studio, and Extension manifest metadata remain at `0.15.0` until v0.16 release preparation is approved.
 
 ## What this is
 
