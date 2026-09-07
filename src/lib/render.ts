@@ -7,7 +7,7 @@ import {
   type ImageTheme
 } from "./image-options";
 import type { CollectionResult, ResolvedScore } from "./types";
-import { recordBadgeNameSet } from "./achievement-rank";
+import { achievementRank, recordBadgeNameSet } from "./achievement-rank";
 
 export interface RenderAssets {
   icon?: string;
@@ -279,10 +279,9 @@ function renderCard(
   const bucketLabel = `${record.bucket.toUpperCase()} #${bucketIndex(records, index)}`;
   const badgeNames = recordBadgeNameSet(record);
   const rankAsset = options.showAchievementRank ? badgeAssets[badgeNames.rank] : undefined;
-  const flagAssets = [
-    options.showComboBadge && badgeNames.combo ? badgeAssets[badgeNames.combo] : undefined,
-    options.showSyncBadge && badgeNames.sync ? badgeAssets[badgeNames.sync] : undefined
-  ].filter((source): source is string => Boolean(source));
+  const flagValues = [options.showComboBadge ? record.comboFlag : undefined, options.showSyncBadge ? record.syncFlag : undefined]
+    .filter((value): value is NonNullable<typeof value> => Boolean(value));
+  const flagAssets = flagValues.map(value => badgeAssets[`music_icon_${value.replaceAll("+", "p")}.png`]);
   // Rank artwork is the primary result marker. Give it the open lower-right
   // area at nearly the achievement text height; FC/AP and FS/FDX remain a
   // compact ribbon near the jacket and can be toggled independently.
@@ -298,8 +297,9 @@ function renderCard(
   const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
   const badgeMarkup = `${rankAsset
     ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
-    : ""}${flagAssets.map((source, badgeIndex) =>
+    : options.showAchievementRank ? `<text x="${rankX + rankWidth}" y="${rankY + rankHeight * .8}" text-anchor="end" font-size="${rankHeight * .75}" font-weight="850">${achievementRank(record.achievementRate).toUpperCase()}</text>` : ""}${flagAssets.map((source, badgeIndex) => source ?
       `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      : `<text x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY + flagHeight * .8}" font-size="${flagHeight * .48}" font-weight="850">${esc(flagValues[badgeIndex].toUpperCase())}</text>`
     ).join("")}`;
 
   return `<g transform="translate(${x} ${y})">
@@ -410,8 +410,8 @@ function header(
     <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" rx="18"/>
   </clipPath></defs>
   <g clip-path="url(#plateClip)">
-    <image href="${assets.plate}" x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" preserveAspectRatio="xMidYMid slice" opacity=".55"/>
-    <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" fill="${alpha(palette.header, .55)}"/>
+    <image href="${assets.plate}" x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" preserveAspectRatio="xMidYMid slice" opacity="1"/>
+    <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" fill="${alpha(palette.header, .2)}"/>
   </g>` : ""}
   <text x="${textX}" y="${nameY}" font-size="${nameSize}" font-weight="850" letter-spacing="2">${esc(result.player.name)}</text>
   ${trophy?.markup ?? ""}

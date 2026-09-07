@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of September 7, 2026. v0.16.0 packages the Records Center work in PR #39. The owner confirmed acceptance and authorized merge and publication. See `docs/V016-TODO.md` for scope and evidence.
+Accurate as of September 7, 2026. v0.16.1 packages PR #40: collection retry/serialization, nameplate and badge handling, and clickable Export chart details. The owner authorized production publication. All package/lockfile/manifest versions are `0.16.1`.
 
-Package, lockfiles, Studio, and Extension manifest metadata are aligned at `0.16.0`. Release and deployment completion must be checked in GitHub Actions and Vercel.
+279 tests, Extension typecheck/build, and Studio typecheck/production build passed before release preparation. Agent-run real-account collection and browser visual checks remain unverified; owner publication approval does not imply these automated checks ran. GitHub Release and Vercel are authoritative for publication/deployment status.
 
 ## What this is
 
@@ -102,7 +102,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Packaged Extension baseline | Release `v0.15.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current release target | `v0.16.0` | Owner-approved | Verify Release workflow, tag, ZIP, and production deployment. |
+| Current release target | `v0.16.1` | Owner-approved | Verify Release workflow, tag, ZIP, and production deployment. |
 | Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
 | Full Records collector | Release `v0.14.0` | Published; live validation remains | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |

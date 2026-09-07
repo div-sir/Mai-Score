@@ -684,3 +684,13 @@ button:active{transform:scale(.97)}
 .play-queue ul { padding-inline-start: 1.25rem; }
 .play-queue li { overflow-wrap: anywhere; margin-block: .75rem; }
 .play-queue li button { margin-inline-start: .5rem; }
+
+.preview-chart-hint { margin: 0 0 12px; font-size: 14px; }
+.interactive-b50 { position: relative; width: 100%; }
+.interactive-b50 > img { display: block; width: 100%; height: auto; }
+.b50-chart-hit { position: absolute; padding: 0; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.b50-chart-hit:hover, .b50-chart-hit:focus-visible { outline: 3px solid #22b8e6; background: #22b8e622; }
+.b50-chart-dialog { width: min(620px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; padding: 24px; border: 1px solid #858ca6; border-radius: 16px; color: CanvasText; background: Canvas; }
+.b50-chart-dialog::backdrop { background: #0009; }
+.b50-chart-dialog form { display: flex; justify-content: flex-end; }
+.b50-chart-dialog table { width: 100%; text-align: left; border-spacing: 8px; }

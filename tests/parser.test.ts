@@ -220,3 +220,9 @@ describe("international DX NET parser", () => {
       .toThrow("FULL_RECORDS_LAYOUT_CHANGED");
   });
 });
+
+it("finds an equipped plate without relying on decorative wrapper classes", () => {
+  expect(parseCurrentPlate(doc('<div class="collection_setting_block"><img src="../img/plate/current.png"></div>'), 'https://maimaidx-eng.com/maimai-mobile/collection/'))
+    .toBe('https://maimaidx-eng.com/maimai-mobile/img/plate/current.png');
+  expect(parseCurrentPlate(doc('<div><img src="/maimai-mobile/img/Plate/not-equipped.png"></div>'))).toBeUndefined();
+});

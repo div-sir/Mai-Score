@@ -109,3 +109,20 @@ it("preserves another tab's goal when saving", async () => {
   await submit();
   expect(parseQueue(localStorage.getItem(QUEUE_KEY)).goals).toHaveLength(2);
 });
+
+it("opens an export chart with a +1 target and history, then clears it on close", async () => {
+  const { default: B50Preview } = await import('../studio/app/b50-preview');
+  const { renderStudioSvg } = await import('../studio/lib/render');
+  const { DEFAULT_OPTIONS } = await import('../studio/lib/types');
+  const chart = { ...record, internalLevelValue: 14, achievementRate: 99, chartRating: 291, bucket: 'b15' as const };
+  const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], b15Rating:291,b35Rating:0,b50Rating:291 };
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  await act(async () => root.render(React.createElement(B50Preview, {data,history:[],language:'en',rendered:renderStudioSvg(data,DEFAULT_OPTIONS,'en'),previewUrl:'data:image/svg+xml,<svg/>'})));
+  await act(async () => host.querySelector<HTMLButtonElement>('.b50-chart-hit')!.click());
+  expect(host.querySelector('dialog')!.open).toBe(true);
+  expect(host.textContent).toContain('At least +1 Rating');
+  expect(host.textContent).toContain('B50 observation history');
+  expect(host.textContent).toContain('This does not mean it was unplayed');
+  await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
+  expect(host.querySelector('#b50-chart-title')).toBeNull();
+});

@@ -168,9 +168,10 @@ function downloadBlob(name: string, blob: Blob) {
 async function fetchDataUrl(url?: string): Promise<string | undefined> {
   if (!url) return undefined;
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) return undefined;
     const blob = await response.blob();
+    if (!blob.type.startsWith("image/")) return undefined;
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result));

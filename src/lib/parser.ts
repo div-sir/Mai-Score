@@ -23,6 +23,8 @@ export function parseProfile(doc: Document, base = "https://maimaidx-eng.com/mai
     iconUrl: absolute(doc.querySelector<HTMLImageElement>(".basic_block img.w_112, img.w_112.f_l")?.getAttribute("src") ?? null, base),
     courseRankUrl: imageBy(doc, "/course/course_rank_", base),
     classRankUrl: imageBy(doc, "/class/class_rank_", base),
+    plateUrl: imageBy(doc, "/img/Plate/", base),
+    frameUrl: imageBy(doc, "/img/Frame/", base),
     ratingBaseUrl: imageBy(doc, "rating_base_", base)
   };
 }
@@ -33,7 +35,7 @@ function difficultyFrom(card: Element): Difficulty | null {
 }
 
 function flagsFrom(card: Element): Pick<ParsedFullScore, "comboFlag" | "syncFlag"> {
-  const icons = [...card.querySelectorAll<HTMLImageElement>('img[src*="/music_icon_"]')]
+  const icons = [...card.querySelectorAll<HTMLImageElement>('img[src*="music_icon_"]')]
     .map((image) => (image.getAttribute("src") ?? "").toLowerCase());
   const combo = icons.find((src) => /music_icon_(fc|fcp|ap|app)\.png/.test(src))
     ?.match(/music_icon_(fcp|fc|app|ap)\.png/)?.[1];
@@ -162,6 +164,8 @@ export function parseCurrentPlate(doc: Document, base = "https://maimaidx-eng.co
 }
 
 function currentCollectionImage(doc: Document, fragment: string, base: string): string | undefined {
-  const current = doc.querySelector(".town_block.m_15.p_15.t_l .see_through_block.collection_setting_block");
-  return absolute(current?.querySelector<HTMLImageElement>(`img[src*="${fragment}"]`)?.getAttribute("src") ?? null, base);
+  const current = doc.querySelector(".collection_setting_block");
+  const image = [...(current?.querySelectorAll<HTMLImageElement>("img") ?? [])]
+    .find(image => image.getAttribute("src")?.toLowerCase().includes(fragment.toLowerCase()));
+  return absolute(image?.getAttribute("src") ?? null, base);
 }

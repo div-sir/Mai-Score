@@ -159,3 +159,26 @@ describe("Studio renderer", () => {
     expect([...title].length).toBeLessThan(12);
   });
 });
+
+it("keeps parsed result labels visible when badge downloads fail in both renderers", () => {
+  const record = { ...data.records[0], comboFlag: "ap+" as const, syncFlag: "fs+" as const };
+  const studio = renderStudioSvg({ ...data, records: [record] }, DEFAULT_OPTIONS, "en");
+  const extension = renderB50Document({ ...extensionData, records: [record] }, DEFAULT_IMAGE_OPTIONS);
+  for (const svg of [studio.svg, extension.svg]) {
+    expect(svg).toContain('>AP+</text>'); expect(svg).toContain('>FS+</text>'); expect(svg).toContain('>SSS</text>');
+  }
+  const hidden = renderStudioSvg({ ...data, records: [record] }, { ...DEFAULT_OPTIONS, showComboBadge: false, showSyncBadge: false, showAchievementRank: false }, "en");
+  expect(hidden.svg).not.toContain('>AP+</text>'); expect(hidden.svg).not.toContain('>FS+</text>'); expect(hidden.svg).not.toContain('>SSS</text>');
+});
+it("keeps interactive hit areas aligned with all three export layouts", () => {
+  for (const layout of ["classic", "compact", "landscape"] as const) {
+    const rendered = renderStudioSvg(data, { ...DEFAULT_OPTIONS, layout }, "en");
+    expect(rendered.hitAreas).toHaveLength(50);
+    for (const area of rendered.hitAreas) {
+      expect(rendered.svg).toContain(`transform="translate(${area.x} ${area.y})"`);
+      expect(area.x + area.width).toBeLessThanOrEqual(rendered.width);
+      expect(area.y + area.height).toBeLessThanOrEqual(rendered.height);
+    }
+    expect(rendered.hitAreas[15].record.bucket).toBe('b35');
+  }
+});

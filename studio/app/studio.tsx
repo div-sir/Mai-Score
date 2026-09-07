@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import B50Preview from "./b50-preview";
 import ProgressDashboard from "./progress";
 import RecordsDashboard from "./records";
 import { renderStudioSvg } from "../lib/render";
@@ -105,9 +106,10 @@ function receiveFromExtension(
 
 async function fetchDataUrl(url: string): Promise<string | undefined> {
   try {
-    const response = await fetch(`/api/asset?url=${encodeURIComponent(url)}`);
+    const response = await fetch(`/api/asset?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) return undefined;
     const blob = await response.blob();
+    if (!blob.type.startsWith("image/")) return undefined;
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result));
@@ -151,7 +153,13 @@ async function loadPublicAssets(data: StudioData): Promise<StudioAssets> {
     name,
     await fetchDataUrl(new URL(`/maimai-mobile/img/${name}`, badgeBase).href)
   ] as const);
+  const [icon, frame, plate] = await Promise.all([
+    data.player.iconUrl ? fetchDataUrl(data.player.iconUrl) : undefined,
+    data.player.frameUrl ? fetchDataUrl(data.player.frameUrl) : undefined,
+    data.player.plateUrl ? fetchDataUrl(data.player.plateUrl) : undefined
+  ]);
   return {
+    icon, frame, plate,
     covers: Object.fromEntries(
       coverPairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
     ),
@@ -906,9 +914,10 @@ export default function Studio() {
             <strong>{copy.livePreview}</strong>
             <span>{rendered ? `${options.layout} · ${rendered.width} × ${rendered.height}` : copy.emptySource}</span>
           </div>
+          {data && options.showPlate && !assets.plate && !data.player.plateUrl && <p role="status">{language === "zh-Hant" ? "這份資料沒有取得 Nameplate；請更新擴充功能後重新整理 DX NET 頁面並重新收集。" : language === "ja" ? "ネームプレートが未取得です。拡張機能の更新後、DX NET を再読み込みして再取得してください。" : "Nameplate was not collected. Update the extension, reload DX NET, then collect again."}</p>}
           <div className={`preview-stage theme-${options.theme}`}>
             {rendered
-              ? <img src={previewUrl} alt={`${options.layout} B50 export preview`} />
+              ? data && <B50Preview data={data} history={history} language={language} rendered={rendered} previewUrl={previewUrl} />
               : <p className="empty-preview">{copy.emptyPreview}</p>}
           </div>
         </section>
