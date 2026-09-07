@@ -2,7 +2,7 @@
 
 All notable changes to Mai-Score are documented here.
 
-## [Unreleased]
+## [0.16.0] — 2026-09-07
 
 ### Added
 
@@ -21,7 +21,7 @@ All notable changes to Mai-Score are documented here.
 ### Verification notes
 
 - Catalog parity confirms equality with the fetched community source; it is not independent proof that SEGA's live International catalog is complete.
-- Preview desktop and mobile visual verification still requires access through Vercel Deployment Protection. No player account or score upload is used for automated verification.
+- The owner confirmed acceptance and authorized publication on 2026-09-07. Agent-run cloud-browser verification was blocked by Vercel Deployment Protection; this is not recorded as an automated browser pass.
 
 ## [0.15.0] — 2026-09-05
 

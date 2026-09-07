@@ -2,9 +2,9 @@
 
 Development branch: `agent/v016-catalog-identity`
 
-Review: [Draft PR #39](https://github.com/div-sir/Mai-Score/pull/39)
+Review: [PR #39](https://github.com/div-sir/Mai-Score/pull/39)
 
-Release state: not merged or released.
+Release state: owner accepted and authorized v0.16.0 publication on 2026-09-07. GitHub Release and Actions are the authoritative publication status.
 
 ## Scope status
 
@@ -18,7 +18,8 @@ Release state: not merged or released.
 - [x] Responsive catalog controls, summaries, simulator, and result rows for desktop and narrow screens.
 - [x] Automated interaction coverage for catalog loading, opt-in comparison, gap selection, simulation withholding, play queue, and song details.
 - [x] Extension typecheck, tests, package build, Studio typecheck, and production build.
-- [ ] Authenticated Preview browser verification at desktop and mobile viewport widths.
+- [x] Owner acceptance and publication approval (2026-09-07).
+- [ ] Agent-run authenticated desktop/mobile Preview verification; not claimed as completed.
 
 ## Catalog evidence
 
@@ -48,8 +49,8 @@ Studio's `predev` and `prebuild` generate `/data/catalog.json` from the same pin
 - Studio Next.js production build passes.
 - `git diff --check` passes.
 
-## External verification blocker
+## Acceptance and remaining evidence
 
 The PR Preview is protected by Vercel Deployment Protection and redirects the available cloud browser to Vercel login. Desktop/mobile visual and navigation verification remains open until an authorized session is provided or protection is temporarily disabled. Automated tests and responsive CSS inspection are supporting evidence, not a substitute for that browser check.
 
-No merge, release, account creation, or player-data upload is authorized. Community, friends, rankings, and external-account features remain separate backend work and are outside this v0.16 scope.
+The owner authorized merge and release on 2026-09-07. No account creation or player-data upload is part of this release. Community, friends, rankings, and external-account features remain separate backend work and are outside this v0.16 scope.

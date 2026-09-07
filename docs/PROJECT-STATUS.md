@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of September 6, 2026. `v0.15.0` is the current packaged release and combines the information-architecture and exact-plate-progress work. Draft PR #39 prepares the unreleased v0.16 Records Center work described in `docs/V016-TODO.md`.
+Accurate as of September 7, 2026. v0.16.0 packages the Records Center work in PR #39. The owner confirmed acceptance and authorized merge and publication. See `docs/V016-TODO.md` for scope and evidence.
 
-Package, lockfile, Studio, and Extension manifest metadata remain at `0.15.0` until v0.16 release preparation is approved.
+Package, lockfiles, Studio, and Extension manifest metadata are aligned at `0.16.0`. Release and deployment completion must be checked in GitHub Actions and Vercel.
 
 ## What this is
 
@@ -102,7 +102,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Packaged Extension baseline | Release `v0.15.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current packaged release | `v0.15.0` | Published | Verify the generated Extension asset remains downloadable and installable. |
+| Current release target | `v0.16.0` | Owner-approved | Verify Release workflow, tag, ZIP, and production deployment. |
 | Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
 | Full Records collector | Release `v0.14.0` | Published; live validation remains | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
