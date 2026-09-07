@@ -5,6 +5,8 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022", "DOM"],
     "strict": true,
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "resolveJsonModule": true,
     "types": ["chrome", "vitest/globals"]

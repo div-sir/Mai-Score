@@ -2,7 +2,26 @@
 
 All notable changes to Mai-Score are documented here.
 
-## [Unreleased]
+## [0.16.0] — 2026-09-07
+
+### Added
+
+- Added an on-demand International chart catalog to Records with title, version, difficulty, goal, and completion-gap filters. The packaged catalog contains 6,195 charts from the source snapshot published on 2026-09-05.
+- Added conservative catalog-to-score matching. Exact chart IDs take priority; ambiguous legacy title/type/difficulty matches stay unknown instead of being reported as unplayed.
+- Added cross-difficulty song details, per-chart 100%/100.5% Rating targets, and B50 observation history for collected charts.
+- Added a browser-local play queue with target achievements and notes. Its versioned data is validated before every read or write and is never uploaded or Drive-synced.
+- Added selected-chart B50 simulation for catalog gaps. Results appear only with explicit B15/B35 eligibility, complete bucket membership, and a known chart constant.
+
+### Changed
+
+- Completion reports now distinguish completed, known below-target, unobserved, and ambiguous charts for SSS, SSS+, FC, and AP goals.
+- Reworked the catalog, gap summary, simulator, and result rows for clearer desktop scanning and single-column mobile layouts.
+- Updated the pinned International chart source to `2026-09-05T15:00:29.141287228+00:00` (SHA-256 `2d9ada482d178d9c43faa6f9316e68a15ab0fdf870aa11ca4f17f1f7fdb6065b`).
+
+### Verification notes
+
+- Catalog parity confirms equality with the fetched community source; it is not independent proof that SEGA's live International catalog is complete.
+- The owner confirmed acceptance and authorized publication on 2026-09-07. Agent-run cloud-browser verification was blocked by Vercel Deployment Protection; this is not recorded as an automated browser pass.
 
 ## [0.15.0] — 2026-09-05
 

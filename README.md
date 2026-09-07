@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.15.0 is the latest packaged release.** It separates Studio into Export, Progress, and Records, clarifies collection and data-management paths, and adds exact plate-progress calculation from Full Records.
+> **v0.16.0 — Records Center.** Includes the pinned International catalog workspace, detailed completion gaps, B50-linked simulation, cross-difficulty details, and a local play queue. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -40,6 +40,9 @@ Building from source instead? See [Development](#development).
 - Imports validated maimai Rhythm Record Full Records files with an explicit B50, keeps one best result per chart, and shows searchable level completion with SSS/FC/AP/FS totals.
 - Optionally collects all played International DX NET charts with five sequential difficulty-page requests and sends them directly to Studio; normal B50 collection remains the default.
 - Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter; B50-only data is never presented as plate completion.
+- Browses the full pinned International catalog on demand and separates known below-target charts from unobserved or ambiguous matches for SSS, SSS+, FC, and AP goals.
+- Opens collected sibling difficulties, B50 observation history, and target chart Rating from Records, while keeping STD and DX identities separate.
+- Simulates an eligible catalog chart against its explicit B15/B35 cutoff and saves optional target achievements and notes in a validated browser-local play queue.
 
 ## Usage
 

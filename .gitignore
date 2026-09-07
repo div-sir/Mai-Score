@@ -4,3 +4,4 @@ dist/
 *.tsbuildinfo
 *.zip
 .DS_Store
+studio/public/data/catalog.json
