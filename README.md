@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.16.0 — Records Center.** Includes the pinned International catalog workspace, detailed completion gaps, B50-linked simulation, cross-difficulty details, and a local play queue. Download the packaged version from Releases.
+> **v0.16.1 — Collection and Export fixes.** Adds clickable B50 history and Rating targets, more resilient collection, and nameplate/result-badge display fixes. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 

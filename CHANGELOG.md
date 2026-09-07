@@ -2,7 +2,7 @@
 
 All notable changes to Mai-Score are documented here.
 
-## [Unreleased]
+## [0.16.1] — 2026-09-07
 
 ### Fixed
 
