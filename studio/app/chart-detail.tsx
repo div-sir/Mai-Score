@@ -5,10 +5,10 @@ import { buildChartHistory, calculateInsightRating } from "../lib/insights";
 import type { HistoryEntry } from "../lib/history";
 import type { LanguageId, StudioChartRecord } from "../lib/types";
 
-export default function ChartDetail({ record, records, history, language }: {
-  record: StudioChartRecord; records: StudioChartRecord[]; history: HistoryEntry[]; language: LanguageId;
+export default function ChartDetail({ record, records, history, language, initiallyOpen = false }: {
+  record: StudioChartRecord; records: StudioChartRecord[]; history: HistoryEntry[]; language: LanguageId; initiallyOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const copy = language === "zh-Hant"
     ? { details: "單曲詳情", charts: "已收集的各難度", history: "B50 觀測歷史", empty: "沒有此譜面的 B50 歷史；不代表未曾遊玩。", target: "目標達成率／單譜 Rating" }
     : language === "ja"
@@ -16,7 +16,7 @@ export default function ChartDetail({ record, records, history, language }: {
       : { details: "Song details", charts: "Collected difficulties", history: "B50 observation history", empty: "No B50 history for this chart. This does not mean it was unplayed.", target: "Target achievement / chart Rating" };
   const points = open ? buildChartHistory(history, JSON.stringify([record.title, record.type, record.difficulty])) : [];
   const siblings = open ? records.filter(r => r.type === record.type && (record.songId && r.songId ? record.songId === r.songId : r.title === record.title)) : [];
-  return <details className="chart-detail" onToggle={event => setOpen(event.currentTarget.open)}>
+  return <details open={open} className="chart-detail" onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>{copy.details}</summary>
     {open && <div>
       <p>{record.version ?? "—"} · {record.internalLevelValue ?? "—"}</p>

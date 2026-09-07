@@ -51,14 +51,23 @@ async function fetchDocument(
   text: (key: string, ...values: Array<string | number>) => string,
   timeoutMs = FETCH_TIMEOUT_MS
 ): Promise<Document> {
-  let response: Response;
-  try {
-    response = await fetch(`${ROOT}${path}`, { credentials: "include", signal: AbortSignal.timeout(timeoutMs) });
-  } catch (error) {
-    throw describeFetchError(error, label, text);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let response: Response;
+    let html: string;
+    try {
+      response = await fetch(`${ROOT}${path}`, { credentials: "include", signal: AbortSignal.timeout(timeoutMs) });
+      html = await response.text();
+    } catch (error) {
+      if (attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 750));
+        continue;
+      }
+      throw describeFetchError(error, label, text);
+    }
+    if (!response.ok) throw new Error(text("fetchBadStatus", label, response.status));
+    return new DOMParser().parseFromString(html, "text/html");
   }
-  if (!response.ok) throw new Error(text("fetchBadStatus", label, response.status));
-  return new DOMParser().parseFromString(await response.text(), "text/html");
+  throw new Error(text("fetchFailed", label));
 }
 
 async function resolveViaBackground<T extends ParsedChartScore>(
@@ -98,28 +107,26 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   if (includeFullRecords && connection.id !== "dxnet-intl") {
     throw new Error(text("fullRecordsIntlOnly"));
   }
-  const total = 3 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
+  const total = 4 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
   const tracked = (promise: Promise<Document>) => promise.then((doc) => {
     fetched += 1;
     reportProgress(createFetchProgress(fetched, total));
     return doc;
   });
 
-  const [home, ratingTarget, frame, plate] = await Promise.all([
-    tracked(fetchDocument("/home/", text("labelProfile"), text)),
-    tracked(fetchDocument("/home/ratingTargetMusic/", text("labelB50"), text)),
-    tracked(fetchDocument("/collection/frame/", text("labelFrame"), text)),
-    // Decorative only, and the plate collection page has not been verified
-    // against every region. A failure here must not lose the whole B50, so
-    // this one request is allowed to come back empty — on a short deadline,
-    // because the other three are what the export actually needs and a slow
-    // optional page must not hold the collection open behind them.
-    fetchDocument("/collection/plate/", text("labelPlate"), text, OPTIONAL_FETCH_TIMEOUT_MS)
-      .catch(() => undefined)
-  ]);
+  // DX NET requests share one authenticated session. Keep them sequential.
+  const home = await tracked(fetchDocument("/home/", text("labelProfile"), text));
   const player = parseProfile(home, `${ROOT}/home/`);
-  player.frameUrl = parseCurrentFrame(frame, `${ROOT}/collection/frame`);
-  player.plateUrl = plate ? parseCurrentPlate(plate, `${ROOT}/collection/plate`) : undefined;
+  const ratingTarget = await tracked(fetchDocument("/home/ratingTargetMusic/", text("labelB50"), text));
+  const decoration = async (path: string, label: string) => {
+    try { return await fetchDocument(path, label, text, OPTIONAL_FETCH_TIMEOUT_MS); }
+    catch { return undefined; }
+    finally { reportProgress(createFetchProgress(++fetched, total)); }
+  };
+  const frame = await decoration("/collection/frame/", text("labelFrame"));
+  const plate = await decoration("/collection/plate/", text("labelPlate"));
+  player.frameUrl = (frame && parseCurrentFrame(frame, `${ROOT}/collection/frame/`)) ?? player.frameUrl;
+  player.plateUrl = (plate && parseCurrentPlate(plate, `${ROOT}/collection/plate/`)) ?? player.plateUrl;
   const parsedPage = parseRatingTargetPage(ratingTarget);
   const parsed = parsedPage.records;
   const parsedB15 = parsed.filter((record) => record.bucket === "b15");
@@ -164,7 +171,12 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   const fullByChart = new Map(resolvedFullRecords.map((record) => [recordKey(record), record]));
   // Prefer the canonical Rating Target copy for charts in B50. It preserves
   // the exact same score/flags used to calculate the visible B15/B35.
-  for (const record of records) fullByChart.set(recordKey(record), record);
+  for (const record of records) {
+    const full = fullByChart.get(recordKey(record));
+    record.comboFlag ??= full?.comboFlag;
+    record.syncFlag ??= full?.syncFlag;
+    fullByChart.set(recordKey(record), record);
+  }
   const fullRecords = includeFullRecords ? [...fullByChart.values()] : undefined;
   const fullRecordsUnmatched = fullRecords?.filter((record) => record.warning).length;
   // Candidate matching is advisory and must not make the official B50 look

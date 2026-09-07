@@ -2,6 +2,25 @@
 
 All notable changes to Mai-Score are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Serialize authenticated DX NET page requests and retry transient fetch/body failures once. Count optional frame/nameplate attempts in progress and keep decorative failures from aborting score collection.
+- Preserve profile-page nameplate/frame URLs when optional collection pages fail; recognize equipped collection images independently of decorative wrapper classes.
+- Retain Full Records combo/sync flags when the matching B50 record omits them.
+- Render actual rank and FC/AP/FS labels when official badge images are unavailable, while respecting visibility switches in both exporters.
+- Embed profile images during JSON import, reject non-image asset responses, and restore nameplate contrast.
+
+### Added
+
+- Click or keyboard-select any chart in the Export B50 preview to open observation history, the minimum achievement for +1 Rating, and 100%/100.5% gains. Hit areas follow all three export layouts; exported images remain static.
+
+### Verification
+
+- Regression tests cover request retry, optional-page failure, flag retention, missing-artwork fallbacks, layout hit areas, and the chart dialog.
+- Real-account collection and equipped-nameplate markup still require confirmation on DX NET. No real player HTML is retained in fixtures.
+
 ## [0.16.0] — 2026-09-07
 
 ### Added

@@ -1,5 +1,5 @@
 import type { AccentScope, LanguageId, LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
-import { recordBadgeNameSet } from "./achievement-rank";
+import { achievementRank, recordBadgeNameSet } from "./achievement-rank";
 
 interface Spec {
   width: number; height: number; columns: number; margin: number; startY: number;
@@ -253,12 +253,14 @@ export function renderStudioSvg(
     Math.round(Math.max(textWidth(data.player.name, nameSize) + nameSize / 2, playerTitle?.width ?? 0)) + platePad * 2
   );
 
+  const hitAreas: Array<{ record: StudioRecord; x: number; y: number; width: number; height: number }> = [];
   const renderCards = (records: StudioRecord[], sectionStartY: number, globalOffset: number) => records.map((record, sectionIndex) => {
     const index = globalOffset + sectionIndex;
     const column = sectionIndex % spec.columns;
     const row = Math.floor(sectionIndex / spec.columns);
     const x = spec.margin + column * (spec.cardW + spec.gapX);
     const y = sectionStartY + row * (spec.cardH + spec.gapY);
+    hitAreas.push({ record, x, y, width: spec.cardW, height: spec.cardH });
     const coverSource = record.imageName
       ? assets.covers[record.imageName]
         ?? assetUrl(`https://shama.dxrating.net/images/cover/v2/${record.imageName}.jpg`, origin)
@@ -280,11 +282,10 @@ export function renderStudioSvg(
     const borderOpacity = options.accentScope === "minimal" ? .45 : .62;
     const badgeNames = recordBadgeNameSet(record);
     const rankAsset = options.showAchievementRank ? assets.badges?.[badgeNames.rank] : undefined;
-    const flagAssets = [
-      options.showComboBadge && badgeNames.combo ? assets.badges?.[badgeNames.combo] : undefined,
-      options.showSyncBadge && badgeNames.sync ? assets.badges?.[badgeNames.sync] : undefined
-    ].filter((source): source is string => Boolean(source));
-    // Rank artwork is the primary result marker. Give it the open lower-right
+    const flagValues = [options.showComboBadge ? record.comboFlag : undefined, options.showSyncBadge ? record.syncFlag : undefined]
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+    const flagAssets = flagValues.map(value => assets.badges?.[`music_icon_${value.replaceAll("+", "p")}.png`]);
+  // Rank artwork is the primary result marker. Give it the open lower-right
     // area at nearly the achievement text height; FC/AP and FS/FDX remain a
     // compact ribbon near the jacket and can be toggled independently.
     const rankHeight = Math.max(22, Math.round(spec.rate * .96));
@@ -299,8 +300,9 @@ export function renderStudioSvg(
     const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
     const badgeMarkup = `${rankAsset
       ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
-      : ""}${flagAssets.map((source, badgeIndex) =>
+      : options.showAchievementRank ? `<text x="${rankX + rankWidth}" y="${rankY + rankHeight * .8}" text-anchor="end" font-size="${rankHeight * .75}" font-weight="850">${achievementRank(record.achievementRate).toUpperCase()}</text>` : ""}${flagAssets.map((source, badgeIndex) => source ?
         `<image href="${source}" x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY}" width="${flagWidth}" height="${flagHeight}" preserveAspectRatio="xMidYMid meet"/>`
+      : `<text x="${flagsX + badgeIndex * (flagWidth + 4)}" y="${flagsY + flagHeight * .8}" font-size="${flagHeight * .48}" font-weight="850">${esc(flagValues[badgeIndex].toUpperCase())}</text>`
       ).join("")}`;
     return `<g transform="translate(${x} ${y})">
       <rect width="${spec.cardW}" height="${spec.cardH}" rx="16" fill="${palette.card}" stroke="${alpha(borderColor, borderOpacity)}" stroke-width="3"/>
@@ -322,6 +324,7 @@ export function renderStudioSvg(
   return {
     width: spec.width,
     height: spec.height,
+    hitAreas,
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.width}" height="${spec.height}" viewBox="0 0 ${spec.width} ${spec.height}">
       <style>text{font-family:Inter,ui-sans-serif,system-ui,"Noto Sans",sans-serif;fill:${palette.fg}}</style>
       <rect width="${spec.width}" height="${spec.height}" fill="${palette.bg}"/>
@@ -333,8 +336,8 @@ export function renderStudioSvg(
         <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" rx="18"/>
       </clipPath></defs>
       <g clip-path="url(#plateClip)">
-        <image href="${plate}" x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" preserveAspectRatio="xMidYMid slice" opacity=".55"/>
-        <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" fill="${alpha(palette.header, .55)}"/>
+        <image href="${plate}" x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" preserveAspectRatio="xMidYMid slice" opacity="1"/>
+        <rect x="${textX - platePad}" y="${plateTop}" width="${plateWidth}" height="${plateBottom - plateTop}" fill="${alpha(palette.header, .2)}"/>
       </g>` : ""}
       <text x="${textX}" y="${nameY}" font-size="${nameSize}" font-weight="850" letter-spacing="2">${esc(data.player.name)}</text>
       ${playerTitle?.markup ?? ""}
