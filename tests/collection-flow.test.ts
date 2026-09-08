@@ -30,6 +30,7 @@ it('retries profile network failure, completes all difficulties despite decorati
     if(url.includes('ratingTargetMusic')) return new Response(b50);
     if(url.includes('/collection/')) return new Response('',{status:404});
     const diff=new URL(url).searchParams.get('diff');
+    if (diff === '0') return new Response('<div class="main_wrapper"><section><div class="w_450"><div class="music_name_block">Unplayed BASIC</div><div class="music_lv_block">3</div></div></section></div>');
     return new Response(`<div class="main_wrapper"><div class="w_450"><div class="music_name_block">${diff==='3'?'New 0':'Full '+diff}</div><div class="music_lv_block">13</div><div class="music_score_block">100%</div><img src="music_icon_app.png"><img src="music_icon_fdxp.png"></div></div>`);
   });
   const {run,messages}=await setup(fetcher); const result=await run();

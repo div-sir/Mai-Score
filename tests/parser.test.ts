@@ -219,6 +219,26 @@ describe("international DX NET parser", () => {
     expect(() => parseFullRecordsPage(doc(`<div class="main_wrapper"><p>Sign in</p></div>`), "expert"))
       .toThrow("FULL_RECORDS_LAYOUT_CHANGED");
   });
+  it("accepts a recognizable BASIC list with no played achievements", () => {
+    const page = doc(`<div class="main_wrapper"><section>
+      <div class="w_450"><div class="music_basic_score_back"><div class="music_name_block">Unplayed</div><div class="music_lv_block">3</div></div></div>
+      <div class="w_450"><div class="music_name_block">Empty</div><div class="music_lv_block">4</div><div class="music_score_block"></div></div>
+    </section></div>`);
+    expect(parseFullRecordsPage(page, "basic")).toEqual([]);
+  });
+  it("reads nested played rows once and prefers achievement over DX score", () => {
+    const page = doc(`<div class="main_wrapper"><section class="w_450"><div class="w_450">
+      <div class="music_name_block">Played</div><div class="music_lv_block">3</div>
+      <div class="music_score_block w_190">1,200 / 1,500</div>
+      <div class="music_score_block w_120">99.5000%</div>
+    </div></section></div>`);
+    expect(parseFullRecordsPage(page, "basic")).toHaveLength(1);
+    expect(parseFullRecordsPage(page, "basic")[0].achievementRate).toBe(99.5);
+  });
+  it("does not turn malformed achievements or empty unknown pages into no scores", () => {
+    expect(() => parseFullRecordsPage(doc('<div class="main_wrapper"></div>'), "basic")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
+    expect(() => parseFullRecordsPage(doc('<div class="main_wrapper"><div class="w_450"><div class="music_name_block">Song</div><div class="music_lv_block">3</div><div class="music_score_block">???</div></div></div>'), "basic")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
+  });
 });
 
 it("finds an equipped plate without relying on decorative wrapper classes", () => {
