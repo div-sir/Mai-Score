@@ -18,7 +18,9 @@ export default function ChartDetail({ record, records, history, language, initia
   const siblings = open ? records.filter(r => r.type === record.type && (record.songId && r.songId ? record.songId === r.songId : r.title === record.title)) : [];
   return <details open={open} className="chart-detail" onToggle={event => setOpen(event.currentTarget.open)}>
     <summary>{copy.details}</summary>
-    {open && <div>
+    {open && <div className="chart-detail-content">
+      <div className="chart-detail-hero"><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · Lv {record.displayedLevel}</span><b>{record.achievementRate.toFixed(4)}%</b></div>
+      <div className="chart-detail-metrics"><span><small>Rating</small><b>{record.chartRating?.toFixed(2) ?? "—"}</b></span><span><small>{copy.target}</small><b>{record.internalLevelValue ?? "—"}</b></span><span><small>Flags</small><b>{[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ") || "—"}</b></span></div>
       <p>{record.version ?? "—"} · {record.internalLevelValue ?? "—"}</p>
       <h3>{copy.charts}</h3>
       <ul>{siblings.map(r => <li key={r.chartId ?? `${r.type}-${r.difficulty}`}>{r.difficulty.toUpperCase()} · {r.displayedLevel} · {r.achievementRate.toFixed(4)}% · {[r.comboFlag, r.syncFlag].filter(Boolean).join(" / ")}</li>)}</ul>

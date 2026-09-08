@@ -45,6 +45,7 @@ export interface StudioChartRecord {
   grade?: string;
   clearStatus?: string;
   version?: string;
+  warning?: string;
 }
 
 export interface StudioRecord extends StudioChartRecord {
