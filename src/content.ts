@@ -64,8 +64,14 @@ async function fetchDocument(
       }
       throw describeFetchError(error, label, text);
     }
+    const document = new DOMParser().parseFromString(html, "text/html");
+    // DX NET can return an application error page with HTTP 200.
+    // Detect it before attempting to parse the page as player/score data.
+    const errorCode = document.body.textContent?.match(/ERROR\s+CODE\s*[:：]\s*(\d{6})(?!\d)/i)?.[1];
+    if (errorCode === "200002") throw new Error(text("fetchSessionExpired", label));
+    if (errorCode) throw new Error(text("fetchApplicationError", label, errorCode));
     if (!response.ok) throw new Error(text("fetchBadStatus", label, response.status));
-    return new DOMParser().parseFromString(html, "text/html");
+    return document;
   }
   throw new Error(text("fetchFailed", label));
 }

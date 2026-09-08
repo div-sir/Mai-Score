@@ -48,3 +48,24 @@ it('stops on a required HTTP error without pretending previous B50 data was refr
   expect(await run()).toMatchObject({ok:false,error:expect.stringContaining('403')});
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
+
+it('reports the DX NET expiry page at BASIC even when HTTP is successful', async()=>{
+  const fetcher=vi.fn(async(url:string)=>{
+    if(url.endsWith('/home/')) return new Response(profile);
+    if(url.includes('ratingTargetMusic')) return new Response(b50);
+    if(url.includes('/collection/')) return new Response('',{status:404});
+    return new Response('<div>ERROR CODE : 200002</div><p>The connection time has been expired.</p>');
+  });
+  const {run,messages}=await setup(fetcher);
+  const result=await run();
+  expect(result).toMatchObject({ok:false,error:expect.stringContaining('200002')});
+  expect(result.error).toContain('Sign in');
+  expect(result.error).not.toContain('layout');
+  expect(messages.some(m=>m.type==='MAI_SCORE_RESOLVE')).toBe(false);
+  expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(1);
+});
+
+it('preserves other DX NET application error codes instead of reporting parser failure', async()=>{
+  const {run}=await setup(vi.fn(async()=>new Response('<p>ERROR CODE : 999999</p>')));
+  expect(await run()).toMatchObject({ok:false,error:expect.stringContaining('999999')});
+});
