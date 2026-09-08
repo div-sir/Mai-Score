@@ -41,6 +41,8 @@ it('retries profile network failure, completes all difficulties despite decorati
   expect(result.data.records[0]).toMatchObject({comboFlag:'ap+',syncFlag:'fdx+'});
   expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8,9]);
   expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(5);
+  const paths=fetcher.mock.calls.map(([url])=>new URL(String(url)).pathname);
+  expect(paths.slice(-2)).toEqual(['/maimai-mobile/collection/frame/','/maimai-mobile/collection/plate/']);
   expect(fetcher.mock.calls.every(call=>(call as unknown[])[1] && ((call as unknown[])[1] as RequestInit).cache==='no-store')).toBe(true);
 });
 
@@ -63,6 +65,7 @@ it('reports the DX NET expiry page at BASIC even when HTTP is successful', async
   expect(result).toMatchObject({ok:false,error:expect.stringContaining('200002')});
   expect(result.error).toContain('Sign in');
   expect(result.error).not.toContain('layout');
+  expect(fetcher.mock.calls.some(([url])=>String(url).includes('/collection/'))).toBe(false);
   expect(messages.some(m=>m.type==='MAI_SCORE_RESOLVE')).toBe(false);
   expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(1);
 });

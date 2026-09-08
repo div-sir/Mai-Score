@@ -129,10 +129,6 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
     catch { return undefined; }
     finally { reportProgress(createFetchProgress(++fetched, total)); }
   };
-  const frame = await decoration("/collection/frame/", text("labelFrame"));
-  const plate = await decoration("/collection/plate/", text("labelPlate"));
-  player.frameUrl = (frame && parseCurrentFrame(frame, `${ROOT}/collection/frame/`)) ?? player.frameUrl;
-  player.plateUrl = (plate && parseCurrentPlate(plate, `${ROOT}/collection/plate/`)) ?? player.plateUrl;
   const parsedPage = parseRatingTargetPage(ratingTarget);
   const parsed = parsedPage.records;
   const parsedB15 = parsed.filter((record) => record.bucket === "b15");
@@ -162,6 +158,13 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
       }
     }
   }
+
+  // Finish required score requests before visiting optional collection pages.
+  // These share the authenticated session even when their failures are ignored.
+  const frame = await decoration("/collection/frame/", text("labelFrame"));
+  const plate = await decoration("/collection/plate/", text("labelPlate"));
+  player.frameUrl = (frame && parseCurrentFrame(frame, `${ROOT}/collection/frame/`)) ?? player.frameUrl;
+  player.plateUrl = (plate && parseCurrentPlate(plate, `${ROOT}/collection/plate/`)) ?? player.plateUrl;
 
   reportProgress(createMatchingProgress());
   const b50Count = parsedB15.length + parsedB35.length;
