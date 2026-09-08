@@ -6,6 +6,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Fixed
 
+- Request authenticated pages with no-store, matching the user's successful BASIC fetch. Cache reuse is a suspected difference, not a confirmed root cause. Parser failures include structural counts and failures include the installed build version without player data.
 - Detect DX NET application error pages even with HTTP 200. Report connection expiry code 200002 with sign-in/retry guidance instead of claiming the Full Records layout changed; retain other application error codes.
 - This corrects the diagnosis only. It cannot renew the user's DX NET session or establish why DX NET returned the error.
 

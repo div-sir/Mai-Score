@@ -16,6 +16,7 @@ async function setup(fetcher: ReturnType<typeof vi.fn>) {
   let listener: (message: unknown, sender: unknown, reply: (r:any)=>void)=>void;
   const messages: any[] = [];
   vi.stubGlobal('chrome', { storage:{local:{get:async()=>({})}}, runtime:{
+    getManifest:()=>({version:'0.16.2',version_name:'request-test'}),
     onMessage:{addListener:(fn:typeof listener)=>{listener=fn;}},
     sendMessage:async(message:any)=>{ messages.push(message); return {ok:true,records:message.records?.map((r:any)=>({...r,chartRating:280,internalLevelValue:13}))}; }
   }});
@@ -40,6 +41,7 @@ it('retries profile network failure, completes all difficulties despite decorati
   expect(result.data.records[0]).toMatchObject({comboFlag:'ap+',syncFlag:'fdx+'});
   expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8,9]);
   expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(5);
+  expect(fetcher.mock.calls.every(call=>(call as unknown[])[1] && ((call as unknown[])[1] as RequestInit).cache==='no-store')).toBe(true);
 });
 
 it('stops on a required HTTP error without pretending previous B50 data was refreshed', async()=>{
@@ -68,4 +70,18 @@ it('reports the DX NET expiry page at BASIC even when HTTP is successful', async
 it('preserves other DX NET application error codes instead of reporting parser failure', async()=>{
   const {run}=await setup(vi.fn(async()=>new Response('<p>ERROR CODE : 999999</p>')));
   expect(await run()).toMatchObject({ok:false,error:expect.stringContaining('999999')});
+});
+
+it('includes only structural counts and build version when a score page cannot be parsed', async()=>{
+  const fetcher=vi.fn(async(url:string)=>{
+    if(url.endsWith('/home/')) return new Response(profile);
+    if(url.includes('ratingTargetMusic')) return new Response(b50);
+    if(url.includes('/collection/')) return new Response('',{status:404});
+    return new Response('<div class="music_name_block">Private song</div>');
+  });
+  const {run}=await setup(fetcher); const result=await run();
+  expect(result.ok).toBe(false);
+  expect(result.error).toContain('songs=1; levels=0; scoreBlocks=0');
+  expect(result.error).toContain('request-test');
+  expect(result.error).not.toContain('Private song');
 });

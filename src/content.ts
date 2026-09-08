@@ -55,7 +55,7 @@ async function fetchDocument(
     let response: Response;
     let html: string;
     try {
-      response = await fetch(`${ROOT}${path}`, { credentials: "include", signal: AbortSignal.timeout(timeoutMs) });
+      response = await fetch(`${ROOT}${path}`, { credentials: "include", cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
       html = await response.text();
     } catch (error) {
       if (attempt === 0) {
@@ -153,7 +153,10 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
         parsedFullRecords.push(...parseFullRecordsPage(document, difficulty));
       } catch (error) {
         if (error instanceof Error && error.message === "FULL_RECORDS_LAYOUT_CHANGED") {
-          throw new Error(text("fullRecordsLayoutChanged", difficulty));
+          const songs = document.querySelectorAll(".music_name_block").length;
+          const levels = document.querySelectorAll(".music_lv_block").length;
+          const scores = document.querySelectorAll(".music_score_block").length;
+          throw new Error(`${text("fullRecordsLayoutChanged", difficulty)} [songs=${songs}; levels=${levels}; scoreBlocks=${scores}]`);
         }
         throw error;
       }
@@ -214,7 +217,8 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!isCollectRequest(message) || !CONNECTION || message.connectionId !== CONNECTION.id) return;
   collect(CONNECTION, message.includeFullRecords === true).then((data) => sendResponse({ ok: true, data })).catch((error: unknown) => {
-    sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
+    const manifest = chrome.runtime.getManifest();
+    sendResponse({ ok: false, error: `${error instanceof Error ? error.message : String(error)} [${manifest.version_name ?? manifest.version}]` });
   });
   return true;
 });
