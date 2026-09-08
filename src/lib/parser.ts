@@ -121,15 +121,21 @@ export function parseRatingTargetPage(doc: Document): RatingTargetPage {
  * revisions. Unplayed cards are intentionally omitted.
  */
 export function parseFullRecordsPage(doc: Document, difficulty: Difficulty): ParsedFullScore[] {
-  const cards = [...doc.querySelectorAll(".main_wrapper > .w_450")]
-    .filter((card) => card.querySelector(".music_name_block") && card.querySelector(".music_score_block"));
+  // Identify song rows independently of score availability. DX NET omits
+  // achievement elements on unplayed charts, including entire BASIC pages.
+  // Do not require rows to be direct children of the page wrapper.
+  const cards = [...doc.querySelectorAll(".main_wrapper .w_450")]
+    .filter((card) => card.querySelectorAll(".music_name_block").length === 1
+      && card.querySelector(".music_lv_block")
+      && card.querySelector(".music_name_block")?.closest(".w_450") === card);
   if (!cards.length) throw new Error("FULL_RECORDS_LAYOUT_CHANGED");
 
   return cards.flatMap((card) => {
     const title = card.querySelector(".music_name_block")?.textContent?.trim();
     const displayedLevel = card.querySelector(".music_lv_block")?.textContent?.trim() ?? "";
-    const scoreText = card.querySelector(".music_score_block")?.textContent?.replace("%", "").trim() ?? "";
-    // DX NET renders an empty score block for charts that have not been played.
+    const scoreElement = card.querySelector(".music_score_block.w_120") ?? card.querySelector(".music_score_block");
+    const scoreText = scoreElement?.textContent?.replace("%", "").trim() ?? "";
+    // Missing and empty achievement elements are both unplayed variants.
     if (!scoreText) return [];
     const achievementRate = Number(scoreText);
     if (!title || !displayedLevel || !Number.isFinite(achievementRate)

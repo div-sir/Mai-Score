@@ -2,6 +2,13 @@
 
 All notable changes to Mai-Score are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Recognize Full Records song rows before checking for achievements, allowing a BASIC list with no played scores to continue to the other difficulties.
+- Accept nested song-row wrappers, avoid duplicate rows, and prefer the achievement field over the DX score field. Unknown pages and invalid achievements still fail explicitly.
+
 ## [0.16.1] — 2026-09-07
 
 ### Fixed
