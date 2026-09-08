@@ -88,7 +88,8 @@ export function parseRatingTargetPage(doc: Document): RatingTargetPage {
 
   const parseGroups = (groups: Array<{ bucket: "b15" | "b35"; cards: Element[] }>) => groups.flatMap(({ bucket, cards }) => cards.flatMap((card) => {
     const difficulty = difficultyFrom(card);
-    const title = card.querySelector(".music_name_block")?.textContent?.trim();
+    const rawTitle = card.querySelector(".music_name_block")?.textContent;
+    const title = rawTitle?.trim() || (rawTitle?.includes("\u3000") ? "\u3000" : undefined);
     const achievementRate = Number(card.querySelector(".music_score_block")?.textContent?.replace("%", "").trim());
     const src = card.querySelector<HTMLImageElement>(".music_kind_icon")?.getAttribute("src") ?? "";
     const type: ParsedScore["type"] = /music_dx\.png/i.test(src) ? "dx" : "std";
@@ -131,7 +132,9 @@ export function parseFullRecordsPage(doc: Document, difficulty: Difficulty): Par
   if (!cards.length) throw new Error("FULL_RECORDS_LAYOUT_CHANGED");
 
   return cards.flatMap((card) => {
-    const title = card.querySelector(".music_name_block")?.textContent?.trim();
+    const rawTitle = card.querySelector(".music_name_block")?.textContent;
+    // U+3000 is an actual catalog song title, not a missing name.
+    const title = rawTitle?.trim() || (rawTitle?.includes("\u3000") ? "\u3000" : undefined);
     const displayedLevel = card.querySelector(".music_lv_block")?.textContent?.trim() ?? "";
     const scoreElement = card.querySelector(".music_score_block.w_120") ?? card.querySelector(".music_score_block");
     const scoreText = scoreElement?.textContent?.replace("%", "").trim() ?? "";

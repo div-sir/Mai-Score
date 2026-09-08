@@ -12,6 +12,12 @@ import {
 const doc = (html: string) => new JSDOM(html, { url: "https://maimaidx-eng.com/maimai-mobile/home/" }).window.document;
 
 describe("international DX NET parser", () => {
+  it("preserves the catalog song named U+3000 while rejecting missing played titles", () => {
+    const page = (title: string) => doc(`<div class="main_wrapper"><div class="w_450"><div class="music_name_block">${title}</div><div class="music_lv_block">12+</div><div class="music_score_block w_112">99.5000%</div><img class="music_kind_icon" src="music_dx.png"></div></div>`);
+    expect(parseFullRecordsPage(page("\u3000"), "master")[0]).toMatchObject({title:"\u3000",achievementRate:99.5,type:"dx"});
+    expect(() => parseFullRecordsPage(page(""), "master")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
+    expect(() => parseFullRecordsPage(page("   "), "master")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
+  });
   it("parses the profile and equipped assets", () => {
     const profile = parseProfile(doc(`
       <div class="basic_block"><img class="w_112 f_l" src="/maimai-mobile/img/Icon/a.png"></div>
