@@ -10,6 +10,8 @@ All notable changes to Mai-Score are documented here.
 
 - Save Full Records and version totals with each local history snapshot and include them in Google Drive sync. Existing v1 cloud history remains readable, and a stored latest snapshot is upgraded without requiring another DX NET collection.
 - Track best-score and chart Rating observations for every saved Full Records chart, including charts outside B50, from the first complete snapshot onward. Studio shows the exact start of Full Records coverage.
+- Filter the International catalog by exact chart constant and show the constant beside each result.
+- Switch plate progress to a MASTER-only practice view while keeping the normal BASIC-through-MASTER plate totals as the default.
 
 ### Changed
 

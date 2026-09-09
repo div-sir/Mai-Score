@@ -81,6 +81,14 @@ describe("plate rules", () => {
     expect(find(progress, "kiwami")).toMatchObject({ completed: 1, total: 400 });
   });
 
+  it("can calculate a MASTER-only practice view without changing the plate rules", () => {
+    const progress = buildPlateProgress([
+      chart({ difficulty: "basic" }),
+      chart({ difficulty: "master", comboFlag: "fc" })
+    ], [totals({ basic: 20, advanced: 20, expert: 20, master: 30 })], ["master"]);
+    expect(find(progress, "kiwami")).toMatchObject({ completed: 1, total: 30 });
+  });
+
   it("omits a version whose totals are unknown instead of flattering it", () => {
     expect(buildPlateProgress([chart({ version: "CiRCLE" })], [totals()])).toEqual([]);
   });

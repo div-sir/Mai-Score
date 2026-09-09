@@ -76,7 +76,8 @@ function denominator(totals: VersionChartTotals, difficulties: readonly PlateDif
  */
 export function buildPlateProgress(
   fullRecords: readonly StudioChartRecord[] | undefined,
-  versionTotals: readonly VersionChartTotals[] | undefined
+  versionTotals: readonly VersionChartTotals[] | undefined,
+  difficulties: readonly PlateDifficulty[] = PLATE_DIFFICULTIES
 ): PlateProgress[] {
   if (!fullRecords?.length || !versionTotals?.length) return [];
 
@@ -92,11 +93,12 @@ export function buildPlateProgress(
     const records = played.get(totals.version);
     if (!records?.length) continue;
     for (const rule of PLATE_RULES) {
-      const total = denominator(totals, rule.difficulties);
+      const includedDifficulties = rule.difficulties.filter(difficulty => difficulties.includes(difficulty));
+      const total = denominator(totals, includedDifficulties);
       if (total === 0) continue;
       const completed = records.filter(
         (record) => countsAsPlateDifficulty(record.difficulty)
-          && rule.difficulties.includes(record.difficulty)
+          && includedDifficulties.includes(record.difficulty)
           && rule.satisfied(record)
       ).length;
       progress.push({ kind: rule.kind, version: totals.version, completed, total });

@@ -39,8 +39,8 @@ Building from source instead? See [Development](#development).
 - Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
 - Imports validated maimai Rhythm Record Full Records files with an explicit B50, keeps one best result per chart, and shows searchable level completion with SSS/FC/AP/FS totals.
 - Optionally collects all played International DX NET charts with five sequential difficulty-page requests and sends them directly to Studio; normal B50 collection remains the default.
-- Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter; B50-only data is never presented as plate completion.
-- Browses the full pinned International catalog on demand and separates known below-target charts from unobserved or ambiguous matches for SSS, SSS+, FC, and AP goals.
+- Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter, with an optional MASTER-only practice view; B50-only data is never presented as plate completion.
+- Browses the full pinned International catalog on demand, filters by exact chart constant, and separates known below-target charts from unobserved or ambiguous matches for SSS, SSS+, FC, and AP goals.
 - Opens collected sibling difficulties, observed best-score history, and target chart Rating from Records, while keeping STD and DX identities separate.
 - Simulates an eligible catalog chart against its explicit B15/B35 cutoff and saves optional target achievements and notes in a validated browser-local play queue.
 
