@@ -1,23 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import ChartDetail from "./chart-detail";
+import SongCover from "./song-cover";
 import { achievementForRating, calculateInsightRating } from "../lib/insights";
 import type { renderStudioSvg } from "../lib/render";
 import type { HistoryEntry } from "../lib/history";
-import type { LanguageId, StudioData, StudioRecord } from "../lib/types";
+import type { LanguageId, StudioAssets, StudioData, StudioRecord } from "../lib/types";
 
-export default function B50Preview({ data, history, language, rendered, previewUrl }: {
-  data: StudioData; history: HistoryEntry[]; language: LanguageId;
+function TrendIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 6-6 4 4 6-8"/><path d="M15 7h5v5"/></svg>;
+}
+
+export default function B50Preview({ data, assets, history, language, rendered, previewUrl }: {
+  data: StudioData; assets: StudioAssets; history: HistoryEntry[]; language: LanguageId;
   rendered: ReturnType<typeof renderStudioSvg>; previewUrl: string;
 }) {
   const [selected, setSelected] = useState<StudioRecord | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const copy = language === "zh-Hant"
-    ? { hint: "點擊譜面查看紀錄與推分目標", close: "關閉", next: "至少 +1 Rating", max: "已達最高或沒有足夠資料", gain: "B50 增量", target: "達成率", unknown: "定數或目前 Rating 未知，無法計算推分。" }
+    ? { hint: "點擊譜面查看紀錄與推分目標", close: "關閉", next: "至少 +1 Rating", max: "已達最高或沒有足夠資料", gain: "B50 增量", target: "目標達成率", current: "目前達成率", rating: "單譜 Rating", route: "推分路線", unknown: "定數或目前 Rating 未知，無法計算推分。" }
     : language === "ja"
-      ? { hint: "譜面を選択して履歴と目標を表示", close: "閉じる", next: "Rating +1 以上", max: "上限到達またはデータ不足", gain: "B50 増分", target: "達成率", unknown: "定数または現在の Rating が不明です。" }
-      : { hint: "Select a chart for history and Rating targets", close: "Close", next: "At least +1 Rating", max: "Maximum reached or insufficient data", gain: "B50 gain", target: "Achievement", unknown: "Chart constant or current Rating is unknown." };
+      ? { hint: "譜面を選択して履歴と目標を表示", close: "閉じる", next: "Rating +1 以上", max: "上限到達またはデータ不足", gain: "B50 増分", target: "目標達成率", current: "現在の達成率", rating: "譜面 Rating", route: "Rating ルート", unknown: "定数または現在の Rating が不明です。" }
+      : { hint: "Select a chart for history and Rating targets", close: "Close", next: "At least +1 Rating", max: "Maximum reached or insufficient data", gain: "B50 gain", target: "Target achievement", current: "Current achievement", rating: "Chart Rating", route: "Rating route", unknown: "Chart constant or current Rating is unknown." };
   useEffect(() => {
     if (selected && dialog.current && !dialog.current.open) dialog.current.showModal();
   }, [selected]);
@@ -25,6 +30,7 @@ export default function B50Preview({ data, history, language, rendered, previewU
   const baseline = selected?.chartRating ?? (level && selected ? calculateInsightRating(level, selected.achievementRate) : undefined);
   const next = selected && baseline !== undefined ? achievementForRating(selected, baseline + 1) : undefined;
   const targets = selected ? [...new Set([next, 100, 100.5])].filter((value): value is number => value !== undefined && value > selected.achievementRate) : [];
+  const progress = selected ? Math.min(100, selected.achievementRate / 100.5 * 100) : 0;
   return <>
     <p className="preview-chart-hint">{copy.hint}</p>
     <div className="interactive-b50">
@@ -37,18 +43,32 @@ export default function B50Preview({ data, history, language, rendered, previewU
       />)}
     </div>
     <dialog ref={dialog} className="b50-chart-dialog" aria-labelledby="b50-chart-title" onClose={() => setSelected(null)}>
-      <form method="dialog"><button type="submit" autoFocus>{copy.close}</button></form>
-      {selected && <>
-        <h2 id="b50-chart-title">{selected.title}</h2>
-        <p>{selected.bucket.toUpperCase()} · {selected.type.toUpperCase()} · {selected.difficulty.toUpperCase()} · {selected.achievementRate.toFixed(4)}%</p>
-        {level !== undefined && level > 0 && baseline !== undefined ? <>
-          <p>{copy.next}: {next === undefined ? copy.max : `${next.toFixed(4)}%`}</p>
-          <table><thead><tr><th>{copy.target}</th><th>{copy.gain}</th></tr></thead><tbody>
-            {targets.map(target => <tr key={target}><td>{target.toFixed(4)}%</td><td>+{Math.max(0, calculateInsightRating(level, target) - baseline)}</td></tr>)}
-          </tbody></table>
-        </> : <p>{copy.unknown}</p>}
+      <form method="dialog" className="b50-dialog-close"><button type="submit" aria-label={copy.close} autoFocus>×</button></form>
+      {selected ? <>
+        <header className={`b50-dialog-hero difficulty-${selected.difficulty}`}>
+          <SongCover record={selected} assets={assets} />
+          <div className="b50-dialog-title">
+            <span>{selected.bucket.toUpperCase()} · {selected.type.toUpperCase()}</span>
+            <h2 id="b50-chart-title">{selected.title}</h2>
+            <p><b>{selected.difficulty.toUpperCase()}</b><span>Lv {selected.displayedLevel}</span>{level ? <span>CONST {level}</span> : null}</p>
+          </div>
+          <div className="achievement-orbit" style={{ "--achievement-progress": `${progress}%` } as CSSProperties} aria-label={`${copy.current}: ${selected.achievementRate.toFixed(4)}%`}>
+            <span><small>{copy.current}</small><strong>{selected.achievementRate.toFixed(4)}<i>%</i></strong></span>
+          </div>
+        </header>
+        {level !== undefined && level > 0 && baseline !== undefined ? <section className="b50-rating-route" aria-labelledby="b50-rating-route-title">
+          <header><span className="route-icon"><TrendIcon /></span><div><small>{copy.route}</small><h3 id="b50-rating-route-title">{copy.next}</h3></div><b>{next === undefined ? copy.max : `${next.toFixed(4)}%`}</b></header>
+          <div className="b50-rating-baseline"><span><small>{copy.rating}</small><strong>{baseline}</strong></span><i aria-hidden="true"/><span><small>{copy.target}</small><strong>{next === undefined ? "—" : `${next.toFixed(4)}%`}</strong></span></div>
+          {targets.length ? <div className="b50-target-grid">{targets.map(target => {
+            const gain = Math.max(0, calculateInsightRating(level, target) - baseline);
+            return <article key={target} className={target === next ? "primary" : undefined}>
+              <span className="target-ring" style={{ "--target-progress": `${Math.min(100, target / 100.5 * 100)}%` } as CSSProperties}><b>{target.toFixed(target === 100 ? 0 : 4)}%</b></span>
+              <div><small>{copy.gain}</small><strong>+{gain}</strong></div>
+            </article>;
+          })}</div> : null}
+        </section> : <p className="b50-unknown">{copy.unknown}</p>}
         <ChartDetail key={`${selected.type}-${selected.difficulty}-${selected.title}`} record={selected} records={data.fullRecords ?? data.records} history={history} language={language} initiallyOpen />
-      </>}
+      </> : null}
     </dialog>
   </>;
 }

@@ -917,7 +917,7 @@ export default function Studio() {
           {data && options.showPlate && !assets.plate && !data.player.plateUrl && <p role="status">{language === "zh-Hant" ? "這份資料沒有取得 Nameplate；請更新擴充功能後重新整理 DX NET 頁面並重新收集。" : language === "ja" ? "ネームプレートが未取得です。拡張機能の更新後、DX NET を再読み込みして再取得してください。" : "Nameplate was not collected. Update the extension, reload DX NET, then collect again."}</p>}
           <div className={`preview-stage theme-${options.theme}`}>
             {rendered
-              ? data && <B50Preview data={data} history={history} language={language} rendered={rendered} previewUrl={previewUrl} />
+              ? data && <B50Preview data={data} assets={assets} history={history} language={language} rendered={rendered} previewUrl={previewUrl} />
               : <p className="empty-preview">{copy.emptyPreview}</p>}
           </div>
         </section>

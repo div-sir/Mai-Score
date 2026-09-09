@@ -57,11 +57,11 @@ it("opens collected sibling difficulties and only claims B50 observations", asyn
   await act(async () => root.render(React.createElement(ChartDetail, { record, records: [record, sibling, otherType], history, language: "en" })));
   const details = host.querySelector("details")!;
   await act(async () => { Object.defineProperty(details, "open", { configurable: true, value: true }); details.dispatchEvent(new dom.window.Event("toggle")); });
-  expect(host.textContent).toContain("MASTER · 14 · 99.0000%");
-  expect(host.textContent).toContain("EXPERT · 12 · 100.5000%");
+  expect(host.textContent).toContain("MASTERLv 1499.0000%");
+  expect(host.textContent).toContain("EXPERTLv 12100.5000%");
   expect(host.textContent).not.toContain("100.0000%");
   expect(host.textContent).toContain("B50 observation history");
-  expect(host.textContent).toContain("99.0000% · 290");
+  expect(host.textContent).toContain("99.0000%290 RA");
 });
 async function submit() { await act(async () => host.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }))); }
 async function selectChart() {
@@ -114,13 +114,17 @@ it("opens an export chart with a +1 target and history, then clears it on close"
   const { default: B50Preview } = await import('../studio/app/b50-preview');
   const { renderStudioSvg } = await import('../studio/lib/render');
   const { DEFAULT_OPTIONS } = await import('../studio/lib/types');
-  const chart = { ...record, internalLevelValue: 14, achievementRate: 99, chartRating: 291, bucket: 'b15' as const };
+  const chart = { ...record, internalLevelValue: 14, achievementRate: 99, chartRating: 291, imageName: 'test-cover', bucket: 'b15' as const };
   const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], b15Rating:291,b35Rating:0,b50Rating:291 };
+  const assets = { covers: { 'test-cover': 'data:image/png;base64,AA==' } };
   dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  await act(async () => root.render(React.createElement(B50Preview, {data,history:[],language:'en',rendered:renderStudioSvg(data,DEFAULT_OPTIONS,'en'),previewUrl:'data:image/svg+xml,<svg/>'})));
+  await act(async () => root.render(React.createElement(B50Preview, {data,assets,history:[],language:'en',rendered:renderStudioSvg(data,DEFAULT_OPTIONS,'en'),previewUrl:'data:image/svg+xml,<svg/>'})));
   await act(async () => host.querySelector<HTMLButtonElement>('.b50-chart-hit')!.click());
   expect(host.querySelector('dialog')!.open).toBe(true);
   expect(host.textContent).toContain('At least +1 Rating');
+  expect(host.querySelector('.achievement-orbit')).not.toBeNull();
+  expect(host.querySelector('.b50-dialog-hero .upgrade-cover img')?.getAttribute('src')).toBe(assets.covers['test-cover']);
+  expect(host.querySelectorAll('.b50-target-grid article').length).toBeGreaterThan(0);
   expect(host.textContent).toContain('B50 observation history');
   expect(host.textContent).toContain('This does not mean it was unplayed');
   await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
