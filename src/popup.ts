@@ -54,7 +54,27 @@ function applyLanguage() {
     if (key) element.textContent = t(key);
   });
   renderChartDataState();
+  if (result) renderUnmatchedCharts(result);
   updateCollectLabel();
+}
+
+function renderUnmatchedCharts(data: CollectionResult) {
+  const unmatched = data.fullRecords?.filter((record) => record.warning) ?? [];
+  const panel = $("unmatched-charts");
+  panel.hidden = unmatched.length === 0;
+  $("unmatched-count").textContent = unmatched.length ? t("unmatchedChartCount", unmatched.length) : "";
+  const list = $("unmatched-list");
+  list.replaceChildren(...unmatched.map((record) => {
+    const item = document.createElement("li");
+    const title = document.createElement("strong");
+    title.textContent = record.title;
+    const type = document.createElement("span");
+    type.textContent = record.type.toUpperCase();
+    const chart = document.createElement("small");
+    chart.textContent = `${record.difficulty.toUpperCase()} · Lv ${record.displayedLevel} · ${record.achievementRate.toFixed(4)}%`;
+    item.append(title, type, chart);
+    return item;
+  }));
 }
 
 function renderChartDataState() {
@@ -334,17 +354,19 @@ collectButton.addEventListener("click", async () => {
     $("resolved").textContent = result.fullRecords
       ? t("resolvedFull", result.records.length - result.warnings.length, result.fullRecords.length - (result.fullRecordsUnmatched ?? 0), result.fullRecords.length)
       : `${result.records.length - result.warnings.length}/50`;
+    renderUnmatchedCharts(result);
     exportButton.disabled = false;
     studioButton.disabled = false;
+    const unmatchedFullRecords = result.fullRecordsUnmatched ?? 0;
     setStatus(
       gap !== 0
         ? t("ratingGap", `${gap > 0 ? "+" : ""}${gap}`, result.warnings.length)
         : result.warnings.length
           ? t("unmatched", connection.label, result.warnings.length)
           : result.fullRecords
-            ? t("collectedFull", result.fullRecords.length, result.fullRecordsUnmatched ?? 0)
+            ? t("collectedFull", result.fullRecords.length, unmatchedFullRecords)
             : t("collected"),
-      gap === 0 && !result.warnings.length ? "ok" : ""
+      gap === 0 && !result.warnings.length && !unmatchedFullRecords ? "ok" : unmatchedFullRecords ? "warning" : ""
     );
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");

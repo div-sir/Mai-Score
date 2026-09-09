@@ -13,6 +13,7 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .status{padding:10px;border-radius:10px;background:#191e36;color:#bbc4e1;font-size:13px;margin-bottom:12px}
 .status.error{background:#3a1c2b;color:#ffb5c8}
 .status.ok{background:#12372f;color:#a9f5d6}
+.status.warning{background:#382c1c;color:#f5d29b}
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 /* An author display rule outranks the hidden attribute's UA display:none, so
    without this the empty summary card shows before the first collection. */
@@ -22,6 +23,11 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .summary strong{font-size:16px}
 .summary-wide{grid-column:1/-1}
 #resolved{font-size:13px;line-height:1.25}
+.unmatched-charts{margin:-2px 0 12px;border:1px solid #6b5260;border-radius:10px;background:#241a2a;padding:10px}
+.unmatched-charts[hidden]{display:none}
+.unmatched-charts header{justify-content:space-between;margin:0 0 8px}.unmatched-charts header div{display:grid;gap:1px}.unmatched-charts header strong{font-size:11px}.unmatched-charts header small{color:#caa5b7;font-size:9px}.unmatched-charts header>span{display:grid;width:24px;height:24px;place-items:center;border-radius:50%;background:#63334a;color:#ffd6e3;font-size:12px;font-weight:800}
+.unmatched-charts ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}.unmatched-charts li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;border-radius:8px;background:#13172a;padding:8px}.unmatched-charts li strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.unmatched-charts li span{color:#ffbad0;font-size:9px;font-weight:750}.unmatched-charts li small{grid-column:1/-1;color:#8f9abf;font-size:9px}
+.unmatched-charts p{margin:8px 1px 0;color:#a78395;font-size:9px;line-height:1.35}
 button,select{border:1px solid #333c63;background:#1c2342;color:#edf1ff;border-radius:9px;padding:9px;font:inherit;font-weight:650;transition:background-color .12s ease,border-color .12s ease,filter .12s ease}
 button{cursor:pointer}
 button:hover:not(:disabled){filter:brightness(1.12);border-color:#4a5588}

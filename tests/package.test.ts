@@ -31,6 +31,9 @@ describe("extension package", () => {
     ]);
     const authPage = await readFile("public/drive-auth.html", "utf8");
     expect(authPage).toContain('src="drive-auth.js"');
+    const popupPage = await readFile("public/popup.html", "utf8");
+    expect(popupPage).toContain('id="unmatched-charts"');
+    expect(popupPage).toContain('id="unmatched-list"');
   });
 
   it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {
