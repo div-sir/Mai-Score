@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.17.0 — resilient Full Records collection.** Recovers once from DX NET application-session expiry, refreshes the International catalog to cover the six newly observed songs, and includes the Records filtering and diagnostics added after v0.16.2. Download the packaged version from Releases.
+> **v0.18.0 — synchronized Full Records history.** Saves best-per-chart Full Records with each collection, syncs them efficiently across devices, and tracks charts outside B50 from the first complete snapshot. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -41,7 +41,7 @@ Building from source instead? See [Development](#development).
 - Optionally collects all played International DX NET charts with five sequential difficulty-page requests and sends them directly to Studio; normal B50 collection remains the default.
 - Displays exact 極／將／神／舞舞 progress supplied by a Full Records adapter; B50-only data is never presented as plate completion.
 - Browses the full pinned International catalog on demand and separates known below-target charts from unobserved or ambiguous matches for SSS, SSS+, FC, and AP goals.
-- Opens collected sibling difficulties, B50 observation history, and target chart Rating from Records, while keeping STD and DX identities separate.
+- Opens collected sibling difficulties, observed best-score history, and target chart Rating from Records, while keeping STD and DX identities separate.
 - Simulates an eligible catalog chart against its explicit B15/B35 cutoff and saves optional target achievements and notes in a validated browser-local play queue.
 
 ## Usage
@@ -62,7 +62,7 @@ The compact international chart dataset is generated from [gekichumai/dxrating](
 
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
 
-In v0.14, Full Records can come from an explicit Rhythm Record file or the Extension's opt-in International collector. The collector requests `musicGenre` once per difficulty (five requests total), keeps only played charts, and never stores raw authenticated HTML. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. The complete list remains in the latest local browser snapshot and is excluded from compact Drive history. See [Rhythm Record v1](docs/rhythm-record-v1.md).
+In v0.14, Full Records can come from an explicit Rhythm Record file or the Extension's opt-in International collector. The collector requests `musicGenre` once per difficulty (five requests total), keeps only played charts, and never stores raw authenticated HTML. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. Starting in v0.18, each complete snapshot is retained in local history and can be included in the optional Drive sync through a deduplicated shared-record pool. See [Rhythm Record v1](docs/rhythm-record-v1.md).
 
 ## Development
 
@@ -94,7 +94,7 @@ Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two
 
 Studio is intentionally a compact preview tool: the top bar contains data, Google Drive, appearance, and language controls; the side panel contains export style, prominent visible-content switches, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
 
-The **Progress** tab reads the same browser-local or optionally Drive-synced snapshots. Its timestamps are B50 observation times, not individual play times. Recommendations cover only charts already found in the current B50 because DX NET's B50 export does not contain the wider replacement-candidate pool.
+The **Progress** tab reads the same browser-local or optionally Drive-synced snapshots. Rating totals are recorded at snapshot time. With Full Records, per-chart history also follows the best achievement and chart Rating observed in every saved complete snapshot, including charts outside B50. DX NET does not provide first-play or score-update timestamps, so these points are snapshot observations rather than individual play events; tracking begins with the first Full Records snapshot saved by Mai-Score. Recommendations still cover only charts already found in the current B50 because Full Records does not identify B15/B35 replacement eligibility.
 
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.
 
@@ -103,6 +103,8 @@ See [Mobile use](docs/mobile.md), [Rhythm Record v1](docs/rhythm-record-v1.md), 
 ### Optional Google Drive history and settings sync in v0.8.0
 
 The v0.8.0 flow keeps Studio as the owner of the IndexedDB history schema while the extension acts as a credential proxy. Studio sends an opaque, bounded history document through the existing `externally_connectable` channel; the extension obtains a `drive.appdata` token and performs a pull → merge → push round trip. Studio never receives the OAuth token, and the extension never interprets the history payload.
+
+Version 0.18 extends the same opt-in history document with Full Records and version totals. Repeated chart observations are stored once in a shared pool and referenced by each snapshot to keep the synchronized file within its 4 MB bound. Existing v1 history documents remain readable, and a complete snapshot is preferred if the same collection time also exists as a B50-only entry.
 
 Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. Studio always shows the Drive connection state; **Connect Google Drive** opens an Extension-owned authorization window so the OAuth token never enters the website. **Sync history**, **Disconnect**, and the separately confirmed **Delete cloud history** actions appear only after the grant is confirmed. Deleting the cloud file does not touch local IndexedDB history; Disconnect remains an OAuth-only operation.
 

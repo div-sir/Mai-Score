@@ -4,6 +4,22 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-09-09
+
+### Added
+
+- Save Full Records and version totals with each local history snapshot and include them in Google Drive sync. Existing v1 cloud history remains readable, and a stored latest snapshot is upgraded without requiring another DX NET collection.
+- Track best-score and chart Rating observations for every saved Full Records chart, including charts outside B50, from the first complete snapshot onward. Studio shows the exact start of Full Records coverage.
+
+### Changed
+
+- Use the v2 history sync format with a shared Full Records pool. Unchanged chart observations are stored once and referenced by each snapshot, keeping long histories within the existing bounded sync payload.
+- Prefer a complete Full Records copy when two devices hold the same collection time, preventing an older B50-only client copy from discarding richer history.
+
+### Data limitation
+
+- DX NET Full Records contains current best scores without first-play or score-update timestamps. Mai-Score therefore records observed best-score history from the first saved complete snapshot; it does not assign invented dates to earlier plays.
+
 ## [0.17.0] — 2026-09-08
 
 ### Added

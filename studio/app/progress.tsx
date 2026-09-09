@@ -81,6 +81,11 @@ export default function ProgressDashboard({ data, assets, history, language }: P
   const latest = history[0];
   const latestDiff = history.length > 1 ? diffHistory(history[1], history[0]) : undefined;
   const provenance = latest ? snapshotProvenance(latest) : undefined;
+  const fullHistoryStart = useMemo(() => history.reduce<HistoryEntry | undefined>(
+    (earliest, entry) => entry.fullRecords !== undefined
+      && (!earliest || entry.generatedAt < earliest.generatedAt) ? entry : earliest,
+    undefined
+  ), [history]);
 
   if (!latest) {
     return (
@@ -107,6 +112,9 @@ export default function ProgressDashboard({ data, assets, history, language }: P
       </header>
 
       <TimelineChart timeline={timeline} language={language} title={copy.timeline} />
+      {fullHistoryStart ? <p className="full-history-coverage">
+        <span aria-hidden="true">●</span>{copy.fullHistorySince}: <time dateTime={fullHistoryStart.generatedAt}>{new Date(fullHistoryStart.generatedAt).toLocaleString(language)}</time>
+      </p> : null}
 
       <article className="rating-overview-card">
         <div className="rating-overview-primary">

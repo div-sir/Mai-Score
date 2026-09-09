@@ -50,7 +50,7 @@ it("reports unavailable catalog without fabricating charts", async () => {
   expect(host.querySelector('[role="alert"]')!.textContent).toContain("Load failed");
   expect(host.querySelectorAll("li")).toHaveLength(0);
 });
-it("opens collected sibling difficulties and only claims B50 observations", async () => {
+it("opens collected sibling difficulties and labels saved best observations", async () => {
   const sibling = { ...record, difficulty: "expert" as const, displayedLevel: "12", achievementRate: 100.5 };
   const otherType = { ...record, type: "std" as const, difficulty: "expert" as const, achievementRate: 100 };
   const history = [{ generatedAt: "2026-08-01T00:00:00.000Z", savedAt: "2026-08-01T00:01:00.000Z", source: "test", language: "en" as const, playerName: "P", officialRating: 0, b50Rating: 290, records: [{ ...record, chartRating: 290, bucket: "b15" as const }] }];
@@ -60,7 +60,7 @@ it("opens collected sibling difficulties and only claims B50 observations", asyn
   expect(host.textContent).toContain("MASTERLv 1499.0000%");
   expect(host.textContent).toContain("EXPERTLv 12100.5000%");
   expect(host.textContent).not.toContain("100.0000%");
-  expect(host.textContent).toContain("B50 observation history");
+  expect(host.textContent).toContain("Observed best history");
   expect(host.textContent).toContain("99.0000%290 RA");
 });
 async function submit() { await act(async () => host.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }))); }
@@ -125,7 +125,7 @@ it("opens an export chart with a +1 target and history, then clears it on close"
   expect(host.querySelector('.achievement-orbit')).not.toBeNull();
   expect(host.querySelector('.b50-dialog-hero .upgrade-cover img')?.getAttribute('src')).toBe(assets.covers['test-cover']);
   expect(host.querySelectorAll('.b50-target-grid article').length).toBeGreaterThan(0);
-  expect(host.textContent).toContain('B50 observation history');
+  expect(host.textContent).toContain('Observed best history');
   expect(host.textContent).toContain('This does not mean it was unplayed');
   await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
   expect(host.querySelector('#b50-chart-title')).toBeNull();

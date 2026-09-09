@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "August 10, 2026";
+const UPDATED = "September 9, 2026";
 
 export default function Privacy() {
   return (
@@ -77,10 +77,11 @@ export default function Privacy() {
           <li>
             <strong>Full Records</strong> are loaded only after you select a JSON file or enable
             the Extension&rsquo;s Full Records option.
-            The complete chart list is retained in the latest local browser snapshot so the
-            level-completion view survives a reload. It is deliberately excluded from compact
-            local and Google Drive history; only B50 records, provenance, and exact plate
-            summaries are included there.
+            The complete chart list is retained in the latest local browser snapshot and in
+            local history so level completion and observed best-score history survive a reload.
+            If you opt in to Google Drive sync, Full Records snapshots and version totals are
+            included in the same private history document. Repeated chart observations are
+            deduplicated into a shared pool to keep that document compact.
           </li>
           <li>
             <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google
@@ -132,7 +133,7 @@ export default function Privacy() {
         <ul>
           <li>We do not sell your data. History is transferred to Google only when you explicitly enable Drive sync.</li>
           <li>We do not use your data for advertising, profiling, or credit assessment.</li>
-          <li>We do not use your data for anything unrelated to exporting your B50.</li>
+          <li>We do not use your data for anything unrelated to the export, progress, completion, and sync features you request.</li>
           <li>
             We do not run analytics or tracking scripts in the extension or in Studio. Studio
             loads Google Identity Services only to open the account chooser when you request

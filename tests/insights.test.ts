@@ -154,6 +154,16 @@ describe("chart history and provenance", () => {
       .toEqual([99.8, 100.1]);
   });
 
+  it("tracks charts outside B50 when Full Records snapshots are available", () => {
+    const outside = record({ title: "Outside B50", achievementRate: 98, chartRating: 270 });
+    const improved = { ...outside, achievementRate: 99, chartRating: 280 };
+    const first = entry({ fullRecords: [outside] });
+    const second = entry({ generatedAt: "2026-07-08T00:00:00.000Z", fullRecords: [improved] });
+
+    expect(listHistoryCharts([second, first]).map(chart => chart.title)).toEqual(["Outside B50"]);
+    expect(buildChartHistory([second, first], chartKey(outside)).map(point => point.chartRating)).toEqual([270, 280]);
+  });
+
   it("labels old snapshots instead of inventing provenance", () => {
     expect(snapshotProvenance(entry()).sourceSchema).toContain("legacy");
     expect(snapshotProvenance(entry({ provenance: {

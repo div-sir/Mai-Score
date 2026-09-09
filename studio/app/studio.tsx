@@ -16,7 +16,7 @@ import {
   saveStudioSnapshot,
   saveStudioSnapshotOnly
 } from "../lib/local-store";
-import { fromHistoryEntry, type HistoryEntry } from "../lib/history";
+import { fromHistoryEntry, toHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
 import { normalizeB50, parseMaiScore } from "../lib/import";
 import {
@@ -209,7 +209,6 @@ export default function Studio() {
     setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
-    listStudioHistory().then((entries) => { if (!cancelled) setHistory(entries); }).catch(() => {});
     const hash = new URLSearchParams(window.location.hash.slice(1));
     let savedLanguage: LanguageId = "en";
     try {
@@ -248,6 +247,10 @@ export default function Studio() {
         setSource(stored.source);
         setGeneratedAt(stored.generatedAt);
         setLanguage(stored.language);
+        if (normalized.fullRecords) {
+          const migrated = toHistoryEntry(normalized, stored.source, stored.language, stored.savedAt);
+          setHistory(await mergeStudioHistory([migrated]));
+        }
         const savedAt = new Date(stored.savedAt).toLocaleString();
         const restoredCopy = studioCopy(stored.language);
         setMessage(failure
@@ -261,6 +264,14 @@ export default function Studio() {
     };
 
     void (async () => {
+      try {
+        const entries = await listStudioHistory();
+        if (!cancelled) setHistory(entries);
+      } catch {
+        // IndexedDB may be unavailable; snapshot restoration below handles the
+        // same condition without preventing an imported or transferred file.
+      }
+
       if (extensionId && transfer) {
         setMessage(studioCopy(savedLanguage).receiving);
         try {
@@ -557,7 +568,15 @@ export default function Studio() {
         }
       }
 
-      const merged = await mergeStudioHistory(incoming);
+      const currentHistory = data?.fullRecords
+        ? [toHistoryEntry(
+          data,
+          source,
+          language,
+          history.find(entry => entry.generatedAt === data.exportedAt)?.savedAt
+        )]
+        : [];
+      const merged = await mergeStudioHistory([...incoming, ...currentHistory]);
       setHistory(merged);
 
       const mine = localSettings();
