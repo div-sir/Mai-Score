@@ -27,12 +27,13 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [version, setVersion] = useState("all");
+  const [plateSort, setPlateSort] = useState<"remaining" | "version">("remaining");
   const versions = useMemo(() => [...new Set((data?.fullRecords ?? []).flatMap(r => r.version ? [r.version] : []))].sort(), [data]);
   const text = language === "zh-Hant"
-    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本" }
+    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本", masterOnly: "僅顯示 MASTER", unmatched: "未匹配曲目" }
     : language === "ja"
-      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン" }
-      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version" };
+      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン", masterOnly: "MASTER のみ", unmatched: "未一致の曲" }
+      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version", masterOnly: "MASTER only", unmatched: "Unmatched charts" };
   const sortLabel = language === "zh-Hant" ? "排序" : language === "ja" ? "並び順" : "Sort";
   const titleLabel = language === "en" ? "Title" : "曲名";
   const [difficulty, setDifficulty] = useState("all");
@@ -52,7 +53,12 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
     allPerfect: summary.allPerfect + (record.comboFlag === "ap" || record.comboFlag === "ap+" ? 1 : 0),
     fullSync: summary.fullSync + (record.syncFlag ? 1 : 0)
   }), { total: 0, sss: 0, sssPlus: 0, fullCombo: 0, allPerfect: 0, fullSync: 0 }), [visibleRecords]);
-  const plateGroups = useMemo(() => groupPlatesByVersion(data?.plateProgress ?? []), [data?.plateProgress]);
+  const plateGroups = useMemo(() => {
+    const groups = groupPlatesByVersion(data?.plateProgress ?? []);
+    return [...groups].sort((a, b) => plateSort === "remaining"
+      ? (a.nearest - b.nearest) || a.version.localeCompare(b.version)
+      : a.version.localeCompare(b.version));
+  }, [data?.plateProgress, plateSort]);
   const plateLabel = { kiwami: "極", shou: language === "zh-Hant" ? "將" : "将", kami: "神", maimai: "舞舞" } as const;
 
   if (!data?.fullRecords?.length) {
@@ -81,6 +87,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
           <div className="target-filters records-filters">
             <label>{copy.levelFilter}<select value={effectiveLevel} onChange={(event) => setLevel(event.target.value)}><option value="all">{copy.all}</option>{levelCompletion.map((entry) => <option key={entry.level} value={entry.level}>{entry.level} · {entry.total}</option>)}</select></label>
             <label>{copy.difficultyFilter}<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="all">{copy.all}</option><option value="basic">BASIC</option><option value="advanced">ADVANCED</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option></select></label>
+            <button type="button" className={difficulty === "master" ? "filter-active" : undefined} onClick={() => setDifficulty(difficulty === "master" ? "all" : "master")}>{text.masterOnly}</button>
             <label>{sortLabel}<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="achievement">{copy.achievement} ↓</option><option value="low">{copy.achievement} ↑</option><option value="title">{titleLabel}</option><option value="constant">{text.constant} ↓</option></select></label>
             <label>{copy.searchRecords}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.searchRecords} /></label>
             <label>STD / DX<select value={type} onChange={event => setType(event.target.value)}><option value="all">{copy.all}</option><option value="std">STD</option><option value="dx">DX</option></select></label>
@@ -96,6 +103,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
 
       <details className="records-detail-panel">
         <summary>{copy.plateProgress}</summary>
+        <label className="plate-sort">{sortLabel}<select value={plateSort} onChange={(event) => setPlateSort(event.target.value as "remaining" | "version")}><option value="remaining">{language === "zh-Hant" ? "最接近完成" : language === "ja" ? "残りが少ない順" : "Fewest remaining"}</option><option value="version">{language === "zh-Hant" ? "版本" : language === "ja" ? "バージョン" : "Version"}</option></select></label>
         {plateGroups.length ? <div className="plate-grid">{plateGroups.map((group) => (
           <section key={group.version || "all"}>
             <h3>
@@ -109,6 +117,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
           </section>
         ))}</div> : <p className="panel-empty">{copy.plateRequiresFull}</p>}
       </details>
+      {data.fullRecords.some(record => record.warning) && <details className="records-detail-panel unmatched-panel"><summary>{text.unmatched} ({data.fullRecords.filter(record => record.warning).length})</summary><ul>{data.fullRecords.filter(record => record.warning).map(record => <li key={`${record.title}-${record.type}-${record.difficulty}`}>{record.title || "—"} · {record.type.toUpperCase()} · {record.difficulty.toUpperCase()}</li>)}</ul></details>}
     </section>
   );
 }

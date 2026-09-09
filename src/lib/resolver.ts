@@ -9,7 +9,7 @@ import type {
   VersionChartTotals
 } from "./types";
 
-const normalize = (value: string) => value.normalize("NFKC").trim().toLocaleLowerCase();
+const normalize = (value: string) => value.normalize("NFKC").replaceAll("\\@", "@").trim().toLocaleLowerCase();
 const key = (title: string, type: string, difficulty: string) =>
   `${normalize(title)}\u0000${type}\u0000${difficulty}`;
 let catalogPromise: Promise<SheetRecord[]> | undefined;

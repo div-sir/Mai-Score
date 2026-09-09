@@ -2,6 +2,16 @@
 
 All notable changes to Mai-Score are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Preserve the catalog song whose title is U+3000 in Full Records and B50 parsing. Trimming this real title previously aborted the entire MASTER page as a layout error. Empty and ASCII-whitespace-only played titles still fail validation.
+- Complete all required score requests before optional frame/nameplate requests. This isolates optional collection-page effects on the shared session; a live-account retry is still needed to establish whether request order explains error 200002.
+- Request authenticated pages with no-store, matching the user's successful BASIC fetch. Cache reuse is a suspected difference, not a confirmed root cause. Parser failures include structural counts and failures include the installed build version without player data.
+- Detect DX NET application error pages even with HTTP 200. Report connection expiry code 200002 with sign-in/retry guidance instead of claiming the Full Records layout changed; retain other application error codes.
+- This corrects the diagnosis only. It cannot renew the user's DX NET session or establish why DX NET returned the error.
+
 ## [0.16.2] — 2026-09-08
 
 ### Fixed
