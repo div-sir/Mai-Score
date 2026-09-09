@@ -1,6 +1,6 @@
 {
   "name": "mai-score",
-  "version": "0.16.2",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,13 +14,13 @@
     "@types/chrome": "0.2.2",
     "@types/jsdom": "28.0.3",
     "@types/node": "26.1.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
     "esbuild": "0.28.1",
     "jsdom": "29.1.1",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "typescript": "7.0.2",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   }
 }

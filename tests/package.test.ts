@@ -104,7 +104,7 @@ describe("extension package", () => {
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));
     const source = JSON.parse(await readFile("src/data/source.json", "utf8"));
     expect(sheets.length).toBe(source.sheets);
-    expect(sheets.length).toBeGreaterThanOrEqual(6195);
+    expect(sheets.length).toBeGreaterThanOrEqual(6219);
     expect(sheets[0]).toMatchObject({
       sheetId: expect.stringContaining("__dxrt__"),
       internalLevelValue: expect.any(Number)
@@ -113,7 +113,13 @@ describe("extension package", () => {
     expect(sheets).toEqual(expect.arrayContaining([
       expect.objectContaining({ title: "Nine Point Eight", version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "ANiMA", version: "CiRCLE PLUS" }),
-      expect.objectContaining({ title: "Usagi Flap", version: "CiRCLE PLUS" })
+      expect.objectContaining({ title: "Usagi Flap", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "STRAY", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "ZEUS", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "オールマスター", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "お返事まだカナ？おじさん構文！", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "クロノイデア", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "雑魚", difficulty: "master", version: "CiRCLE PLUS" })
     ]));
   });
 });

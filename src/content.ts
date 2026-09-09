@@ -51,29 +51,57 @@ async function fetchDocument(
   text: (key: string, ...values: Array<string | number>) => string,
   timeoutMs = FETCH_TIMEOUT_MS
 ): Promise<Document> {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  const request = async (targetPath: string) => {
+    const response = await fetch(`${ROOT}${targetPath}`, {
+      credentials: "include",
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    const html = await response.text();
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const errorCode = document.body.textContent?.match(/ERROR\s+CODE\s*[:：]\s*(\d{6})(?!\d)/i)?.[1];
+    return { response, document, errorCode };
+  };
+  let retryNetworkFailure = true;
+  let refreshExpiredSession = true;
+  while (true) {
     let response: Response;
-    let html: string;
+    let document: Document;
+    let errorCode: string | undefined;
     try {
-      response = await fetch(`${ROOT}${path}`, { credentials: "include", cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
-      html = await response.text();
+      ({ response, document, errorCode } = await request(path));
     } catch (error) {
-      if (attempt === 0) {
+      if (retryNetworkFailure) {
+        retryNetworkFailure = false;
         await new Promise(resolve => setTimeout(resolve, 750));
         continue;
       }
       throw describeFetchError(error, label, text);
     }
-    const document = new DOMParser().parseFromString(html, "text/html");
     // DX NET can return an application error page with HTTP 200.
     // Detect it before attempting to parse the page as player/score data.
-    const errorCode = document.body.textContent?.match(/ERROR\s+CODE\s*[:：]\s*(\d{6})(?!\d)/i)?.[1];
+    if (errorCode === "200002" && refreshExpiredSession) {
+      refreshExpiredSession = false;
+      try {
+        // A score endpoint can lose DX NET's application session while the
+        // browser login cookie remains valid. Visiting home once mirrors the
+        // recovery that users previously had to perform by hand. The retry is
+        // strictly bounded and never attempts to sign in or retain page HTML.
+        const refreshed = await request("/home/");
+        if (refreshed.response.ok && !refreshed.errorCode) {
+          if (path === "/home/") return refreshed.document;
+          continue;
+        }
+      } catch {
+        // Fall through to the actionable expiry message. A refresh failure is
+        // not evidence that the score-page structure changed.
+      }
+    }
     if (errorCode === "200002") throw new Error(text("fetchSessionExpired", label));
     if (errorCode) throw new Error(text("fetchApplicationError", label, errorCode));
     if (!response.ok) throw new Error(text("fetchBadStatus", label, response.status));
     return document;
   }
-  throw new Error(text("fetchFailed", label));
 }
 
 async function resolveViaBackground<T extends ParsedChartScore>(

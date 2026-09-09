@@ -16,7 +16,7 @@ async function setup(fetcher: ReturnType<typeof vi.fn>) {
   let listener: (message: unknown, sender: unknown, reply: (r:any)=>void)=>void;
   const messages: any[] = [];
   vi.stubGlobal('chrome', { storage:{local:{get:async()=>({})}}, runtime:{
-    getManifest:()=>({version:'0.16.2',version_name:'request-test'}),
+    getManifest:()=>({version:'0.17.0',version_name:'request-test'}),
     onMessage:{addListener:(fn:typeof listener)=>{listener=fn;}},
     sendMessage:async(message:any)=>{ messages.push(message); return {ok:true,records:message.records?.map((r:any)=>({...r,chartRating:280,internalLevelValue:13}))}; }
   }});
@@ -53,7 +53,37 @@ it('stops on a required HTTP error without pretending previous B50 data was refr
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
 
-it('reports the DX NET expiry page at BASIC even when HTTP is successful', async()=>{
+it('recovers an expired initial home request with one bounded home refresh', async()=>{
+  let homes=0;
+  const fetcher=vi.fn(async(url:string)=>{
+    if(url.endsWith('/home/')) return new Response(++homes===1 ? '<div>ERROR CODE : 200002</div>' : profile);
+    if(url.includes('ratingTargetMusic')) return new Response(b50);
+    if(url.includes('/collection/')) return new Response('',{status:404});
+    const diff=new URL(url).searchParams.get('diff');
+    return new Response(`<div class="main_wrapper"><div class="w_450"><div class="music_name_block">Full ${diff}</div><div class="music_lv_block">13</div><div class="music_score_block">100%</div></div></div>`);
+  });
+  const {run}=await setup(fetcher);
+  expect(await run()).toMatchObject({ok:true});
+  expect(homes).toBe(2);
+});
+
+it('refreshes DX NET home once and retries an expired Full Records request', async()=>{
+  let homes=0; let basicAttempts=0;
+  const fetcher=vi.fn(async(url:string)=>{
+    if(url.endsWith('/home/')) { homes += 1; return new Response(profile); }
+    if(url.includes('ratingTargetMusic')) return new Response(b50);
+    if(url.includes('/collection/')) return new Response('',{status:404});
+    const diff=new URL(url).searchParams.get('diff');
+    if(diff==='0' && ++basicAttempts===1) return new Response('<div>ERROR CODE : 200002</div>');
+    return new Response(`<div class="main_wrapper"><div class="w_450"><div class="music_name_block">Full ${diff}</div><div class="music_lv_block">13</div><div class="music_score_block">100%</div></div></div>`);
+  });
+  const {run}=await setup(fetcher);
+  expect(await run()).toMatchObject({ok:true});
+  expect(homes).toBe(2);
+  expect(basicAttempts).toBe(2);
+});
+
+it('reports the DX NET expiry page when the request retry also returns expiry', async()=>{
   const fetcher=vi.fn(async(url:string)=>{
     if(url.endsWith('/home/')) return new Response(profile);
     if(url.includes('ratingTargetMusic')) return new Response(b50);
@@ -67,7 +97,7 @@ it('reports the DX NET expiry page at BASIC even when HTTP is successful', async
   expect(result.error).not.toContain('layout');
   expect(fetcher.mock.calls.some(([url])=>String(url).includes('/collection/'))).toBe(false);
   expect(messages.some(m=>m.type==='MAI_SCORE_RESOLVE')).toBe(false);
-  expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(1);
+  expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(2);
 });
 
 it('preserves other DX NET application error codes instead of reporting parser failure', async()=>{

@@ -4,13 +4,25 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.17.0] — 2026-09-08
+
+### Added
+
+- Recover once from DX NET application-session expiry code 200002 by refreshing the authenticated home page and retrying the interrupted request. Recovery is bounded, never attempts to enter credentials, and retains the existing sign-in guidance when DX NET still rejects the session.
+- Add localized MASTER-only filtering, visual chart metrics, plate sorting, and an expandable list of unmatched Full Records charts in Studio.
+
 ### Fixed
 
 - Preserve the catalog song whose title is U+3000 in Full Records and B50 parsing. Trimming this real title previously aborted the entire MASTER page as a layout error. Empty and ASCII-whitespace-only played titles still fail validation.
-- Complete all required score requests before optional frame/nameplate requests. This isolates optional collection-page effects on the shared session; a live-account retry is still needed to establish whether request order explains error 200002.
+- Complete all required score requests before optional frame/nameplate requests, preventing optional collection pages from disturbing the shared score-collection session.
 - Request authenticated pages with no-store, matching the user's successful BASIC fetch. Cache reuse is a suspected difference, not a confirmed root cause. Parser failures include structural counts and failures include the installed build version without player data.
 - Detect DX NET application error pages even with HTTP 200. Report connection expiry code 200002 with sign-in/retry guidance instead of claiming the Full Records layout changed; retain other application error codes.
-- This corrects the diagnosis only. It cannot renew the user's DX NET session or establish why DX NET returned the error.
+- Refresh the International catalog from 6,195 to 6,219 sheets. The six newly observed songs—STRAY, ZEUS, オールマスター, お返事まだカナ？おじさん構文！, クロノイデア, and 雑魚—now have BASIC through MASTER identities and constants.
+- Upgrade Studio to Next.js 16.3.4 and the Extension test toolchain to Vitest 4.1.11, clearing the release dependency audit without a major-version migration.
+
+### Verification
+
+- The supplied MASTER record set previously produced 1,129 played records with six unmatched songs. Those six titles are now present in the bundled catalog; a fresh authenticated collection remains the release acceptance check for a zero-unmatched result and successful 200002 recovery.
 
 ## [0.16.2] — 2026-09-08
 

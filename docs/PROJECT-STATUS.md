@@ -4,9 +4,9 @@ Written for another agent or developer picking this up cold. Covers what
 exists, the decisions behind it that the code alone will not explain, what is
 knowingly unverified, and what comes next.
 
-Accurate as of September 8, 2026. v0.16.2 packages PR #41: recognize unplayed BASIC lists and nested Full Records rows, and prefer achievement over DX score. The owner authorized production publication. All package/lockfile/manifest versions are `0.16.2`. The 282 fixture-based tests pass; the reporting account has not yet confirmed the fix against its authenticated DX NET page.
+Accurate as of September 8, 2026. v0.17.0 prepares the Full Records and Records UX work merged in PR #42, adds a bounded home-page refresh and retry for DX NET error 200002, and refreshes the International catalog from 6,195 to 6,219 sheets. All package/lockfile/manifest versions are `0.17.0`. All 288 automated tests pass; the reporting account still needs to confirm collection against its authenticated DX NET session.
 
-279 tests, Extension typecheck/build, and Studio typecheck/production build passed before release preparation. Agent-run real-account collection and browser visual checks remain unverified; owner publication approval does not imply these automated checks ran. GitHub Release and Vercel are authoritative for publication/deployment status.
+The 288-test Extension suite, Extension typecheck/build, Studio typecheck/production build, dependency audits, and a local Studio browser smoke test pass for the candidate. Agent-run real-account collection remains unverified; owner publication approval does not imply that authenticated check ran. GitHub Release and Vercel are authoritative for publication/deployment status.
 
 ## What this is
 
@@ -95,6 +95,16 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 - The plate panel groups by version and leads with the closest plate; the flat list it replaced reached 108 bars.
 - The plate rules are corroborated against a working open-source implementation but **not yet checked on a live account** — see the entry in Knowingly unverified.
 
+## Prepared for v0.17.0
+
+- Detect HTTP-200 DX NET application errors before parsing and preserve their error codes.
+- Refresh the authenticated home page once and retry the interrupted request when DX NET returns 200002; stop with explicit sign-in guidance if the bounded recovery does not work.
+- Fetch all required B50 and Full Records pages before optional frame and nameplate pages, and bypass authenticated-page caches.
+- Preserve the real U+3000 title and expose structural diagnostics without retaining player HTML.
+- Add MASTER-only filtering, chart metric details, plate sorting, and the exact unmatched-chart list in Studio.
+- Refresh the bundled International catalog to the 2026-09-08 source snapshot. Its 24 added sheets are the BASIC-through-MASTER charts for the six songs unmatched by the supplied MASTER record set.
+- Upgrade Studio to Next.js 16.3.4 and the shared React packages to current patch releases; both package audits are clean.
+
 ## Current development flow
 
 | Phase | Git / deployment state | Status | Exit criterion / next action |
@@ -102,10 +112,10 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Packaged Extension baseline | Release `v0.15.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
 | Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
-| Current release target | `v0.16.2` | Owner-approved | Verify Release workflow, tag, ZIP, and production deployment. |
-| Chart-data freshness | Release `v0.12.1` | Done | Continue reviewing weekly catalog-update PRs. |
+| Current release target | `v0.17.0` | Prepared | Confirm a real-account Full Records run, then merge and verify the Release workflow, tag, ZIP, and production deployment. |
+| Chart-data freshness | 6,219 sheets from 2026-09-08 | Refreshed | Confirm the supplied account now reports zero unmatched charts. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
-| Full Records collector | Release `v0.14.0` | Published; live validation remains | Run an authenticated International smoke test across all five difficulty pages, then verify Studio completion counts and Rhythm Record output. |
+| Full Records collector | `v0.17.0` candidate | Automated recovery covered; live validation remains | Run an authenticated International smoke test across all five difficulty pages, including one 200002 recovery path if reproducible, then verify zero unmatched charts, Studio completion counts, and Rhythm Record output. |
 | Information architecture | Release `v0.15.0` | Published; live validation remains | Validate Extension and Studio responsive layouts, then complete a real-data collection-to-export smoke test. |
 | Exact plate progress | Release `v0.15.0` | Published; live validation remains | Confirm the 極 / 将 / 神 / 舞舞 rules against a real account, then drop the "unverified" caveat. |
 | Drive general availability | Experimental | Blocked on real services | Prove both OAuth clients see the same app-data file, complete the real-service matrix, register the Web Store client, and finish Google sensitive-scope verification. |
@@ -114,7 +124,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-The v0.15.0 branch passes 249 tests across 27 files, Extension typecheck/build, and Studio typecheck/production build. Two things CI structurally cannot settle: the Full Records collector needs a manual authenticated International smoke test because no runner can hold a player DX NET session, and the plate rules need a player to confirm them because no reachable page states them authoritatively. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
+The v0.17.0 candidate passes the repository's full automated suite, Extension typecheck/build, and Studio typecheck/production build. Two things CI structurally cannot settle: the Full Records collector needs a manual authenticated International smoke test because no runner can hold a player DX NET session, and the plate rules need a player to confirm them because no reachable page states them authoritatively. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
 
 ## Capability snapshot
 

@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.16.2 — Full Records BASIC fix.** Recognizes BASIC lists without played scores and nested song rows, and distinguishes achievement from DX score. Download the packaged version from Releases.
+> **v0.17.0 — resilient Full Records collection.** Recovers once from DX NET application-session expiry, refreshes the International catalog to cover the six newly observed songs, and includes the Records filtering and diagnostics added after v0.16.2. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
