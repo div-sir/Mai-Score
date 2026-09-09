@@ -42,3 +42,21 @@ it("still reports a genuinely absent chart instead of guessing", async () => {
   expect(resolved.warning).toContain("無法比對");
   expect(resolved.sheetId).toBeUndefined();
 });
+
+it("resolves the newly available International Marisa DX MASTER chart", async () => {
+  const { resolveScores } = await import("../src/lib/resolver");
+  const [resolved] = await resolveScores([{
+    title: "魔理沙は大変なものを盗んでいきました",
+    type: "dx",
+    difficulty: "master",
+    displayedLevel: "13+",
+    achievementRate: 98.0664
+  }]);
+
+  expect(resolved).toMatchObject({
+    internalLevelValue: 13.6,
+    version: "CiRCLE PLUS"
+  });
+  expect(resolved.warning).toBeUndefined();
+  expect(resolved.chartRating).toBeGreaterThan(0);
+});
