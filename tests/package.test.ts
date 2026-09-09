@@ -31,6 +31,9 @@ describe("extension package", () => {
     ]);
     const authPage = await readFile("public/drive-auth.html", "utf8");
     expect(authPage).toContain('src="drive-auth.js"');
+    const popupPage = await readFile("public/popup.html", "utf8");
+    expect(popupPage).toContain('id="unmatched-charts"');
+    expect(popupPage).toContain('id="unmatched-list"');
   });
 
   it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {
@@ -104,7 +107,7 @@ describe("extension package", () => {
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));
     const source = JSON.parse(await readFile("src/data/source.json", "utf8"));
     expect(sheets.length).toBe(source.sheets);
-    expect(sheets.length).toBeGreaterThanOrEqual(6195);
+    expect(sheets.length).toBeGreaterThanOrEqual(6223);
     expect(sheets[0]).toMatchObject({
       sheetId: expect.stringContaining("__dxrt__"),
       internalLevelValue: expect.any(Number)
@@ -113,7 +116,17 @@ describe("extension package", () => {
     expect(sheets).toEqual(expect.arrayContaining([
       expect.objectContaining({ title: "Nine Point Eight", version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "ANiMA", version: "CiRCLE PLUS" }),
-      expect.objectContaining({ title: "Usagi Flap", version: "CiRCLE PLUS" })
+      expect.objectContaining({ title: "Usagi Flap", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "STRAY", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "ZEUS", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "オールマスター", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "お返事まだカナ？おじさん構文！", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "basic", internalLevelValue: 3, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "advanced", internalLevelValue: 6.5, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "expert", internalLevelValue: 10, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "master", internalLevelValue: 13.6, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "クロノイデア", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "雑魚", difficulty: "master", version: "CiRCLE PLUS" })
     ]));
   });
 });

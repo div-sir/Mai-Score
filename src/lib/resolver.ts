@@ -10,10 +10,27 @@ import type {
 } from "./types";
 
 const normalize = (value: string) => value.normalize("NFKC").replaceAll("\\@", "@").trim().toLocaleLowerCase();
+const INVISIBLE_FORMATTING = /[\u200b-\u200d\u2060\ufeff]/g;
+const COMPATIBLE_PUNCTUATION = /[\u2018\u2019\u201b]/g;
+const COMPATIBLE_QUOTES = /[\u201c\u201d]/g;
+const COMPATIBLE_DASHES = /[\u2010-\u2015\u2212]/g;
+const WHITESPACE = /\s+/g;
+const compatibleNormalize = (value: string) => normalize(value)
+  .replace(INVISIBLE_FORMATTING, "")
+  .replace(COMPATIBLE_PUNCTUATION, "'")
+  .replace(COMPATIBLE_QUOTES, '"')
+  .replace(COMPATIBLE_DASHES, "-")
+  .replace(WHITESPACE, " ");
 const key = (title: string, type: string, difficulty: string) =>
   `${normalize(title)}\u0000${type}\u0000${difficulty}`;
+const compatibleKey = (title: string, type: string, difficulty: string) =>
+  `${compatibleNormalize(title)}\u0000${type}\u0000${difficulty}`;
 let catalogPromise: Promise<SheetRecord[]> | undefined;
-let indexPromise: Promise<Map<string, SheetRecord>> | undefined;
+interface CatalogIndexes {
+  exact: Map<string, SheetRecord>;
+  compatible: Map<string, SheetRecord | null>;
+}
+let indexPromise: Promise<CatalogIndexes> | undefined;
 
 /**
  * The whole bundled catalog. Cached separately from the lookup index because
@@ -38,10 +55,17 @@ async function getCatalog(): Promise<SheetRecord[]> {
   return catalogPromise;
 }
 
-async function getIndex(): Promise<Map<string, SheetRecord>> {
-  indexPromise ??= getCatalog().then((sheets) =>
-    new Map(sheets.map((sheet) => [key(sheet.title, sheet.type, sheet.difficulty), sheet]))
-  ).catch((error: unknown) => {
+async function getIndex(): Promise<CatalogIndexes> {
+  indexPromise ??= getCatalog().then((sheets) => {
+    const exact = new Map<string, SheetRecord>();
+    const compatible = new Map<string, SheetRecord | null>();
+    for (const sheet of sheets) {
+      exact.set(key(sheet.title, sheet.type, sheet.difficulty), sheet);
+      const lookup = compatibleKey(sheet.title, sheet.type, sheet.difficulty);
+      compatible.set(lookup, compatible.has(lookup) ? null : sheet);
+    }
+    return { exact, compatible };
+  }).catch((error: unknown) => {
     indexPromise = undefined;
     throw error;
   });
@@ -76,9 +100,10 @@ export async function resolveScores(records: ParsedChartScore[]): Promise<Array<
   chartRating?: number;
   warning?: string;
 }>> {
-  const index = await getIndex();
+  const indexes = await getIndex();
   return records.map((record) => {
-    const sheet = index.get(key(record.title, record.type, record.difficulty));
+    const sheet = indexes.exact.get(key(record.title, record.type, record.difficulty))
+      ?? indexes.compatible.get(compatibleKey(record.title, record.type, record.difficulty));
     if (!sheet) return { ...record, warning: `無法比對：${record.title} (${record.type}/${record.difficulty})` };
     return {
       ...record,

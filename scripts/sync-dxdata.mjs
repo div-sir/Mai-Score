@@ -8,11 +8,20 @@ if (!response.ok) throw new Error(`dxdata download failed: ${response.status}`);
 const sourceText = await response.text();
 const dxdata = JSON.parse(sourceText);
 const difficulties = new Set(["basic", "advanced", "expert", "master", "remaster"]);
+// DX NET International can receive a chart before dxdata's regional flag is
+// updated. Keep evidence-backed availability fixes here so a later catalog
+// refresh does not silently remove them; once upstream flips the flag this is
+// harmless because each source sheet is still emitted only once.
+const intlAvailabilityOverrides = new Set([
+  "魔理沙は大変なものを盗んでいきました\u0000dx"
+]);
 const sheets = [];
 
 for (const song of dxdata.songs) {
   for (const sheet of song.sheets) {
-    if (!sheet.regions?.intl || !difficulties.has(sheet.difficulty) || !["std", "dx"].includes(sheet.type)) continue;
+    const availableInternationally = sheet.regions?.intl
+      || intlAvailabilityOverrides.has(`${song.title}\u0000${sheet.type}`);
+    if (!availableInternationally || !difficulties.has(sheet.difficulty) || !["std", "dx"].includes(sheet.type)) continue;
     const override = sheet.regionOverrides?.intl ?? {};
     const songId = String(song.songId);
     sheets.push({
