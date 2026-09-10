@@ -6,6 +6,7 @@ import PlayQueuePanel from "../studio/app/play-queue";
 import CatalogPanel from "../studio/app/catalog";
 import ChartDetail from "../studio/app/chart-detail";
 import { emptyQueue, parseQueue, QUEUE_KEY } from "../studio/lib/play-queue";
+import type { StudioData } from "../studio/lib/types";
 
 let dom: JSDOM;
 let root: Root;
@@ -25,7 +26,7 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); dom.window.close(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function render() { await act(async () => root.render(React.createElement(PlayQueuePanel, { records: [record], language: "en" }))); }
 it("loads catalog on demand and requires explicit International comparison", async () => {
-  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ schema: "mai-score/catalog/v1", region: "intl", source: { sheets: 1, updateTime: "2026-08-09" }, sheets: [{ sheetId: "one", songId: "one", title: record.title, type: "dx", difficulty: "master", level: "14", version: "A" }] }) });
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ schema: "mai-score/catalog/v1", region: "intl", source: { sheets: 1, updateTime: "2026-08-09" }, sheets: [{ sheetId: "one", songId: "one", title: record.title, type: "dx", difficulty: "master", level: "14", internalLevelValue: 14, version: "A" }] }) });
   vi.stubGlobal("fetch", fetcher);
   await act(async () => root.render(React.createElement(CatalogPanel, { records: [record], language: "en" })));
   expect(fetcher).not.toHaveBeenCalled();
@@ -50,7 +51,24 @@ it("reports unavailable catalog without fabricating charts", async () => {
   expect(host.querySelector('[role="alert"]')!.textContent).toContain("Load failed");
   expect(host.querySelectorAll("li")).toHaveLength(0);
 });
-it("opens collected sibling difficulties and only claims B50 observations", async () => {
+it("filters the International catalog by chart constant", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+    schema: "mai-score/catalog/v1", region: "intl",
+    source: { sheets: 2, updateTime: "2026-09-09" },
+    sheets: [
+      { sheetId: "high", songId: "high", title: "High constant", type: "dx", difficulty: "master", level: "13+", internalLevelValue: 13.7, version: "A" },
+      { sheetId: "low", songId: "low", title: "Low constant", type: "std", difficulty: "expert", level: "12", internalLevelValue: 12, version: "B" }
+    ]
+  }) }));
+  await act(async () => root.render(React.createElement(CatalogPanel, { records: [], language: "en" })));
+  await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
+  const constant = host.querySelector<HTMLSelectElement>('select[aria-label="Chart constant"]')!;
+  await act(async () => { constant.value = "13.7"; constant.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  expect(host.textContent).toContain("High constant");
+  expect(host.textContent).not.toContain("Low constant");
+  expect(host.textContent).toContain("13.7");
+});
+it("opens collected sibling difficulties and labels saved best observations", async () => {
   const sibling = { ...record, difficulty: "expert" as const, displayedLevel: "12", achievementRate: 100.5 };
   const otherType = { ...record, type: "std" as const, difficulty: "expert" as const, achievementRate: 100 };
   const history = [{ generatedAt: "2026-08-01T00:00:00.000Z", savedAt: "2026-08-01T00:01:00.000Z", source: "test", language: "en" as const, playerName: "P", officialRating: 0, b50Rating: 290, records: [{ ...record, chartRating: 290, bucket: "b15" as const }] }];
@@ -60,7 +78,7 @@ it("opens collected sibling difficulties and only claims B50 observations", asyn
   expect(host.textContent).toContain("MASTERLv 1499.0000%");
   expect(host.textContent).toContain("EXPERTLv 12100.5000%");
   expect(host.textContent).not.toContain("100.0000%");
-  expect(host.textContent).toContain("B50 observation history");
+  expect(host.textContent).toContain("Observed best history");
   expect(host.textContent).toContain("99.0000%290 RA");
 });
 async function submit() { await act(async () => host.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }))); }
@@ -110,6 +128,29 @@ it("preserves another tab's goal when saving", async () => {
   expect(parseQueue(localStorage.getItem(QUEUE_KEY)).goals).toHaveLength(2);
 });
 
+it("switches plate progress to a clearly labelled MASTER-only view", async () => {
+  const { default: RecordsDashboard } = await import("../studio/app/records");
+  const master = { ...record, version: "A", comboFlag: "fc" as const };
+  const data: StudioData = {
+    schema: "mai-score/v1", exportedAt: "2026-09-09T00:00:00.000Z",
+    player: { name: "P", title: "", rating: 0 }, records: [], fullRecords: [master],
+    versionTotals: [{ version: "A", basic: 1, advanced: 1, expert: 1, master: 1, remaster: 0 }],
+    plateProgress: [
+      { kind: "kiwami", version: "A", completed: 1, total: 4 },
+      { kind: "shou", version: "A", completed: 0, total: 4 },
+      { kind: "kami", version: "A", completed: 0, total: 4 },
+      { kind: "maimai", version: "A", completed: 0, total: 4 }
+    ],
+    b15Rating: 0, b35Rating: 0, b50Rating: 0
+  };
+  await act(async () => root.render(React.createElement(RecordsDashboard, { data, assets: { covers: {} }, history: [], language: "en" })));
+  expect(host.querySelector(".plate-grid")!.textContent).toContain("1 / 4");
+  const toggle = host.querySelector<HTMLInputElement>(".plate-master-only input")!;
+  await act(async () => toggle.click());
+  expect(host.querySelector(".plate-grid")!.textContent).toContain("1 / 1");
+  expect(host.textContent).toContain("actual plates still require BASIC–MASTER");
+});
+
 it("opens an export chart with a +1 target and history, then clears it on close", async () => {
   const { default: B50Preview } = await import('../studio/app/b50-preview');
   const { renderStudioSvg } = await import('../studio/lib/render');
@@ -125,7 +166,7 @@ it("opens an export chart with a +1 target and history, then clears it on close"
   expect(host.querySelector('.achievement-orbit')).not.toBeNull();
   expect(host.querySelector('.b50-dialog-hero .upgrade-cover img')?.getAttribute('src')).toBe(assets.covers['test-cover']);
   expect(host.querySelectorAll('.b50-target-grid article').length).toBeGreaterThan(0);
-  expect(host.textContent).toContain('B50 observation history');
+  expect(host.textContent).toContain('Observed best history');
   expect(host.textContent).toContain('This does not mean it was unplayed');
   await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
   expect(host.querySelector('#b50-chart-title')).toBeNull();

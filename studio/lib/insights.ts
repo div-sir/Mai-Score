@@ -1,6 +1,6 @@
 import type { HistoryEntry } from "./history";
 import { chartKey } from "./history";
-import type { StudioData, StudioFullRecord, StudioRecord } from "./types";
+import type { StudioChartRecord, StudioData, StudioFullRecord, StudioRecord } from "./types";
 
 // Kept in sync with src/lib/rating.ts. Studio is deployed as its own Next.js
 // package, so it cannot depend on Extension build internals at runtime.
@@ -62,7 +62,7 @@ export interface ChartHistoryPoint {
   savedAt: string;
   achievementRate: number;
   chartRating: number;
-  bucket: StudioRecord["bucket"];
+  bucket?: StudioRecord["bucket"];
 }
 
 export interface UpgradeTarget {
@@ -156,11 +156,14 @@ export function periodDelta(
   return latest[field] - baseline[field];
 }
 
-export function listHistoryCharts(entries: readonly HistoryEntry[]): StudioRecord[] {
-  const charts = new Map<string, StudioRecord>();
+const observedRecords = (entry: HistoryEntry): readonly StudioChartRecord[] =>
+  entry.fullRecords ?? entry.records;
+
+export function listHistoryCharts(entries: readonly HistoryEntry[]): StudioChartRecord[] {
+  const charts = new Map<string, StudioChartRecord>();
   const activity = new Map<string, { latest: string; gain: number }>();
   for (const entry of entries) {
-    for (const record of entry.records) {
+    for (const record of observedRecords(entry)) {
       if (!charts.has(chartKey(record))) charts.set(chartKey(record), record);
       const key = chartKey(record);
       const current = activity.get(key);
@@ -171,8 +174,8 @@ export function listHistoryCharts(entries: readonly HistoryEntry[]): StudioRecor
   }
   const sortedEntries = [...entries].sort((a, b) => a.generatedAt.localeCompare(b.generatedAt));
   for (let index = 1; index < sortedEntries.length; index += 1) {
-    const before = new Map(sortedEntries[index - 1].records.map((record) => [chartKey(record), record]));
-    for (const record of sortedEntries[index].records) {
+    const before = new Map(observedRecords(sortedEntries[index - 1]).map((record) => [chartKey(record), record]));
+    for (const record of observedRecords(sortedEntries[index])) {
       const previous = before.get(chartKey(record));
       if (!previous) continue;
       const key = chartKey(record);
@@ -196,13 +199,14 @@ export function buildChartHistory(
   return [...entries]
     .sort((a, b) => a.generatedAt.localeCompare(b.generatedAt))
     .flatMap((entry) => {
-      const record = entry.records.find((candidate) => chartKey(candidate) === key);
+      const record = observedRecords(entry).find((candidate) => chartKey(candidate) === key);
+      const b50Record = entry.records.find((candidate) => chartKey(candidate) === key);
       return record ? [{
         observedAt: entry.generatedAt,
         savedAt: entry.savedAt,
         achievementRate: record.achievementRate,
         chartRating: Number(record.chartRating ?? 0),
-        bucket: record.bucket
+        bucket: b50Record?.bucket
       }] : [];
     });
 }

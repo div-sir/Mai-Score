@@ -1,4 +1,4 @@
-import type { ChartDataMetadata, LanguageId, PlateProgress, StudioData, StudioRecord } from "./types";
+import type { ChartDataMetadata, LanguageId, PlateProgress, StudioData, StudioRecord, StudioChartRecord, VersionChartTotals } from "./types";
 
 export interface HistoryEntry {
   /** When the collection was taken. Doubles as the store key, so re-saving
@@ -30,6 +30,9 @@ export interface HistoryEntry {
   records: StudioRecord[];
   /** Optional DX NET near-miss lists captured with this B50 snapshot. */
   candidateRecords?: StudioRecord[];
+  /** Best-per-chart observations at collection time, not individual plays. */
+  fullRecords?: StudioChartRecord[];
+  versionTotals?: VersionChartTotals[];
 }
 
 export interface ChartChange {
@@ -52,7 +55,7 @@ export interface HistoryDiff {
 // StudioRecord carries no sheet id, so identity comes from the fields that
 // together pick out one chart. JSON encoding avoids both title collisions and
 // control characters that HTML option values normalize.
-export const chartKey = (record: StudioRecord) =>
+export const chartKey = (record: StudioChartRecord) =>
   JSON.stringify([record.title, record.type, record.difficulty]);
 
 export function toHistoryEntry(
@@ -84,6 +87,8 @@ export function toHistoryEntry(
       importedAt: savedAt
     },
     records: data.records.map((record) => ({ ...record })),
+    ...(data.fullRecords ? { fullRecords: data.fullRecords.map(record => ({ ...record })) } : {}),
+    ...(data.versionTotals ? { versionTotals: data.versionTotals.map(total => ({ ...total })) } : {}),
     ...(data.candidateRecords?.length
       ? { candidateRecords: data.candidateRecords.map((record) => ({ ...record })) }
       : {})
@@ -119,6 +124,8 @@ export function fromHistoryEntry(entry: HistoryEntry): StudioData {
     },
     records: entry.records.map((record) => ({ ...record })),
     candidateRecords: entry.candidateRecords?.map((record) => ({ ...record })),
+    fullRecords: entry.fullRecords?.map(record => ({ ...record })),
+    versionTotals: entry.versionTotals?.map(total => ({ ...total })),
     b15Rating,
     b35Rating,
     b50Rating: b15Rating + b35Rating,

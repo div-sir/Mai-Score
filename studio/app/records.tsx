@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { achievementRank } from "../lib/achievement-rank";
 import { buildLevelCompletion } from "../lib/insights";
 import { studioCopy } from "../lib/i18n";
-import { groupPlatesByVersion } from "../lib/plates";
+import { buildPlateProgress, groupPlatesByVersion } from "../lib/plates";
 import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
 import SongCover from "./song-cover";
 import ChartDetail from "./chart-detail";
@@ -28,12 +28,13 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
   const [type, setType] = useState("all");
   const [version, setVersion] = useState("all");
   const [plateSort, setPlateSort] = useState<"remaining" | "version">("remaining");
+  const [plateMasterOnly, setPlateMasterOnly] = useState(false);
   const versions = useMemo(() => [...new Set((data?.fullRecords ?? []).flatMap(r => r.version ? [r.version] : []))].sort(), [data]);
   const text = language === "zh-Hant"
-    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本", masterOnly: "僅顯示 MASTER", unmatched: "未匹配曲目" }
+    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本", masterOnly: "僅顯示 MASTER", masterPlateNote: "MASTER 進度檢視；實際牌子仍需 BASIC～MASTER。", unmatched: "未匹配曲目" }
     : language === "ja"
-      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン", masterOnly: "MASTER のみ", unmatched: "未一致の曲" }
-      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version", masterOnly: "MASTER only", unmatched: "Unmatched charts" };
+      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン", masterOnly: "MASTER のみ", masterPlateNote: "MASTER の進捗表示です。実際のプレートには BASIC～MASTER が必要です。", unmatched: "未一致の曲" }
+      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version", masterOnly: "MASTER only", masterPlateNote: "MASTER progress view; actual plates still require BASIC–MASTER.", unmatched: "Unmatched charts" };
   const sortLabel = language === "zh-Hant" ? "排序" : language === "ja" ? "並び順" : "Sort";
   const titleLabel = language === "en" ? "Title" : "曲名";
   const [difficulty, setDifficulty] = useState("all");
@@ -53,12 +54,17 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
     allPerfect: summary.allPerfect + (record.comboFlag === "ap" || record.comboFlag === "ap+" ? 1 : 0),
     fullSync: summary.fullSync + (record.syncFlag ? 1 : 0)
   }), { total: 0, sss: 0, sssPlus: 0, fullCombo: 0, allPerfect: 0, fullSync: 0 }), [visibleRecords]);
+  const canFilterPlate = Boolean(data?.versionTotals?.length);
+  const effectivePlateMasterOnly = plateMasterOnly && canFilterPlate;
   const plateGroups = useMemo(() => {
-    const groups = groupPlatesByVersion(data?.plateProgress ?? []);
+    const progress = effectivePlateMasterOnly
+      ? buildPlateProgress(data?.fullRecords, data?.versionTotals, ["master"])
+      : data?.plateProgress ?? [];
+    const groups = groupPlatesByVersion(progress);
     return [...groups].sort((a, b) => plateSort === "remaining"
       ? (a.nearest - b.nearest) || a.version.localeCompare(b.version)
       : a.version.localeCompare(b.version));
-  }, [data?.plateProgress, plateSort]);
+  }, [data?.fullRecords, data?.plateProgress, data?.versionTotals, effectivePlateMasterOnly, plateSort]);
   const plateLabel = { kiwami: "極", shou: language === "zh-Hant" ? "將" : "将", kami: "神", maimai: "舞舞" } as const;
 
   if (!data?.fullRecords?.length) {
@@ -103,7 +109,8 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
 
       <details className="records-detail-panel">
         <summary>{copy.plateProgress}</summary>
-        <label className="plate-sort">{sortLabel}<select value={plateSort} onChange={(event) => setPlateSort(event.target.value as "remaining" | "version")}><option value="remaining">{language === "zh-Hant" ? "最接近完成" : language === "ja" ? "残りが少ない順" : "Fewest remaining"}</option><option value="version">{language === "zh-Hant" ? "版本" : language === "ja" ? "バージョン" : "Version"}</option></select></label>
+        <div className="plate-controls"><label className="plate-sort">{sortLabel}<select value={plateSort} onChange={(event) => setPlateSort(event.target.value as "remaining" | "version")}><option value="remaining">{language === "zh-Hant" ? "最接近完成" : language === "ja" ? "残りが少ない順" : "Fewest remaining"}</option><option value="version">{language === "zh-Hant" ? "版本" : language === "ja" ? "バージョン" : "Version"}</option></select></label><label className="plate-master-only"><input type="checkbox" checked={effectivePlateMasterOnly} disabled={!canFilterPlate} onChange={event => setPlateMasterOnly(event.target.checked)} /><span>{text.masterOnly}</span></label></div>
+        {effectivePlateMasterOnly ? <p className="plate-filter-note">{text.masterPlateNote}</p> : null}
         {plateGroups.length ? <div className="plate-grid">{plateGroups.map((group) => (
           <section key={group.version || "all"}>
             <h3>

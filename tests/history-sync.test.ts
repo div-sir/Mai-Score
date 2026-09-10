@@ -9,6 +9,7 @@ import {
   type SyncedSettings
 } from "../studio/lib/history-sync";
 import { DEFAULT_OPTIONS } from "../studio/lib/types";
+import { MAX_SYNC_PAYLOAD_BYTES, payloadBytes } from "../src/lib/drive-sync";
 
 const entry = (overrides: Partial<HistoryEntry> = {}): HistoryEntry => ({
   generatedAt: "2026-07-01T00:00:00.000Z",
@@ -32,6 +33,60 @@ describe("history sync document", () => {
     expect(ids(parsed.entries).sort()).toEqual(ids(entries).sort());
   });
 
+  it("round-trips Full Records through the shared record pool", () => {
+    const fullRecord = {
+      title: "Outside B50", type: "dx" as const, difficulty: "master" as const,
+      displayedLevel: "14", achievementRate: 99.5, chartRating: 300
+    };
+    const entries = [
+      entry({ generatedAt: "2026-07-01T00:00:00.000Z", fullRecords: [fullRecord] }),
+      entry({ generatedAt: "2026-07-08T00:00:00.000Z", fullRecords: [fullRecord] })
+    ];
+    const serialized = serializeSyncDocument(entries);
+    const document = JSON.parse(serialized);
+
+    expect(document.fullRecordPool).toHaveLength(1);
+    expect(document.entries.map((item: { fullRecordRefs: number[] }) => item.fullRecordRefs)).toEqual([[0], [0]]);
+    expect(parseSyncDocument(serialized).entries.every(item => item.fullRecords?.[0].title === "Outside B50")).toBe(true);
+  });
+
+  it("keeps a year of weekly 1,762-chart snapshots within the sync limit when scores are unchanged", () => {
+    const fullRecords = Array.from({ length: 1762 }, (_, index) => ({
+      title: `Chart ${index}`,
+      type: "dx" as const,
+      difficulty: "master" as const,
+      displayedLevel: "13+",
+      internalLevelValue: 13.7,
+      achievementRate: 99.5,
+      chartRating: 288
+    }));
+    const entries = Array.from({ length: 52 }, (_, index) => entry({
+      generatedAt: new Date(Date.UTC(2026, 0, 1 + index * 7)).toISOString(),
+      fullRecords
+    }));
+    const serialized = serializeSyncDocument(entries);
+
+    expect(JSON.parse(serialized).fullRecordPool).toHaveLength(1762);
+    expect(payloadBytes(serialized)).toBeLessThan(MAX_SYNC_PAYLOAD_BYTES);
+  });
+
+  it("continues to read v1 history documents", () => {
+    const legacy = JSON.stringify({ schema: "mai-score/history-sync/v1", entries: [entry()] });
+    expect(parseSyncDocument(legacy).entries).toHaveLength(1);
+  });
+
+  it("skips an entry with a broken Full Records reference", () => {
+    const document = JSON.parse(serializeSyncDocument([entry()]));
+    document.entries[0].fullRecordRefs = [99];
+    expect(parseSyncDocument(JSON.stringify(document))).toMatchObject({ entries: [], skipped: 1 });
+  });
+
+  it("rejects inline Full Records in v2 instead of bypassing pool validation", () => {
+    const document = JSON.parse(serializeSyncDocument([entry()]));
+    document.entries[0].fullRecords = [{ title: "unvalidated" }];
+    expect(parseSyncDocument(JSON.stringify(document))).toMatchObject({ entries: [], skipped: 1 });
+  });
+
   it("writes the schema tag so a future format change is detectable", () => {
     expect(JSON.parse(serializeSyncDocument([])).schema).toBe(HISTORY_SYNC_SCHEMA);
   });
@@ -47,6 +102,7 @@ describe("history sync document", () => {
     // One corrupt row in a synced file should not wipe a real history.
     const parsed = parseSyncDocument(JSON.stringify({
       schema: HISTORY_SYNC_SCHEMA,
+      fullRecordPool: [],
       entries: [entry(), { generatedAt: 42 }, null, entry({ generatedAt: "2026-07-08T00:00:00.000Z" })]
     }));
     expect(parsed.entries).toHaveLength(2);
@@ -76,6 +132,13 @@ describe("merging two histories", () => {
     const newer = entry({ savedAt: "2026-07-09T00:00:00.000Z", b50Rating: 14000 });
     expect(mergeHistories([older], [newer])[0].b50Rating).toBe(14000);
     expect(mergeHistories([newer], [older])[0].b50Rating).toBe(14000);
+  });
+
+  it("keeps a complete copy when the same collection also exists without Full Records", () => {
+    const compact = entry({ savedAt: "2026-07-09T00:00:00.000Z" });
+    const complete = entry({ savedAt: "2026-07-01T00:00:00.000Z", fullRecords: [] });
+    expect(mergeHistories([compact], [complete])[0].fullRecords).toEqual([]);
+    expect(mergeHistories([complete], [compact])[0].fullRecords).toEqual([]);
   });
 
   it("is commutative, including when saves collide exactly", () => {
