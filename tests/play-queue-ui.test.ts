@@ -157,14 +157,16 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
   expect(host.textContent).toContain("actual plates still require BASIC–MASTER");
 });
 
-it("opens an export chart with a +1 target and history, then clears it on close", async () => {
+it("switches collected difficulties in the chart dialog and closes it from the backdrop", async () => {
   const { default: B50Preview } = await import('../studio/app/b50-preview');
   const { renderStudioSvg } = await import('../studio/lib/render');
   const { DEFAULT_OPTIONS } = await import('../studio/lib/types');
   const chart = { ...record, internalLevelValue: 14, achievementRate: 99, chartRating: 291, imageName: 'test-cover', bucket: 'b15' as const };
-  const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], b15Rating:291,b35Rating:0,b50Rating:291 };
+  const sibling = { ...record, difficulty: 'expert' as const, displayedLevel: '12', internalLevelValue: 12, achievementRate: 100, chartRating: 259, imageName: 'test-cover' };
+  const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], fullRecords:[chart,sibling], b15Rating:291,b35Rating:0,b50Rating:291 };
   const assets = { covers: { 'test-cover': 'data:image/png;base64,AA==' } };
   dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new dom.window.Event('close')); };
   await act(async () => root.render(React.createElement(B50Preview, {data,assets,history:[],language:'en',rendered:renderStudioSvg(data,DEFAULT_OPTIONS,'en'),previewUrl:'data:image/svg+xml,<svg/>'})));
   await act(async () => host.querySelector<HTMLButtonElement>('.b50-chart-hit')!.click());
   expect(host.querySelector('dialog')!.open).toBe(true);
@@ -174,6 +176,15 @@ it("opens an export chart with a +1 target and history, then clears it on close"
   expect(host.querySelectorAll('.b50-target-grid article').length).toBeGreaterThan(0);
   expect(host.textContent).toContain('Observed best history');
   expect(host.textContent).toContain('This does not mean it was unplayed');
-  await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
+  const expert = [...host.querySelectorAll<HTMLButtonElement>('.difficulty-card')].find(button => button.textContent?.includes('EXPERT'))!;
+  await act(async () => expert.click());
+  expect(host.textContent).toContain('Full Records · DX');
+  expect(expert.isConnected).toBe(false);
+  expect(host.querySelector<HTMLButtonElement>('button.difficulty-expert')?.getAttribute('aria-pressed')).toBe('true');
+  expect(host.textContent).toContain('Chart Rating gain');
+  const dialog = host.querySelector<HTMLDialogElement>('dialog')!;
+  dialog.getBoundingClientRect = () => ({ left: 100, right: 500, top: 100, bottom: 500, width: 400, height: 400, x: 100, y: 100, toJSON: () => ({}) });
+  await act(async () => dialog.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, clientX: 50, clientY: 50 })));
+  expect(dialog.open).toBe(false);
   expect(host.querySelector('#b50-chart-title')).toBeNull();
 });

@@ -9,6 +9,7 @@ All notable changes to Mai-Score are documented here.
 ### Added
 
 - Add an exact chart-constant filter to Level completion and display each known constant beside its chart level.
+- Make the B50 chart dialog interactive: switch between collected difficulties in place, show the active chart, and close the dialog by clicking outside it.
 
 ### Fixed
 
