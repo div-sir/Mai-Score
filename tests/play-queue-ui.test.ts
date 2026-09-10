@@ -30,6 +30,7 @@ it("loads catalog on demand and requires explicit International comparison", asy
   vi.stubGlobal("fetch", fetcher);
   await act(async () => root.render(React.createElement(CatalogPanel, { records: [record], language: "en" })));
   expect(fetcher).not.toHaveBeenCalled();
+  expect(host.querySelector("button")!.classList.contains("panel-primary-button")).toBe(true);
   await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
   expect(host.textContent).toContain("Test song");
   expect(host.textContent).not.toContain("99.0000%");
@@ -88,6 +89,7 @@ async function selectChart() {
 }
 it("saves, edits, removes and reloads a browser-local goal", async () => {
   await render();
+  expect(host.querySelector<HTMLButtonElement>('button[type="submit"]')!.classList.contains("panel-primary-button")).toBe(true);
   await selectChart();
   await submit();
   expect(parseQueue(localStorage.getItem(QUEUE_KEY)).goals).toHaveLength(1);
@@ -97,6 +99,8 @@ it("saves, edits, removes and reloads a browser-local goal", async () => {
   await render();
   expect(host.querySelectorAll("li")).toHaveLength(1);
   const buttons = host.querySelector("li")!.querySelectorAll("button");
+  expect(buttons[0].classList.contains("panel-secondary-button")).toBe(true);
+  expect(buttons[1].classList.contains("panel-danger-button")).toBe(true);
   await act(async () => buttons[0].click());
   expect(host.querySelector("select")!.value).toBe(JSON.stringify(["Test song", "dx", "master"]));
   await submit();
