@@ -4,6 +4,17 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.18.1] — 2026-09-10
+
+### Added
+
+- Add an exact chart-constant filter to Level completion and display each known constant beside its chart level.
+
+### Fixed
+
+- Combine `maimai` and `maimai PLUS` into the real 真 plate scope and remove the nonexistent 真將 result. 真極, 真神, and 真舞舞 now use the combined totals from both releases.
+- Recalculate normal plate progress from synchronized Full Records and version totals when available, so saved v0.18.0 snapshots receive the corrected 真 grouping without another collection.
+
 ## [0.18.0] — 2026-09-09
 
 ### Added

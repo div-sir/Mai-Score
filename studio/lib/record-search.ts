@@ -5,6 +5,7 @@ export interface RecordFilters {
   difficulty?: string;
   type?: string;
   version?: string;
+  constant?: string;
   status?: string;
   query?: string;
   sort?: string;
@@ -19,6 +20,7 @@ export function searchRecords(records: readonly StudioChartRecord[], filters: Re
     && matches(filters.difficulty, record.difficulty)
     && matches(filters.type, record.type)
     && matches(filters.version, record.version)
+    && (!filters.constant || filters.constant === "all" || record.internalLevelValue === Number(filters.constant))
     && (!filters.status || filters.status === "all"
       || (filters.status === "sss" && record.achievementRate < 100)
       || (filters.status === "fc" && Boolean(record.comboFlag))

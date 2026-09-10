@@ -56,6 +56,10 @@ export const PLATE_RULES: readonly PlateRule[] = [
   { kind: "maimai", difficulties: PLATE_DIFFICULTIES, satisfied: isFullSyncDx }
 ];
 
+// The first two arcade releases share one 真 plate set. There is no 真将;
+// 真極, 真神 and 真舞舞 cover maimai and maimai PLUS together.
+const SHIN_VERSIONS = ["maimai", "maimai PLUS"] as const;
+
 const countsAsPlateDifficulty = (difficulty: string): difficulty is PlateDifficulty =>
   (PLATE_DIFFICULTIES as readonly string[]).includes(difficulty);
 
@@ -88,20 +92,53 @@ export function buildPlateProgress(
     if (bucket) bucket.push(record); else played.set(record.version, [record]);
   }
 
-  const progress: PlateProgress[] = [];
+  const totalsByVersion = new Map(versionTotals.map(totals => [totals.version, totals]));
+  const scopes: Array<{
+    label: string;
+    totals: VersionChartTotals;
+    records: StudioChartRecord[];
+    excludedKinds?: ReadonlySet<PlateProgress["kind"]>;
+  }> = [];
+  const shinTotals = SHIN_VERSIONS.flatMap(version => {
+    const totals = totalsByVersion.get(version);
+    return totals ? [totals] : [];
+  });
+  // A partial catalog would understate the real 真 denominator, so do not
+  // show this aggregate unless both constituent releases are present.
+  if (shinTotals.length === SHIN_VERSIONS.length) {
+    scopes.push({
+      label: "真",
+      totals: {
+        version: "真",
+        basic: shinTotals.reduce((sum, totals) => sum + totals.basic, 0),
+        advanced: shinTotals.reduce((sum, totals) => sum + totals.advanced, 0),
+        expert: shinTotals.reduce((sum, totals) => sum + totals.expert, 0),
+        master: shinTotals.reduce((sum, totals) => sum + totals.master, 0),
+        remaster: shinTotals.reduce((sum, totals) => sum + totals.remaster, 0)
+      },
+      records: SHIN_VERSIONS.flatMap(version => played.get(version) ?? []),
+      excludedKinds: new Set(["shou"])
+    });
+  }
   for (const totals of versionTotals) {
-    const records = played.get(totals.version);
-    if (!records?.length) continue;
+    if ((SHIN_VERSIONS as readonly string[]).includes(totals.version)) continue;
+    scopes.push({ label: totals.version, totals, records: played.get(totals.version) ?? [] });
+  }
+
+  const progress: PlateProgress[] = [];
+  for (const scope of scopes) {
+    if (!scope.records.length) continue;
     for (const rule of PLATE_RULES) {
+      if (scope.excludedKinds?.has(rule.kind)) continue;
       const includedDifficulties = rule.difficulties.filter(difficulty => difficulties.includes(difficulty));
-      const total = denominator(totals, includedDifficulties);
+      const total = denominator(scope.totals, includedDifficulties);
       if (total === 0) continue;
-      const completed = records.filter(
+      const completed = scope.records.filter(
         (record) => countsAsPlateDifficulty(record.difficulty)
           && includedDifficulties.includes(record.difficulty)
           && rule.satisfied(record)
       ).length;
-      progress.push({ kind: rule.kind, version: totals.version, completed, total });
+      progress.push({ kind: rule.kind, version: scope.label, completed, total });
     }
   }
   return progress;

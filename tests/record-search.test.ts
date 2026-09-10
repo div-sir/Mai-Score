@@ -17,6 +17,10 @@ it("combines type, version and search filters", () => {
   expect(searchRecords(records, { type: "dx", version: "B", query: " ALPHA " })).toEqual([records[1]]);
   expect(searchRecords(records, { type: "std", version: "B" })).toEqual([]);
 });
+it("filters by exact chart constant", () => {
+  expect(searchRecords(records, { constant: "7" })).toEqual([records[1]]);
+  expect(searchRecords(records, { constant: "13.7" })).toEqual([]);
+});
 it("handles SSS boundary and inclusive AP and FC statuses", () => {
   expect(searchRecords(records, { status: "sss" })).toHaveLength(2);
   expect(searchRecords(records, { status: "ap" })).toEqual([records[1]]);

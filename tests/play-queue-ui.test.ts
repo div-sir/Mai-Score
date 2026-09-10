@@ -130,10 +130,11 @@ it("preserves another tab's goal when saving", async () => {
 
 it("switches plate progress to a clearly labelled MASTER-only view", async () => {
   const { default: RecordsDashboard } = await import("../studio/app/records");
-  const master = { ...record, version: "A", comboFlag: "fc" as const };
+  const master = { ...record, title: "Master target", version: "A", internalLevelValue: 14, comboFlag: "fc" as const };
+  const expert = { ...record, title: "Expert target", difficulty: "expert" as const, version: "A", internalLevelValue: 13.7 };
   const data: StudioData = {
     schema: "mai-score/v1", exportedAt: "2026-09-09T00:00:00.000Z",
-    player: { name: "P", title: "", rating: 0 }, records: [], fullRecords: [master],
+    player: { name: "P", title: "", rating: 0 }, records: [], fullRecords: [master, expert],
     versionTotals: [{ version: "A", basic: 1, advanced: 1, expert: 1, master: 1, remaster: 0 }],
     plateProgress: [
       { kind: "kiwami", version: "A", completed: 1, total: 4 },
@@ -144,6 +145,11 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
     b15Rating: 0, b35Rating: 0, b50Rating: 0
   };
   await act(async () => root.render(React.createElement(RecordsDashboard, { data, assets: { covers: {} }, history: [], language: "en" })));
+  const constant = host.querySelector<HTMLSelectElement>('.records-filters select[aria-label="Constant"]')!;
+  await act(async () => { constant.value = "14"; constant.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  const completionGrid = host.querySelector(".completion-grid")!;
+  expect(completionGrid.textContent).toContain("Master targetDX · MASTER · 14 · 14.0");
+  expect(completionGrid.textContent).not.toContain("Expert target");
   expect(host.querySelector(".plate-grid")!.textContent).toContain("1 / 4");
   const toggle = host.querySelector<HTMLInputElement>(".plate-master-only input")!;
   await act(async () => toggle.click());
