@@ -306,7 +306,7 @@ export function buildUpgradeTargets(data: StudioData, limit = 8): UpgradeTarget[
     .slice(0, limit);
 }
 
-export function achievementForRating(record: StudioRecord, requiredRating: number): number | undefined {
+export function achievementForRating(record: StudioChartRecord, requiredRating: number): number | undefined {
   const level = Number(record.internalLevelValue);
   if (!Number.isFinite(level) || level <= 0) return undefined;
   if (calculateInsightRating(level, 100.5) < requiredRating) return undefined;

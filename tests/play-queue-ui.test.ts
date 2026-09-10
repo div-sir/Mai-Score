@@ -130,10 +130,11 @@ it("preserves another tab's goal when saving", async () => {
 
 it("switches plate progress to a clearly labelled MASTER-only view", async () => {
   const { default: RecordsDashboard } = await import("../studio/app/records");
-  const master = { ...record, version: "A", comboFlag: "fc" as const };
+  const master = { ...record, title: "Master target", version: "A", internalLevelValue: 14, comboFlag: "fc" as const };
+  const expert = { ...record, title: "Expert target", difficulty: "expert" as const, version: "A", internalLevelValue: 13.7 };
   const data: StudioData = {
     schema: "mai-score/v1", exportedAt: "2026-09-09T00:00:00.000Z",
-    player: { name: "P", title: "", rating: 0 }, records: [], fullRecords: [master],
+    player: { name: "P", title: "", rating: 0 }, records: [], fullRecords: [master, expert],
     versionTotals: [{ version: "A", basic: 1, advanced: 1, expert: 1, master: 1, remaster: 0 }],
     plateProgress: [
       { kind: "kiwami", version: "A", completed: 1, total: 4 },
@@ -144,6 +145,13 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
     b15Rating: 0, b35Rating: 0, b50Rating: 0
   };
   await act(async () => root.render(React.createElement(RecordsDashboard, { data, assets: { covers: {} }, history: [], language: "en" })));
+  const constant = host.querySelector<HTMLSelectElement>('.records-filters select[aria-label="Constant"]')!;
+  await act(async () => { constant.value = "14"; constant.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  expect(host.querySelector(".records-advanced-filters summary")!.textContent).toContain("1");
+  expect(host.querySelector(".records-reset")!.textContent).toContain("Reset filters1");
+  const completionGrid = host.querySelector(".completion-grid")!;
+  expect(completionGrid.textContent).toContain("Master targetDX · MASTER · 14 · 14.0");
+  expect(completionGrid.textContent).not.toContain("Expert target");
   expect(host.querySelector(".plate-grid")!.textContent).toContain("1 / 4");
   const toggle = host.querySelector<HTMLInputElement>(".plate-master-only input")!;
   await act(async () => toggle.click());
@@ -151,14 +159,16 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
   expect(host.textContent).toContain("actual plates still require BASIC–MASTER");
 });
 
-it("opens an export chart with a +1 target and history, then clears it on close", async () => {
+it("switches collected difficulties in the chart dialog and closes it from the backdrop", async () => {
   const { default: B50Preview } = await import('../studio/app/b50-preview');
   const { renderStudioSvg } = await import('../studio/lib/render');
   const { DEFAULT_OPTIONS } = await import('../studio/lib/types');
   const chart = { ...record, internalLevelValue: 14, achievementRate: 99, chartRating: 291, imageName: 'test-cover', bucket: 'b15' as const };
-  const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], b15Rating:291,b35Rating:0,b50Rating:291 };
+  const sibling = { ...record, difficulty: 'expert' as const, displayedLevel: '12', internalLevelValue: 12, achievementRate: 100, chartRating: 259, imageName: 'test-cover' };
+  const data = { schema:'mai-score/v1', exportedAt:'2026-09-07T00:00:00Z', player:{name:'Test',title:'',rating:291}, records:[chart], fullRecords:[chart,sibling], b15Rating:291,b35Rating:0,b50Rating:291 };
   const assets = { covers: { 'test-cover': 'data:image/png;base64,AA==' } };
   dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new dom.window.Event('close')); };
   await act(async () => root.render(React.createElement(B50Preview, {data,assets,history:[],language:'en',rendered:renderStudioSvg(data,DEFAULT_OPTIONS,'en'),previewUrl:'data:image/svg+xml,<svg/>'})));
   await act(async () => host.querySelector<HTMLButtonElement>('.b50-chart-hit')!.click());
   expect(host.querySelector('dialog')!.open).toBe(true);
@@ -168,6 +178,15 @@ it("opens an export chart with a +1 target and history, then clears it on close"
   expect(host.querySelectorAll('.b50-target-grid article').length).toBeGreaterThan(0);
   expect(host.textContent).toContain('Observed best history');
   expect(host.textContent).toContain('This does not mean it was unplayed');
-  await act(async () => { const dialog = host.querySelector('dialog')!; dialog.open=false; dialog.dispatchEvent(new dom.window.Event('close')); });
+  const expert = [...host.querySelectorAll<HTMLButtonElement>('.difficulty-card')].find(button => button.textContent?.includes('EXPERT'))!;
+  await act(async () => expert.click());
+  expect(host.textContent).toContain('Full Records · DX');
+  expect(expert.isConnected).toBe(false);
+  expect(host.querySelector<HTMLButtonElement>('button.difficulty-expert')?.getAttribute('aria-pressed')).toBe('true');
+  expect(host.textContent).toContain('Chart Rating gain');
+  const dialog = host.querySelector<HTMLDialogElement>('dialog')!;
+  dialog.getBoundingClientRect = () => ({ left: 100, right: 500, top: 100, bottom: 500, width: 400, height: 400, x: 100, y: 100, toJSON: () => ({}) });
+  await act(async () => dialog.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, clientX: 50, clientY: 50 })));
+  expect(dialog.open).toBe(false);
   expect(host.querySelector('#b50-chart-title')).toBeNull();
 });

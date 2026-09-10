@@ -89,6 +89,28 @@ describe("plate rules", () => {
     expect(find(progress, "kiwami")).toMatchObject({ completed: 1, total: 30 });
   });
 
+  it("combines maimai and maimai PLUS into 真 and does not invent a 真將 plate", () => {
+    const progress = buildPlateProgress([
+      chart({ version: "maimai", comboFlag: "fc" }),
+      chart({ version: "maimai PLUS", comboFlag: "fc" })
+    ], [
+      totals({ version: "maimai" }),
+      totals({ version: "maimai PLUS" })
+    ]);
+    expect(progress.filter(entry => entry.version === "真").map(entry => entry.kind).sort())
+      .toEqual(["kami", "kiwami", "maimai"]);
+    expect(find(progress, "kiwami", "真")).toMatchObject({ completed: 2, total: 8 });
+    expect(progress.some(entry => entry.version === "maimai" || entry.version === "maimai PLUS")).toBe(false);
+    expect(find(progress, "shou", "真")).toBeUndefined();
+  });
+
+  it("omits 真 when either constituent release is missing from the catalog totals", () => {
+    expect(buildPlateProgress(
+      [chart({ version: "maimai", comboFlag: "fc" })],
+      [totals({ version: "maimai" })]
+    )).toEqual([]);
+  });
+
   it("omits a version whose totals are unknown instead of flattering it", () => {
     expect(buildPlateProgress([chart({ version: "CiRCLE" })], [totals()])).toEqual([]);
   });

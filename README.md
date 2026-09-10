@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.18.0 — synchronized Full Records history.** Saves best-per-chart Full Records with each collection, syncs them efficiently across devices, and tracks charts outside B50 from the first complete snapshot. Download the packaged version from Releases.
+> **v0.18.1 — corrected 真 plates and constant-based completion.** Level completion can filter and display exact chart constants, while 真極／真神／真舞舞 correctly combine `maimai` and `maimai PLUS` without inventing a 真將 plate. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
