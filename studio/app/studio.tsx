@@ -48,6 +48,7 @@ import {
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
+const UI_VIEW_KEY = "mai-score-studio-view";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
 type StudioView = "export" | "progress" | "records";
@@ -184,6 +185,7 @@ export default function Studio() {
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [studioView, setStudioView] = useState<StudioView>("export");
+  const [viewStorageReady, setViewStorageReady] = useState(false);
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -207,6 +209,9 @@ export default function Studio() {
     let cancelled = false;
     setOrigin(window.location.origin);
     setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
+    const savedView = localStorage.getItem(UI_VIEW_KEY);
+    if (savedView === "export" || savedView === "progress" || savedView === "records") setStudioView(savedView);
+    setViewStorageReady(true);
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
     const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -337,6 +342,10 @@ export default function Studio() {
   useEffect(() => {
     localStorage.setItem(UI_THEME_KEY, uiTheme);
   }, [uiTheme]);
+
+  useEffect(() => {
+    if (viewStorageReady) localStorage.setItem(UI_VIEW_KEY, studioView);
+  }, [studioView, viewStorageReady]);
 
   const rendered = useMemo(
     () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
@@ -849,7 +858,7 @@ export default function Studio() {
         </div>
       </header>
 
-      <div className="status-line">
+      <div className="status-line" role="status" aria-live="polite">
         <div className="status-message"><span />{message}</div>
       </div>
 
@@ -864,6 +873,7 @@ export default function Studio() {
         <RecordsDashboard data={data} assets={assets} language={language} history={history} />
       ) : <section className="workspace">
         <aside className="control-panel">
+          <div className="control-scroll">
           <div className="panel-heading">
             <h1>{copy.exportStyle}</h1>
             <button className="reset-button" onClick={resetOptions}>{copy.reset}</button>
@@ -904,8 +914,8 @@ export default function Studio() {
             </div>
           </details>
 
-          <section className="display-options" aria-labelledby="visible-content-heading">
-            <h3 id="visible-content-heading">{copy.displayContent}</h3>
+          <details className="display-options" open>
+            <summary id="visible-content-heading">{copy.displayContent}</summary>
             {([
               [copy.playerContent, [["showFrame", copy.frame], ["showIcon", copy.icon], ["showPlate", copy.plate], ["showPlayerTitle", copy.playerTitle]]],
               [copy.chartContent, [["showCovers", copy.covers], ["showRank", copy.rank]]],
@@ -914,18 +924,23 @@ export default function Studio() {
             ] as Array<[string, Array<[keyof StudioOptions, string]>]>).map(([group, items]) => <div className="toggle-group" key={group}>
               <h4>{group}</h4><div className="toggle-list">{items.map(([key, label]) => <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>)}</div>
             </div>)}
-          </section>
+          </details>
+          </div>
 
-          <section className="output-section">
-            <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}><option value="png">PNG</option><option value="svg">SVG</option></select></label>
-            <button className="export-button" disabled={busy || !data} onClick={exportImage}>{busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}</button>
-          </section>
-          {canShare && (
-            <button className="share-button" disabled={busy || !data} onClick={shareImage}>
-              {copy.share}
-            </button>
-          )}
-          <button className="preset-button" onClick={copyPreset}>{copy.copyStyle}</button>
+          <div className="export-action-dock">
+            <section className="output-section">
+              <label>{copy.outputFormat}<select value={exportFormat} onChange={(event) => setExportFormat(event.target.value as "png" | "svg")}><option value="png">PNG</option><option value="svg">SVG</option></select></label>
+              <button className="export-button" disabled={busy || !data} onClick={exportImage}>{busy ? copy.processing : `${copy.download} ${exportFormat.toUpperCase()}`}</button>
+            </section>
+            <div className="export-secondary-actions">
+              {canShare && (
+                <button className="share-button" disabled={busy || !data} onClick={shareImage}>
+                  {copy.share}
+                </button>
+              )}
+              <button className="preset-button" onClick={copyPreset}>{copy.copyStyle}</button>
+            </div>
+          </div>
         </aside>
 
         <section className={`preview-panel${data ? "" : " empty"}`}>
@@ -937,7 +952,7 @@ export default function Studio() {
           <div className={`preview-stage theme-${options.theme}`}>
             {rendered
               ? data && <B50Preview data={data} assets={assets} history={history} language={language} rendered={rendered} previewUrl={previewUrl} />
-              : <p className="empty-preview">{copy.emptyPreview}</p>}
+              : <div className="empty-preview"><p>{copy.emptyPreview}</p><button type="button" className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button></div>}
           </div>
         </section>
       </section>}

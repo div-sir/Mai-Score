@@ -147,6 +147,8 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
   await act(async () => root.render(React.createElement(RecordsDashboard, { data, assets: { covers: {} }, history: [], language: "en" })));
   const constant = host.querySelector<HTMLSelectElement>('.records-filters select[aria-label="Constant"]')!;
   await act(async () => { constant.value = "14"; constant.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
+  expect(host.querySelector(".records-advanced-filters summary")!.textContent).toContain("1");
+  expect(host.querySelector(".records-reset")!.textContent).toContain("Reset filters1");
   const completionGrid = host.querySelector(".completion-grid")!;
   expect(completionGrid.textContent).toContain("Master targetDX · MASTER · 14 · 14.0");
   expect(completionGrid.textContent).not.toContain("Expert target");

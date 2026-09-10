@@ -74,6 +74,19 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
       : a.version.localeCompare(b.version));
   }, [data?.fullRecords, data?.plateProgress, data?.versionTotals, effectivePlateMasterOnly, plateSort]);
   const plateLabel = { kiwami: "極", shou: language === "zh-Hant" ? "將" : "将", kami: "神", maimai: "舞舞" } as const;
+  const activeFilterCount = [effectiveLevel !== "all", difficulty !== "all", status !== "all", type !== "all", version !== "all", constant !== "all", Boolean(query.trim()), sort !== "achievement"].filter(Boolean).length;
+  const advancedFilterCount = [status !== "all", type !== "all", version !== "all", constant !== "all", sort !== "achievement"].filter(Boolean).length;
+  const resetFilters = () => {
+    setLevel("all");
+    setDifficulty("all");
+    setStatus("all");
+    setType("all");
+    setVersion("all");
+    setConstant("all");
+    setQuery("");
+    setSort("achievement");
+  };
+  const moreFilters = language === "zh-Hant" ? "更多篩選" : language === "ja" ? "その他の絞り込み" : "More filters";
 
   if (!data?.fullRecords?.length) {
     return (
@@ -96,19 +109,26 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
       <PlayQueuePanel records={data.fullRecords} language={language} />
       <CatalogPanel records={data.fullRecords} language={language} data={data} />
       <article className="insight-panel full-records-panel">
-        <header>
+        <header className="records-panel-heading">
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
-          <div className="target-filters records-filters">
+          <div className="records-filter-toolbar">
+            <label className="records-search">{copy.searchRecords}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.searchRecords} /></label>
+            <div className="target-filters records-quick-filters">
             <label>{copy.levelFilter}<select value={effectiveLevel} onChange={(event) => setLevel(event.target.value)}><option value="all">{copy.all}</option>{levelCompletion.map((entry) => <option key={entry.level} value={entry.level}>{entry.level} · {entry.total}</option>)}</select></label>
             <label>{copy.difficultyFilter}<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="all">{copy.all}</option><option value="basic">BASIC</option><option value="advanced">ADVANCED</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option></select></label>
             <button type="button" className={difficulty === "master" ? "filter-active" : undefined} onClick={() => setDifficulty(difficulty === "master" ? "all" : "master")}>{text.masterOnly}</button>
-            <label>{sortLabel}<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="achievement">{copy.achievement} ↓</option><option value="low">{copy.achievement} ↑</option><option value="title">{titleLabel}</option><option value="constant">{text.constant} ↓</option></select></label>
-            <label>{copy.searchRecords}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.searchRecords} /></label>
-            <label>{text.constant}<select aria-label={text.constant} value={constant} onChange={event => setConstant(event.target.value)}><option value="all">{copy.all}</option>{constants.map(value => <option key={value} value={value}>{value.toFixed(1)}</option>)}</select></label>
-            <label>STD / DX<select value={type} onChange={event => setType(event.target.value)}><option value="all">{copy.all}</option><option value="std">STD</option><option value="dx">DX</option></select></label>
-            <label>{text.version}<select value={version} onChange={event => setVersion(event.target.value)}><option value="all">{copy.all}</option>{versions.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
-            <label>{text.status}<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{copy.all}</option><option value="sss">{text.below}</option><option value="fc">FC / AP</option><option value="ap">AP</option></select></label>
-            <button type="button" onClick={() => { setLevel("all"); setDifficulty("all"); setStatus("all"); setType("all"); setVersion("all"); setConstant("all"); setQuery(""); setSort("achievement"); }}>{text.reset}</button>
+            <details className="records-advanced-filters">
+              <summary>{moreFilters}{advancedFilterCount ? <b>{advancedFilterCount}</b> : null}</summary>
+              <div className="target-filters records-filters">
+                <label>{sortLabel}<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="achievement">{copy.achievement} ↓</option><option value="low">{copy.achievement} ↑</option><option value="title">{titleLabel}</option><option value="constant">{text.constant} ↓</option></select></label>
+                <label>{text.constant}<select aria-label={text.constant} value={constant} onChange={event => setConstant(event.target.value)}><option value="all">{copy.all}</option>{constants.map(value => <option key={value} value={value}>{value.toFixed(1)}</option>)}</select></label>
+                <label>STD / DX<select value={type} onChange={event => setType(event.target.value)}><option value="all">{copy.all}</option><option value="std">STD</option><option value="dx">DX</option></select></label>
+                <label>{text.version}<select value={version} onChange={event => setVersion(event.target.value)}><option value="all">{copy.all}</option>{versions.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+                <label>{text.status}<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{copy.all}</option><option value="sss">{text.below}</option><option value="fc">FC / AP</option><option value="ap">AP</option></select></label>
+              </div>
+            </details>
+            {activeFilterCount ? <button type="button" className="records-reset" onClick={resetFilters}>{text.reset}<b>{activeFilterCount}</b></button> : null}
+            </div>
           </div>
         </header>
         <div className="completion-summary"><span><b>{completion.total}</b>{copy.charts}</span><span><b>{completion.sss}</b>SSS</span><span><b>{completion.sssPlus}</b>SSS+</span><span><b>{completion.fullCombo}</b>FC / AP</span><span><b>{completion.allPerfect}</b>AP</span><span><b>{completion.fullSync}</b>FS / FDX</span></div>
