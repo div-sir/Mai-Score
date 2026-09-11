@@ -4,6 +4,14 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Unify Studio panel buttons, form controls, disclosure headers, theme colors, spacing, and interaction feedback across Export, Progress, Full Records, Play queue, Catalog, and chart details.
+
+### Fixed
+
+- Apply the light theme text palette at the Studio root and preserve the selected appearance across React Strict Mode reloads.
+
 ## [0.18.1] — 2026-09-10
 
 ### Added

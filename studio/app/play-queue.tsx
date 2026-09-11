@@ -42,13 +42,13 @@ export default function PlayQueuePanel({ records, language }: { records: StudioC
       <label>{text.chart}<select required value={selected} onChange={event => setSelected(event.target.value)}><option value="">{text.choose}</option>{selected && !charts.has(selected) && <option value={selected}>{selected}</option>}{[...charts].map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       <label>{text.target}<input required type="number" min="0" max="100.5" step="0.0001" value={target} onChange={event => setTarget(event.target.value)} /></label>
       <label>{text.note}<input maxLength={1000} value={note} onChange={event => setNote(event.target.value)} /></label>
-      <button type="submit" disabled={!ready}>{text.save}</button>
+      <button type="submit" className="panel-primary-button" disabled={!ready}>{text.save}</button>
     </form>
     <p role="status">{message}</p>
     {queue.goals.length ? <ul>{queue.goals.map(goal => <li key={goal.chartKey}>
       <span>{charts.get(goal.chartKey) ?? goal.chartKey} → {goal.target}% {goal.note}</span>
-      <button type="button" onClick={() => { setSelected(goal.chartKey); setTarget(String(goal.target)); setNote(goal.note); }}>{text.edit}</button>
-      <button type="button" disabled={!ready} onClick={() => update(current => ({ ...current, goals: current.goals.filter(item => item.chartKey !== goal.chartKey) }))}>{text.remove}</button>
+      <button type="button" className="panel-secondary-button" onClick={() => { setSelected(goal.chartKey); setTarget(String(goal.target)); setNote(goal.note); }}>{text.edit}</button>
+      <button type="button" className="panel-danger-button" disabled={!ready} onClick={() => update(current => ({ ...current, goals: current.goals.filter(item => item.chartKey !== goal.chartKey) }))}>{text.remove}</button>
     </li>)}</ul> : <p>{text.empty}</p>}
   </details>;
 }

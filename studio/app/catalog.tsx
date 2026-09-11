@@ -48,7 +48,7 @@ export default function CatalogPanel({ records, language, data }: { records: Stu
   return <details className="records-detail-panel catalog-panel">
     <summary>{t[0]}</summary>
     <div className="catalog-body">
-    {state !== "ready" && <button className="catalog-load" type="button" disabled={state === "loading"} onClick={load}>{t[1]}{state === "loading" ? "…" : ""}</button>}
+    {state !== "ready" && <button className="catalog-load panel-primary-button" type="button" disabled={state === "loading"} onClick={load}>{t[1]}{state === "loading" ? "…" : ""}</button>}
     {state === "error" && <p role="alert">{t[8]}</p>}
     {state === "ready" && <>
       <div className="catalog-meta"><p>{t[9]}: <time dateTime={date}>{date}</time> · {catalog.length}</p><p>{t[10]}</p></div>
@@ -61,9 +61,9 @@ export default function CatalogPanel({ records, language, data }: { records: Stu
       <label className="catalog-compare"><input type="checkbox" checked={compare} onChange={e => setCompare(e.target.checked)} /><span>{t[3]}</span></label>
       {compare && <div className="catalog-summary" aria-label="Completion summary"><span><b>{summary.completed}</b>{t[4]}</span><span><b>{summary.belowTarget}</b>{t[5]}</span><span><b>{summary.unknown}</b>{t[6]}</span></div>}
       {selected && compare && <section className="catalog-simulator" aria-label={labels[6]}><h3>{selected.title}</h3><p>{selected.type.toUpperCase()} · {selected.difficulty.toUpperCase()} · {selected.level} · {selected.version}</p><label>{labels[7]}<input type="number" min="0" max="100.5" step="0.0001" value={target} onChange={e => setTarget(e.target.value)} /></label><p role="status">{simulation ? `${simulation.bucket.toUpperCase()} · Rating ${simulation.rating} · B50 +${simulation.gain} → ${simulation.total}` : labels[8]}</p></section>}
-      <ul className="catalog-list">{visible.slice(0, limit).map(r => <li key={r.sheet.sheetId}><div><strong>{r.sheet.title}</strong><span>{r.sheet.type.toUpperCase()} · {r.sheet.difficulty.toUpperCase()} · {r.sheet.level} · {r.sheet.internalLevelValue.toFixed(1)}</span><small>{r.sheet.version}</small></div>{compare && <div className="catalog-result"><b>{r.score ? `${r.score.achievementRate.toFixed(4)}%` : t[6]}</b><button type="button" onClick={() => setSelected(r.sheet)}>{labels[6]}</button></div>}</li>)}</ul>
+      <ul className="catalog-list">{visible.slice(0, limit).map(r => <li key={r.sheet.sheetId}><div><strong>{r.sheet.title}</strong><span>{r.sheet.type.toUpperCase()} · {r.sheet.difficulty.toUpperCase()} · {r.sheet.level} · {r.sheet.internalLevelValue.toFixed(1)}</span><small>{r.sheet.version}</small></div>{compare && <div className="catalog-result"><b>{r.score ? `${r.score.achievementRate.toFixed(4)}%` : t[6]}</b><button className="panel-secondary-button" type="button" onClick={() => setSelected(r.sheet)}>{labels[6]}</button></div>}</li>)}</ul>
       <p className="catalog-count" role="status">{visible.length}</p>
-      {visible.length > limit && <button type="button" onClick={() => setLimit(n => n + 50)}>{t[7]} ({Math.min(limit, visible.length)}/{visible.length})</button>}
+      {visible.length > limit && <button className="panel-secondary-button" type="button" onClick={() => setLimit(n => n + 50)}>{t[7]} ({Math.min(limit, visible.length)}/{visible.length})</button>}
     </>}
     </div>
   </details>;

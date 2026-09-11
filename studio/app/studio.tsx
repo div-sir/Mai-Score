@@ -185,7 +185,7 @@ export default function Studio() {
   const [settingsUpdatedAt, setSettingsUpdatedAt] = useState("");
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [studioView, setStudioView] = useState<StudioView>("export");
-  const [viewStorageReady, setViewStorageReady] = useState(false);
+  const [uiPreferencesReady, setUiPreferencesReady] = useState(false);
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -211,7 +211,7 @@ export default function Studio() {
     setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
     const savedView = localStorage.getItem(UI_VIEW_KEY);
     if (savedView === "export" || savedView === "progress" || savedView === "records") setStudioView(savedView);
-    setViewStorageReady(true);
+    setUiPreferencesReady(true);
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
     const hash = new URLSearchParams(window.location.hash.slice(1));
@@ -340,12 +340,12 @@ export default function Studio() {
   }, [options, language, settingsUpdatedAt]);
 
   useEffect(() => {
-    localStorage.setItem(UI_THEME_KEY, uiTheme);
-  }, [uiTheme]);
+    if (uiPreferencesReady) localStorage.setItem(UI_THEME_KEY, uiTheme);
+  }, [uiPreferencesReady, uiTheme]);
 
   useEffect(() => {
-    if (viewStorageReady) localStorage.setItem(UI_VIEW_KEY, studioView);
-  }, [studioView, viewStorageReady]);
+    if (uiPreferencesReady) localStorage.setItem(UI_VIEW_KEY, studioView);
+  }, [studioView, uiPreferencesReady]);
 
   const rendered = useMemo(
     () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
