@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-09-11
+
 ### Added
 
 - Add a target Rating planner that builds a cutoff-aware sequence of achievement milestones from Full Records and reports the highest Rating reachable from known played charts.

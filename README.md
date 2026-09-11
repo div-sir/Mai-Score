@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.18.1 — corrected 真 plates and constant-based completion.** Level completion can filter and display exact chart constants, while 真極／真神／真舞舞 correctly combine `maimai` and `maimai PLUS` without inventing a 真將 plate. Download the packaged version from Releases.
+> **v0.19.0 — target Rating planning and all-chart recommendations.** Studio can build a cutoff-aware route to a target Rating from Full Records, recommend played charts outside the current B50, and search the International catalog with combined chart filters. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -43,6 +43,9 @@ Building from source instead? See [Development](#development).
 - Browses the full pinned International catalog on demand, filters by exact chart constant, and separates known below-target charts from unobserved or ambiguous matches for SSS, SSS+, FC, and AP goals.
 - Opens collected sibling difficulties, observed best-score history, and target chart Rating from Records, while keeping STD and DX identities separate.
 - Simulates an eligible catalog chart against its explicit B15/B35 cutoff and saves optional target achievements and notes in a validated browser-local play queue.
+- Builds a target Rating plan from resolved Full Records, recalculating the B15/B35 cutoffs after every recommended achievement milestone and reporting the known played-chart ceiling.
+- Recommends efficient Rating gains across all resolved played charts, including charts outside the current B50, without guessing the bucket for records whose current-version eligibility is ambiguous.
+- Searches the International catalog by title, song/sheet identity, level, difficulty, STD/DX type, version, exact constant, and sort order.
 
 ## Usage
 
