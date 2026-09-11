@@ -4,6 +4,14 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-09-11
+
+### Added
+
+- Add a target Rating planner that builds a cutoff-aware sequence of achievement milestones from Full Records and reports the highest Rating reachable from known played charts.
+- Recommend Rating gains across all resolved Full Records, including played charts outside the current B50, while keeping B15/B35 version eligibility explicit.
+- Expand International catalog search with song and sheet IDs, level, difficulty, chart type, version, exact constant, and multiple sort orders.
+
 ### Changed
 
 - Unify Studio panel buttons, form controls, disclosure headers, theme colors, spacing, and interaction feedback across Export, Progress, Full Records, Play queue, Catalog, and chart details.
