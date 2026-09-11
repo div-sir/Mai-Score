@@ -14,10 +14,11 @@ import {
   simulateWhatIf,
   snapshotProvenance
 } from "../lib/insights";
-import { studioCopy } from "../lib/i18n";
+import { plannerCopy, studioCopy } from "../lib/i18n";
 import type { LanguageId, StudioAssets, StudioData, StudioRecord } from "../lib/types";
 import TimelineChart from "./timeline-chart";
 import SongCover from "./song-cover";
+import { FullRecordRecommendationsPanel, RatingPlannerPanel } from "./rating-planner";
 
 interface ProgressDashboardProps {
   data: StudioData | null;
@@ -26,7 +27,7 @@ interface ProgressDashboardProps {
   language: LanguageId;
 }
 
-type ActionView = "targets" | "potential" | "protect" | "simulate";
+type ActionView = "planner" | "full" | "targets" | "potential" | "protect" | "simulate";
 
 function signed(value: number | undefined) {
   if (value === undefined) return "—";
@@ -37,6 +38,7 @@ const achievementLabel = (value: number) => `${value.toFixed(value % 1 ? 1 : 0)}
 
 export default function ProgressDashboard({ data, assets, history, language }: ProgressDashboardProps) {
   const copy = studioCopy(language);
+  const planner = plannerCopy(language);
   const timeline = useMemo(() => buildRatingTimeline(history), [history]);
   const charts = useMemo(() => listHistoryCharts(history), [history]);
   const [selectedKey, setSelectedKey] = useState("");
@@ -45,7 +47,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
   const [level, setLevel] = useState("all");
   const [simulationKey, setSimulationKey] = useState("");
   const [simulationAchievement, setSimulationAchievement] = useState(100.5);
-  const [actionView, setActionView] = useState<ActionView>("targets");
+  const [actionView, setActionView] = useState<ActionView>("planner");
 
   const activeKey = selectedKey || (charts[0] ? chartKey(charts[0]) : "");
   const activeChart = charts.find((chart) => chartKey(chart) === activeKey);
@@ -132,12 +134,16 @@ export default function ProgressDashboard({ data, assets, history, language }: P
         <header className="insight-group-heading"><span>01</span><div><h2>{copy.nextActions}</h2><p>{copy.nextActionsDescription}</p></div></header>
         <nav className="action-tabs" aria-label={copy.nextActions}>
           {([
+            ["planner", planner.goalTab],
+            ["full", planner.recommendationsTab],
             ["targets", copy.easyGains],
             ["potential", copy.newEntries],
             ["protect", copy.protectB50],
             ["simulate", copy.whatIf]
           ] as Array<[ActionView, string]>).map(([view, label]) => <button key={view} type="button" aria-pressed={actionView === view} onClick={() => setActionView(view)}>{label}</button>)}
         </nav>
+        {actionView === "planner" && data ? <RatingPlannerPanel key={data.exportedAt} data={data} assets={assets} language={language} /> : null}
+        {actionView === "full" && data ? <FullRecordRecommendationsPanel data={data} assets={assets} language={language} /> : null}
         {actionView === "targets" ? <article className="insight-panel action-panel upgrade-panel">
           <header>
             <div><h2>{copy.upgradeTargets}</h2><p>{copy.upgradeDescription}</p></div>

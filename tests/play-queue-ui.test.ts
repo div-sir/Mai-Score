@@ -69,6 +69,38 @@ it("filters the International catalog by chart constant", async () => {
   expect(host.textContent).not.toContain("Low constant");
   expect(host.textContent).toContain("13.7");
 });
+it("combines advanced catalog filters, song ID search and sorting", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+    schema: "mai-score/catalog/v1", region: "intl", source: { sheets: 3, updateTime: "2026-09-11" },
+    sheets: [
+      { sheetId: "alpha-dx-master", songId: "100", title: "Alpha", type: "dx", difficulty: "master", level: "13+", internalLevelValue: 13.7, version: "New" },
+      { sheetId: "beta-std-expert", songId: "200", title: "Beta", type: "std", difficulty: "expert", level: "12", internalLevelValue: 12.4, version: "Old" },
+      { sheetId: "gamma-dx-master", songId: "300", title: "Gamma", type: "dx", difficulty: "master", level: "14", internalLevelValue: 14, version: "Old" }
+    ]
+  }) }));
+  await act(async () => root.render(React.createElement(CatalogPanel, { records: [], language: "en" })));
+  await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
+  const difficulty = host.querySelector<HTMLSelectElement>('select[aria-label="Difficulty"]')!;
+  const type = host.querySelector<HTMLSelectElement>('select[aria-label="Chart type"]')!;
+  const version = host.querySelector<HTMLSelectElement>('select[aria-label="Version"]')!;
+  await act(async () => {
+    difficulty.value = "master"; difficulty.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+    type.value = "dx"; type.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+    version.value = "Old"; version.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  });
+  expect(host.textContent).toContain("Gamma");
+  expect(host.textContent).not.toContain("Alpha");
+  expect(host.textContent).not.toContain("Beta");
+  await act(async () => host.querySelector<HTMLButtonElement>(".catalog-reset")!.click());
+  const search = host.querySelector<HTMLInputElement>('input[type="search"]')!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value")!.set!.call(search, "200");
+    search.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+    search.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  });
+  expect(host.textContent).toContain("Beta");
+  expect(host.textContent).not.toContain("Gamma");
+});
 it("opens collected sibling difficulties and labels saved best observations", async () => {
   const sibling = { ...record, difficulty: "expert" as const, displayedLevel: "12", achievementRate: 100.5 };
   const otherType = { ...record, type: "std" as const, difficulty: "expert" as const, achievementRate: 100 };

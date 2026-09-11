@@ -1,5 +1,62 @@
 import type { LanguageId } from "./types";
 
+export interface PlannerCopy {
+  goalTab: string;
+  recommendationsTab: string;
+  goalTitle: string;
+  goalDescription: string;
+  targetRating: string;
+  buildPlan: string;
+  currentRating: string;
+  requiredGain: string;
+  projectedRating: string;
+  maximumRating: string;
+  reachable: string;
+  unreachable: string;
+  planEmpty: string;
+  fullTitle: string;
+  fullDescription: string;
+  fullRequiresRecords: string;
+  achievementTarget: string;
+  b50Gain: string;
+  outsideB50: string;
+  inB50: string;
+  showAll: string;
+}
+
+export function plannerCopy(language: LanguageId): PlannerCopy {
+  if (language === "zh-Hant") return {
+    goalTab: "目標規劃", recommendationsTab: "全曲推薦", goalTitle: "目標 Rating 規劃器",
+    goalDescription: "從完整記錄逐步選擇最有效率的達成率門檻，並在每一步重新計算 B15／B35 分數線。",
+    targetRating: "目標 Rating", buildPlan: "產生方案", currentRating: "目前", requiredGain: "還需要",
+    projectedRating: "方案結果", maximumRating: "已玩譜面的理論上限", reachable: "這份方案可以達標",
+    unreachable: "僅靠目前已玩且有定數的譜面仍無法達標", planEmpty: "目前沒有能提高 B50 的已玩譜面。",
+    fullTitle: "Full Records 全曲推分推薦", fullDescription: "包含 B50 之外的已玩譜面；依下一個達成率門檻的推分效率排序。",
+    fullRequiresRecords: "需要先收集 Full Records 才能分析全部已玩譜面。", achievementTarget: "目標達成率",
+    b50Gain: "預估 B50", outsideB50: "B50 外", inB50: "B50 內", showAll: "查看全部推薦"
+  };
+  if (language === "ja") return {
+    goalTab: "目標プラン", recommendationsTab: "全曲おすすめ", goalTitle: "目標 Rating プランナー",
+    goalDescription: "全成績から効率的な達成率の節目を選び、各ステップで B15 / B35 ボーダーを再計算します。",
+    targetRating: "目標 Rating", buildPlan: "プランを作成", currentRating: "現在", requiredGain: "必要",
+    projectedRating: "予測結果", maximumRating: "プレイ済み譜面の理論上限", reachable: "このプランで目標に到達できます",
+    unreachable: "現在のプレイ済み・定数判明譜面だけでは目標に届きません", planEmpty: "B50 を上げられるプレイ済み譜面がありません。",
+    fullTitle: "Full Records 全曲おすすめ", fullDescription: "B50 圏外を含むプレイ済み譜面を、次の達成率目標の効率順に表示します。",
+    fullRequiresRecords: "全プレイ譜面の分析には Full Records が必要です。", achievementTarget: "目標達成率",
+    b50Gain: "予測 B50", outsideB50: "B50 圏外", inB50: "B50 内", showAll: "すべて表示"
+  };
+  return {
+    goalTab: "Rating goal", recommendationsTab: "All-chart gains", goalTitle: "Target Rating planner",
+    goalDescription: "Chooses efficient achievement milestones from Full Records and recalculates the B15/B35 cutoffs after every step.",
+    targetRating: "Target Rating", buildPlan: "Build plan", currentRating: "Current", requiredGain: "Still needed",
+    projectedRating: "Planned result", maximumRating: "Played-chart maximum", reachable: "This plan reaches the target",
+    unreachable: "Known played charts with constants cannot reach this target alone", planEmpty: "No known played chart can currently improve the B50.",
+    fullTitle: "Full Records all-chart gains", fullDescription: "Includes played charts outside B50, ranked by the efficiency of their next achievement milestone.",
+    fullRequiresRecords: "Collect Full Records to analyze every played chart.", achievementTarget: "Target achievement",
+    b50Gain: "Estimated B50", outsideB50: "Outside B50", inB50: "In B50", showAll: "Show all recommendations"
+  };
+}
+
 export interface StudioCopy {
   subtitle: string;
   emptySource: string;
