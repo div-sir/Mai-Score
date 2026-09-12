@@ -4,6 +4,10 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Stop requesting or collecting equipped DX NET nameplate artwork. Existing saved and imported data that already contains a nameplate remains readable and renderable.
+
 ## [0.19.0] — 2026-09-11
 
 ### Added

@@ -28,7 +28,7 @@ Building from source instead? See [Development](#development).
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.
 - Separates New B15 and Old B35 into labeled image regions with chart counts and subtotals.
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
-- Keeps image choices for timestamp, watermark, accent reach, equipped player title/nameplate, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone.
+- Keeps image choices for timestamp, watermark, accent reach, equipped player title, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone. Previously saved or imported nameplate artwork remains renderable, but new Extension collections no longer request or retain it.
 - Offers a separate dark or light Studio interface without changing the selected export theme.
 - Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
@@ -89,7 +89,7 @@ Pushing a tag matching `v*` (for example `v0.12.0`) or manually dispatching a ve
 
 After collection, choose **Preview and customize online**. The extension stores the result behind a random, single-use transfer token for up to five minutes, opens Studio with the token and extension ID in the URL fragment, and removes the staged result as soon as Studio receives it. The score document is not placed in the URL or sent to the Studio server.
 
-The handoff also embeds the equipped frame, icon, and resolved song covers as image data. This lets the browser preview and PNG export render authenticated DX NET assets without uploading them or depending on cross-origin image requests.
+The handoff also embeds the equipped frame, icon, and resolved song covers as image data. It intentionally does not collect nameplate artwork. This lets the browser preview and PNG export render the supported authenticated DX NET assets without uploading them or depending on cross-origin image requests.
 
 Studio is public at `mai-score.milifix.com` and does not require a Mai-Score account. After a successful transfer, JSON import, or Drive sync, the newest B50 is opened in Live preview and stored in that browser's IndexedDB so it can be restored later. Public song jackets are fetched again on a new device; newer history points also retain the small profile URLs needed to restore the equipped icon and frame. Style preferences are stored separately in localStorage. No Mai-Score server-side score database is used, and the saved local copy can be cleared from Studio.
 

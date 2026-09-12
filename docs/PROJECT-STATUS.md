@@ -111,7 +111,7 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | --- | --- | --- | --- |
 | Packaged Extension baseline | Release `v0.15.0` | Published | Keep the generated installable ZIP and release notes available. |
 | Cross-device Studio + UI pass | PRs #17–#25 on `main`; production Studio at `b7b2383` | Done and deployed | Production smoke-test mobile Drive sync with an approved Google account. |
-| Export/style synchronization pass | PR #22 merged | Done | Test the live nameplate page; failure remains non-blocking for B50 collection. |
+| Export/style synchronization pass | PR #22 merged | Done | New collections omit nameplates; legacy saved/imported nameplate data remains renderable. |
 | Current release target | `v0.17.0` | Prepared | Confirm a real-account Full Records run, then merge and verify the Release workflow, tag, ZIP, and production deployment. |
 | Chart-data freshness | 6,219 sheets from 2026-09-08 | Refreshed | Confirm the supplied account now reports zero unmatched charts. |
 | Full Records foundation | Release `v0.13.0` | Done | Keep explicit B15/B35 validation and local-only complete datasets. |
@@ -124,16 +124,16 @@ The `v0.7.0` GitHub release introduced the v0.6.0 rating corrections plus the St
 | Chrome Web Store | Assets and copy prepared | Later release phase | Refresh screenshots, pay the developer fee, publish unlisted first, and finish OAuth/store review gates. |
 | pop'n / SDVX / DDR connections | Schema and adapter IDs reserved | Future | Implement one user-approved file/API transport with fixtures before adding further games. |
 
-The v0.17.0 candidate passes the repository's full automated suite, Extension typecheck/build, and Studio typecheck/production build. Two things CI structurally cannot settle: the Full Records collector needs a manual authenticated International smoke test because no runner can hold a player DX NET session, and the plate rules need a player to confirm them because no reachable page states them authoritatively. Nameplate parsing, the Japan adapter, and cross-provider Drive behavior also still need broader real authenticated service coverage.
+The v0.17.0 candidate passes the repository's full automated suite, Extension typecheck/build, and Studio typecheck/production build. Two things CI structurally cannot settle: the Full Records collector needs a manual authenticated International smoke test because no runner can hold a player DX NET session, and the plate rules need a player to confirm them because no reachable page states them authoritatively. The Japan adapter and cross-provider Drive behavior also still need broader real authenticated service coverage.
 
 ## Capability snapshot
 
 | Area | Release `v0.15.0` | Verification status |
 | --- | --- | --- |
-| B50 collection | International active; Japan adapter and fail-safe equipped-nameplate collection included | Japan and live nameplate page unverified |
+| B50 collection | International active; Japan adapter included; nameplate collection retired | Japan adapter unverified |
 | Full Records | v0.13 file import; v0.14 opt-in International five-page collector | Parser fixtures automated; authenticated end-to-end collection pending |
 | Rating calculation | Official chart formula; exact B15/B35 recomputation | Automated tests pass |
-| Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, title/nameplate controls, CJK-safe titles | Automated checks pass; regenerate visual baselines for v0.12.0 |
+| Image export | 3 layouts × 3 themes, PNG/SVG, accent reach, difficulty figures, title controls, legacy nameplate rendering, CJK-safe titles | Automated checks pass; regenerate visual baselines for v0.12.0 |
 | JSON export | dxrating, `mai-score/v1`, `mai-score/rhythm-record/v1` | Automated tests pass |
 | Studio | Latest B50 preview, Progress insights, local history, Web Share, mobile/web Drive, dark/light UI, curated accents, settings sync | Automated verification complete; real Drive matrix incomplete |
 | Google Drive | Experimental Extension and Google Identity Services providers | Shared `appDataFolder` behavior unverified |
@@ -247,14 +247,7 @@ sandbox without the real services.
    Everything needed to correct it is in that one table, and no re-collection
    is required, because the Extension ships raw per-difficulty catalog counts
    rather than a computed denominator.
-4. **The nameplate collection page** (`src/lib/parser.ts`, `src/content.ts`).
-   `parseCurrentPlate` assumes `/collection/plate/` has the same shape as the
-   frame page and serves `/img/Plate/` images. Never run against a live
-   logged-in account. It is fetched on a 5 s deadline, separately from the
-   three pages the export needs, and both a failed request and an unrecognized
-   page yield "no nameplate" rather than failing the collection — so the cost
-   of the guess being wrong is a missing decoration, not a lost B50.
-5. **Whether the two OAuth clients share one `appDataFolder`.** This is the
+4. **Whether the two OAuth clients share one `appDataFolder`.** This is the
    load-bearing assumption of the whole two-provider design, and nothing in
    the repository establishes it. The extension and Studio-web paths use
    different client IDs in one Google Cloud project. If `appDataFolder` is
@@ -264,11 +257,11 @@ sandbox without the real services.
    successful syncs**. Verify this before anything else —
    [the test plan](drive-real-api-test.md) opens with the procedure and what
    to do if it fails.
-6. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
+5. **Real Drive API behaviour.** Automated tests use a mocked `fetch`; the
    complete multi-profile real-service matrix has not been recorded in the
    repository. Follow [the real-service test plan](drive-real-api-test.md)
    before declaring Drive generally available.
-7. **Collect latency.** The chart database was measured at ~95 ms and ruled
+6. **Collect latency.** The chart database was measured at ~95 ms and ruled
    out; the remaining cost is DX NET's own response time, which was never
    reachable from the dev environment.
 

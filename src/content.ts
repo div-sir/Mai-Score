@@ -6,7 +6,6 @@ import {
 } from "./lib/collect-progress";
 import {
   parseCurrentFrame,
-  parseCurrentPlate,
   parseFullRecordsPage,
   parseProfile,
   parseRatingTargetPage
@@ -141,7 +140,7 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   if (includeFullRecords && connection.id !== "dxnet-intl") {
     throw new Error(text("fullRecordsIntlOnly"));
   }
-  const total = 4 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
+  const total = 3 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
   const tracked = (promise: Promise<Document>) => promise.then((doc) => {
     fetched += 1;
     reportProgress(createFetchProgress(fetched, total));
@@ -190,9 +189,7 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   // Finish required score requests before visiting optional collection pages.
   // These share the authenticated session even when their failures are ignored.
   const frame = await decoration("/collection/frame/", text("labelFrame"));
-  const plate = await decoration("/collection/plate/", text("labelPlate"));
   player.frameUrl = (frame && parseCurrentFrame(frame, `${ROOT}/collection/frame/`)) ?? player.frameUrl;
-  player.plateUrl = (plate && parseCurrentPlate(plate, `${ROOT}/collection/plate/`)) ?? player.plateUrl;
 
   reportProgress(createMatchingProgress());
   const b50Count = parsedB15.length + parsedB35.length;
