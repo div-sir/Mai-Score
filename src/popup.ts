@@ -279,12 +279,11 @@ async function exportQuickPng() {
   const badges = Object.fromEntries(
     badgePairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
   );
-  const [icon, frame, plate] = await Promise.all([
+  const [icon, frame] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
-    fetchDataUrl(result.player.frameUrl),
-    fetchDataUrl(result.player.plateUrl)
+    fetchDataUrl(result.player.frameUrl)
   ]);
-  const rendered = renderB50Document(result, options, { icon, frame, plate, covers, badges }, generatedAt, intlLocale(language));
+  const rendered = renderB50Document(result, options, { icon, frame, covers, badges }, generatedAt, intlLocale(language));
   const blob = await svgToPng(rendered.svg, rendered.width, rendered.height);
   const safePlayer = result.player.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
   downloadBlob(`mai-score-${safePlayer}-${timestampForFilename(generatedAt)}.png`, blob);
@@ -305,15 +304,13 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
     name,
     await fetchDataUrl(new URL(`/maimai-mobile/img/${name}`, source).href)
   ] as const);
-  const [icon, frame, plate] = await Promise.all([
+  const [icon, frame] = await Promise.all([
     fetchDataUrl(result.player.iconUrl),
-    fetchDataUrl(result.player.frameUrl),
-    fetchDataUrl(result.player.plateUrl)
+    fetchDataUrl(result.player.frameUrl)
   ]);
   return {
     icon,
     frame,
-    plate,
     badges: Object.fromEntries(
       badgePairs.filter((pair): pair is readonly [string, string] => Boolean(pair[1]))
     ),

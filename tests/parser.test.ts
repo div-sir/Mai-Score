@@ -2,7 +2,6 @@ import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
 import {
   parseCurrentFrame,
-  parseCurrentPlate,
   parseFullRecordsPage,
   parseProfile,
   parseRatingTarget,
@@ -18,17 +17,19 @@ describe("international DX NET parser", () => {
     expect(() => parseFullRecordsPage(page(""), "master")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
     expect(() => parseFullRecordsPage(page("   "), "master")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
   });
-  it("parses the profile and equipped assets", () => {
+  it("parses the profile and equipped assets without collecting a nameplate", () => {
     const profile = parseProfile(doc(`
       <div class="basic_block"><img class="w_112 f_l" src="/maimai-mobile/img/Icon/a.png"></div>
       <div class="trophy_block trophy_gold"><div class="trophy_inner_block">Champion</div></div>
       <div class="name_block">DIV</div><div class="rating_block">13,127</div>
       <img src="/maimai-mobile/img/course/course_rank_x.png">
       <img src="/maimai-mobile/img/class/class_rank_s_x.png">
+      <img src="/maimai-mobile/img/Plate/legacy.png">
       <img src="/maimai-mobile/img/rating_base_silver.png">
     `));
     expect(profile).toMatchObject({ name: "DIV", title: "Champion", titleColor: "gold", rating: 13127 });
     expect(profile.iconUrl).toContain("/img/Icon/a.png");
+    expect(profile.plateUrl).toBeUndefined();
 
     const frame = parseCurrentFrame(doc(`
       <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
@@ -37,24 +38,6 @@ describe("international DX NET parser", () => {
     `));
     expect(frame).toContain("/img/Frame/frame.png");
 
-    const plate = parseCurrentPlate(doc(`
-      <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
-        <img src="/maimai-mobile/img/Plate/plate.png">
-      </div></div>
-    `));
-    expect(plate).toContain("/img/Plate/plate.png");
-  });
-
-  it("returns no plate rather than throwing when the page has none", () => {
-    // The plate collection page has not been verified against every region.
-    // content.ts treats a miss as "no nameplate", so the parser must return
-    // undefined instead of failing the whole collection.
-    expect(parseCurrentPlate(doc("<div></div>"))).toBeUndefined();
-    expect(parseCurrentPlate(doc(`
-      <div class="town_block m_15 p_15 t_l"><div class="see_through_block collection_setting_block">
-        <img src="/maimai-mobile/img/Frame/frame.png">
-      </div></div>
-    `))).toBeUndefined();
   });
 
   it("resolves asset URLs against an explicit base, not a hardcoded region", () => {
@@ -245,10 +228,4 @@ describe("international DX NET parser", () => {
     expect(() => parseFullRecordsPage(doc('<div class="main_wrapper"></div>'), "basic")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
     expect(() => parseFullRecordsPage(doc('<div class="main_wrapper"><div class="w_450"><div class="music_name_block">Song</div><div class="music_lv_block">3</div><div class="music_score_block">???</div></div></div>'), "basic")).toThrow("FULL_RECORDS_LAYOUT_CHANGED");
   });
-});
-
-it("finds an equipped plate without relying on decorative wrapper classes", () => {
-  expect(parseCurrentPlate(doc('<div class="collection_setting_block"><img src="../img/plate/current.png"></div>'), 'https://maimaidx-eng.com/maimai-mobile/collection/'))
-    .toBe('https://maimaidx-eng.com/maimai-mobile/img/plate/current.png');
-  expect(parseCurrentPlate(doc('<div><img src="/maimai-mobile/img/Plate/not-equipped.png"></div>'))).toBeUndefined();
 });

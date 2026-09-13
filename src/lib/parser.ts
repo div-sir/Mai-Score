@@ -23,7 +23,6 @@ export function parseProfile(doc: Document, base = "https://maimaidx-eng.com/mai
     iconUrl: absolute(doc.querySelector<HTMLImageElement>(".basic_block img.w_112, img.w_112.f_l")?.getAttribute("src") ?? null, base),
     courseRankUrl: imageBy(doc, "/course/course_rank_", base),
     classRankUrl: imageBy(doc, "/class/class_rank_", base),
-    plateUrl: imageBy(doc, "/img/Plate/", base),
     frameUrl: imageBy(doc, "/img/Frame/", base),
     ratingBaseUrl: imageBy(doc, "rating_base_", base)
   };
@@ -161,15 +160,6 @@ export function parseFullRecordsPage(doc: Document, difficulty: Difficulty): Par
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {
   return currentCollectionImage(doc, "/img/Frame/", base);
-}
-
-/**
- * The nameplate ("名牌版" / プレート) behind the player name. Same page shape as
- * the frame collection, so it shares the parser; the caller treats a missing
- * result as "no plate", never as a failed collection.
- */
-export function parseCurrentPlate(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/plate"): string | undefined {
-  return currentCollectionImage(doc, "/img/Plate/", base);
 }
 
 function currentCollectionImage(doc: Document, fragment: string, base: string): string | undefined {

@@ -37,12 +37,13 @@ it('retries profile network failure, completes all difficulties despite decorati
   const {run,messages}=await setup(fetcher); const result=await run();
   expect(result.ok).toBe(true);
   expect(homes).toBe(2);
-  expect(result.data.player.plateUrl).toContain('/Plate/equipped.png');
+  expect(result.data.player.plateUrl).toBeUndefined();
   expect(result.data.records[0]).toMatchObject({comboFlag:'ap+',syncFlag:'fdx+'});
-  expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8,9]);
+  expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8]);
   expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(5);
   const paths=fetcher.mock.calls.map(([url])=>new URL(String(url)).pathname);
-  expect(paths.slice(-2)).toEqual(['/maimai-mobile/collection/frame/','/maimai-mobile/collection/plate/']);
+  expect(paths.at(-1)).toBe('/maimai-mobile/collection/frame/');
+  expect(paths).not.toContain('/maimai-mobile/collection/plate/');
   expect(fetcher.mock.calls.every(call=>(call as unknown[])[1] && ((call as unknown[])[1] as RequestInit).cache==='no-store')).toBe(true);
 });
 
