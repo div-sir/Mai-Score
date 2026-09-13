@@ -88,9 +88,10 @@ export default function Privacy() {
             Drive in Studio. On desktop, an already-authorized Mai-Score Extension can continue
             to proxy the request. On mobile or another browser without the Extension, Studio uses
             Google&rsquo;s account chooser and requests the same limited{" "}
-            <code>drive.appdata</code> scope directly. The short-lived web access token stays only
-            in the current page&rsquo;s memory and is not saved in IndexedDB, localStorage, or a
-            Mai-Score server. Both paths store one history document in the hidden app-data folder
+            <code>drive.appdata</code> scope directly. The short-lived web access token stays in
+            the current tab&rsquo;s session storage so a page reload can remain connected; it is not
+            saved in IndexedDB, persistent localStorage, or a Mai-Score server, and is removed on
+            expiry or disconnect. Both paths store one history document in the hidden app-data folder
             of your own Drive. Google processes and stores this copy under your Google account
             and its privacy terms.
           </li>

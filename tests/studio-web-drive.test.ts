@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   GOOGLE_DRIVE_APPDATA_SCOPE,
+  WEB_DRIVE_SESSION_KEY,
   WebGoogleDriveClient
 } from "../studio/lib/google-drive-web";
 
 function connectedClient(options: {
   now?: () => number;
   fetch?: typeof globalThis.fetch;
+  sessionStorage?: () => Pick<Storage, "getItem" | "setItem" | "removeItem">;
 } = {}) {
   let callback: ((response: {
     access_token?: string;
@@ -30,7 +32,8 @@ function connectedClient(options: {
     fetch: fetchMock,
     oauth: () => oauth,
     now: options.now,
-    randomUUID: () => "test-boundary"
+    randomUUID: () => "test-boundary",
+    sessionStorage: options.sessionStorage
   });
 
   const connect = async () => {
@@ -87,6 +90,27 @@ describe("Studio web Google Drive client", () => {
     expect(fixture.client.connectionStatus()).toEqual({ ok: true, connected: true });
   });
 
+  it("restores a valid short-lived grant after the Studio page reloads", async () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+      removeItem: (key: string) => { values.delete(key); }
+    };
+    const first = connectedClient({ sessionStorage: () => storage });
+    await first.connect();
+
+    const restored = new WebGoogleDriveClient({
+      clientId: "web-client.apps.googleusercontent.com",
+      fetch: vi.fn(),
+      oauth: () => undefined,
+      sessionStorage: () => storage
+    });
+
+    expect(values.has(WEB_DRIVE_SESSION_KEY)).toBe(true);
+    expect(restored.connectionStatus()).toEqual({ ok: true, connected: true });
+  });
+
   it("pulls the same appDataFolder history file used by the extension", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({
@@ -130,20 +154,29 @@ describe("Studio web Google Drive client", () => {
 
   it("expires the in-memory token and asks for another user gesture", async () => {
     let now = 1_000;
-    const fixture = connectedClient({ now: () => now });
+    const removeItem = vi.fn();
+    const fixture = connectedClient({
+      now: () => now,
+      sessionStorage: () => ({ getItem: () => null, setItem: vi.fn(), removeItem })
+    });
     await fixture.connect();
     now += 3_700_000;
 
     expect(fixture.client.connectionStatus()).toEqual({ ok: true, connected: false });
     expect(await fixture.client.pull()).toEqual({ ok: false, reason: "needs-auth" });
+    expect(removeItem).toHaveBeenCalledWith(WEB_DRIVE_SESSION_KEY);
   });
 
   it("revokes the web grant without touching cloud or local history", async () => {
-    const fixture = connectedClient();
+    const removeItem = vi.fn();
+    const fixture = connectedClient({
+      sessionStorage: () => ({ getItem: () => null, setItem: vi.fn(), removeItem })
+    });
     await fixture.connect();
 
     expect(await fixture.client.disconnect()).toEqual({ ok: true, connected: false });
     expect(fixture.revoke).toHaveBeenCalledWith("access-token", expect.any(Function));
+    expect(removeItem).toHaveBeenCalledWith(WEB_DRIVE_SESSION_KEY);
     expect(fixture.client.connectionStatus()).toEqual({ ok: true, connected: false });
   });
 });

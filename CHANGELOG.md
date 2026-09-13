@@ -7,6 +7,7 @@ All notable changes to Mai-Score are documented here.
 ### Changed
 
 - Stop requesting or collecting equipped DX NET nameplate artwork. Existing saved and imported data that already contains a nameplate remains readable and renderable.
+- Keep a Google Drive web connection across Studio reloads for the lifetime of the current tab session. The short-lived access token is cleared on expiry or disconnect and is never placed in persistent local storage.
 
 ## [0.19.0] — 2026-09-11
 

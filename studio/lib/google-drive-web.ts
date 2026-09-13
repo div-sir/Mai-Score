@@ -12,6 +12,7 @@ export const DEFAULT_GOOGLE_WEB_CLIENT_ID =
 const DRIVE_FILES_API = "https://www.googleapis.com/drive/v3/files";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
 const TOKEN_EXPIRY_SKEW_MS = 30_000;
+export const WEB_DRIVE_SESSION_KEY = "mai-score-google-drive-session";
 
 interface GoogleTokenResponse {
   access_token?: string;
@@ -54,6 +55,7 @@ export interface WebDriveDependencies {
   enabled?: () => boolean;
   now?: () => number;
   randomUUID?: () => string;
+  sessionStorage?: () => Pick<Storage, "getItem" | "setItem" | "removeItem"> | undefined;
 }
 
 function payloadBytes(payload: string): number {
@@ -64,7 +66,9 @@ export class WebGoogleDriveClient {
   private accessToken?: string;
   private expiresAt = 0;
 
-  constructor(private readonly dependencies: WebDriveDependencies) {}
+  constructor(private readonly dependencies: WebDriveDependencies) {
+    this.restoreSession();
+  }
 
   configured(): boolean {
     return this.dependencies.clientId.trim().length > 0
@@ -128,6 +132,7 @@ export class WebGoogleDriveClient {
           }
           this.accessToken = response.access_token;
           this.expiresAt = this.now() + Math.max(0, Number(response.expires_in ?? 0)) * 1000;
+          this.saveSession();
           finish({ ok: true, connected: true });
         },
         error_callback: (error) => {
@@ -233,6 +238,41 @@ export class WebGoogleDriveClient {
   private clearToken(): void {
     this.accessToken = undefined;
     this.expiresAt = 0;
+    try {
+      this.dependencies.sessionStorage?.()?.removeItem(WEB_DRIVE_SESSION_KEY);
+    } catch {
+      // Storage can be blocked independently of OAuth. The in-memory session
+      // still disconnects correctly; only reload persistence is unavailable.
+    }
+  }
+
+  private restoreSession(): void {
+    try {
+      const raw = this.dependencies.sessionStorage?.()?.getItem(WEB_DRIVE_SESSION_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { accessToken?: unknown; expiresAt?: unknown };
+      if (typeof saved.accessToken !== "string" || typeof saved.expiresAt !== "number") {
+        this.clearToken();
+        return;
+      }
+      this.accessToken = saved.accessToken;
+      this.expiresAt = saved.expiresAt;
+      void this.validToken();
+    } catch {
+      this.clearToken();
+    }
+  }
+
+  private saveSession(): void {
+    if (!this.accessToken) return;
+    try {
+      this.dependencies.sessionStorage?.()?.setItem(WEB_DRIVE_SESSION_KEY, JSON.stringify({
+        accessToken: this.accessToken,
+        expiresAt: this.expiresAt
+      }));
+    } catch {
+      // A blocked sessionStorage falls back to the existing in-memory token.
+    }
   }
 
   private async run(
@@ -343,5 +383,6 @@ export const webGoogleDrive = new WebGoogleDriveClient({
   clientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID || DEFAULT_GOOGLE_WEB_CLIENT_ID,
   fetch: (...args) => globalThis.fetch(...args),
   oauth: browserOAuth,
-  enabled: browserWebOAuthEnabled
+  enabled: browserWebOAuthEnabled,
+  sessionStorage: () => typeof window === "undefined" ? undefined : window.sessionStorage
 });

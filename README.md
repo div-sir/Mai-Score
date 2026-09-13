@@ -35,7 +35,7 @@ Building from source instead? See [Development](#development).
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Shows the packaged chart-catalog date and sheet count, carries its provenance into JSON and history, and warns when the bundled data is older than 30 days.
 - Keeps scores local by default. If the player explicitly connects Google Drive from Studio, an Extension-owned authorization window obtains the grant and Studio can sync history through the extension to that player's private Drive `appDataFolder`; Mai-Score does not operate a score database.
-- Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in page memory, while desktop Extension sync remains compatible with the same Drive history file.
+- Supports direct Studio Google authorization on mobile and extension-free browsers when `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is configured. The short-lived token remains only in the current tab session, while desktop Extension sync remains compatible with the same Drive history file.
 - Turns saved snapshots into a separate Studio Progress view: inspectable B50/B15/B35 timelines, cutoff-risk charts, filtered upgrade targets, reachable DX NET candidates, an interactive what-if simulator, searchable chart history, latest membership changes, and data provenance.
 - Imports validated maimai Rhythm Record Full Records files with an explicit B50, keeps one best result per chart, and shows searchable level completion with SSS/FC/AP/FS totals.
 - Optionally collects all played International DX NET charts with five sequential difficulty-page requests and sends them directly to Studio; normal B50 collection remains the default.
@@ -114,7 +114,7 @@ Sync is opt-in and confined to the user's hidden Google Drive `appDataFolder`. S
 Drive sync is **experimental in the v0.8.0 GitHub release**. Google access is limited to accounts approved as OAuth test users until sensitive-scope verification and the production Web Store OAuth client are complete. Local collection, image export, JSON export, Studio preview, and local history do not require Google authorization.
 
 Version 0.8.0 also supports Google Identity Services directly in Studio. This makes cross-device history available from mobile Chrome or Safari
-without a browser extension. Connecting performs the first sync automatically;
+without a browser extension. Connecting performs the first sync automatically and keeps the short-lived grant in the current tab session so reloading Studio does not immediately disconnect;
 later, **Sync latest B50** merges both sides and opens the newest snapshot in Live
 preview. Production's public Web application client ID is in
 `studio/lib/google-drive-web.ts`; `studio/.env.example` documents the local override.

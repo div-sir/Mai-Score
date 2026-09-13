@@ -167,7 +167,7 @@ Studio owns the history schema and merge logic. Two credential providers feed th
 | Client | Credential owner | Token handling | Intended use |
 | --- | --- | --- | --- |
 | Desktop Extension | `chrome.identity` inside the Extension origin | Studio never receives the token | Installed Chrome/Edge Extension |
-| Studio Web | Google Identity Services in `mai-score.milifix.com` | Short-lived token stays only in page memory | Mobile Chrome/Safari and extension-free browsers |
+| Studio Web | Google Identity Services in `mai-score.milifix.com` | Short-lived token stays in the current tab session and survives reloads | Mobile Chrome/Safari and extension-free browsers |
 
 Both providers read and write `mai-score-history.json` in Drive `appDataFolder`. The two OAuth clients are in the same Google Cloud project, but whether Google exposes the same app-data space across those client types is still a blocking real-service question; see the test plan before treating cross-provider sync as guaranteed.
 
@@ -215,7 +215,7 @@ test for it.
 
 Extension consent stays inside an Extension-owned page because `chrome.identity.getAuthToken({ interactive: true })` needs a direct user gesture. Background messages ask only non-interactively and return `needs-auth`; Disconnect revokes at Google before clearing Chrome's cached token.
 
-The Studio-web provider always invokes Google's account chooser from a user action. Its access token is short-lived, remains only in page memory, and disappears on reload. Neither provider stores a password, cookie, or refresh token in Mai-Score.
+The Studio-web provider always invokes Google's account chooser from a user action. Its access token is short-lived and remains only in the current tab's session storage, allowing reloads without putting the token in persistent local storage. It is removed on expiry or disconnect. Neither provider stores a password, cookie, or refresh token in Mai-Score.
 
 ## Knowingly unverified
 

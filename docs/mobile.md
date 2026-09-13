@@ -14,9 +14,10 @@ configured for the deployment:
 4. The synchronized entries are copied into that phone browser's IndexedDB and
    remain available after the short-lived Google access token expires.
 
-No Mai-Score account is created. The web access token stays in page memory, so
-after a reload or token expiry the user may need to choose **Connect Google
-Drive** again. This does not remove local or cloud history.
+No Mai-Score account is created. The web access token stays in the current
+tab's session storage, so reloads remain connected until the token expires.
+Closing the tab, disconnecting, or expiry clears it. This does not remove local
+or cloud history.
 
 The file-based workflow remains available:
 
