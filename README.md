@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.19.0 — target Rating planning and all-chart recommendations.** Studio can build a cutoff-aware route to a target Rating from Full Records, recommend played charts outside the current B50, and search the International catalog with combined chart filters. Download the packaged version from Releases.
+> **v0.19.1 — leaner collection and persistent Google sessions.** New collections no longer request nameplate artwork, while Studio keeps its Google Drive connection across reloads for the current tab session. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
