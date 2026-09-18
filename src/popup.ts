@@ -293,7 +293,7 @@ async function exportQuickPng() {
 async function prepareStudioAssets(): Promise<StudioTransferAssets> {
   if (!result) return { covers: {} };
   const source = result.source;
-  const coverNames = [...new Set([...result.records, ...(result.candidateRecords ?? [])]
+  const coverNames = [...new Set([...result.records, ...(result.candidateRecords ?? []), ...(result.recentPlays ?? [])]
     .flatMap((record) => record.imageName ? [record.imageName] : []))];
   const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
     name,

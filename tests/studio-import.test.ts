@@ -141,4 +141,15 @@ describe("plate progress through a Mai-Score document", () => {
     const broken = [{ version: "PRiSM", basic: 2, advanced: 2, expert: 2, master: -1, remaster: 2 }];
     expect(parseMaiScore(maiScore({ fullRecords, versionTotals: broken })).plateProgress).toBeUndefined();
   });
+
+  it("validates and retains recent plays for Session analysis", () => {
+    const recentPlays = [{
+      ...b50(0), playedAt: "2026-09-18T20:30", track: 2,
+      newAchievement: true, dxScore: 2710, dxScoreMax: 3000, newDxScore: false
+    }];
+    expect(parseMaiScore(maiScore({ recentPlays })).recentPlays).toEqual([
+      expect.objectContaining({ playedAt: "2026-09-18T20:30", track: 2, newAchievement: true, dxScore: 2710 })
+    ]);
+    expect(parseMaiScore(maiScore({ recentPlays: [{ ...recentPlays[0], playedAt: "not-a-date" }] })).recentPlays).toBeUndefined();
+  });
 });

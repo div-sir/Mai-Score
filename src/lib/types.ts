@@ -39,6 +39,19 @@ export interface ParsedScore extends ParsedChartScore {
 
 export type ParsedFullScore = ParsedChartScore;
 
+/** One entry from DX NET's recent-play list. Times are local wall-clock values
+ *  exactly as displayed by DX NET, without an invented timezone. */
+export interface ParsedRecentPlay extends ParsedChartScore {
+  playedAt: string;
+  track: number;
+  newAchievement: boolean;
+  dxScore?: number;
+  dxScoreMax?: number;
+  dxStar?: number;
+  newDxScore?: boolean;
+  scoreRank?: string;
+}
+
 export interface ResolvedChartScore extends ParsedChartScore {
   sheetId?: string;
   songId?: string;
@@ -54,6 +67,7 @@ export interface ResolvedScore extends ResolvedChartScore {
 }
 
 export type ResolvedFullScore = ResolvedChartScore;
+export type ResolvedRecentPlay = ParsedRecentPlay & ResolvedChartScore;
 
 export interface PlayerProfile {
   name: string;
@@ -100,6 +114,8 @@ export interface CollectionResult {
   versionTotals?: VersionChartTotals[];
   /** DX NET's own near-miss lists from the Rating Target page, when present. */
   candidateRecords?: ResolvedScore[];
+  /** Optional rolling recent-play list. Repeated charts remain repeated. */
+  recentPlays?: ResolvedRecentPlay[];
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;

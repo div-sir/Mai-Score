@@ -42,7 +42,20 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     && typeof entry.playerName === "string"
     && typeof entry.officialRating === "number"
     && typeof entry.b50Rating === "number"
-    && Array.isArray(entry.records);
+    && Array.isArray(entry.records)
+    && (entry.recentPlays === undefined || (Array.isArray(entry.recentPlays)
+      && entry.recentPlays.every((play) => isRecentPlay(play))));
+}
+
+function isRecentPlay(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const play = value as Record<string, unknown>;
+  return typeof play.title === "string"
+    && (play.type === "std" || play.type === "dx")
+    && ["basic", "advanced", "expert", "master", "remaster"].includes(String(play.difficulty))
+    && typeof play.achievementRate === "number"
+    && typeof play.playedAt === "string"
+    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(play.playedAt);
 }
 
 function isFullRecord(value: unknown): value is StudioChartRecord {

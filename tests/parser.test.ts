@@ -4,6 +4,7 @@ import {
   parseCurrentFrame,
   parseFullRecordsPage,
   parseProfile,
+  parseRecentPlaysPage,
   parseRatingTarget,
   parseRatingTargetPage
 } from "../src/lib/parser";
@@ -59,6 +60,39 @@ describe("international DX NET parser", () => {
     `, { url: "https://maimaidx.jp/maimai-mobile/collection/frame" }).window.document;
     const frame = parseCurrentFrame(jpFrameDoc, "https://maimaidx.jp/maimai-mobile/collection/frame");
     expect(frame).toBe("https://maimaidx.jp/maimai-mobile/img/Frame/frame.png");
+  });
+
+  it("parses repeated recent plays with timestamps, DX score, and result flags", () => {
+    const recent = parseRecentPlaysPage(doc(`
+      <div class="p_10 t_l f_0 v_b">
+        <form action="https://maimaidx-eng.com/maimai-mobile/record/playlogDetail/"><input name="idx" value="secret"></form>
+        <div class="basic_block m_5 m_t_17 m_r_60"><span class="w_80">badge</span>Test Song</div>
+        <img class="playlog_diff" src="/maimai-mobile/img/playlog/diff_master.png">
+        <img class="playlog_music_kind_icon" src="/maimai-mobile/img/playlog/music_dx.png">
+        <span class="playlog_level_icon">13+</span>
+        <span class="playlog_achievement_txt">100.1234%</span>
+        <img class="playlog_achievement_newrecord" src="new.png">
+        <div class="playlog_score_block"><span class="white">1,234 / 1,500</span></div>
+        <img class="playlog_deluxscore_star" src="/maimai-mobile/img/playlog/dxstar_4.png">
+        <div class="playlog_result_innerblock"><img src="fcplus.png"><img src="fsdplus.png"></div>
+        <img class="playlog_scorerank" src="sss.png">
+        <div class="sub_title">TRACK 2　2026/09/18 20:45</div>
+      </div>
+      <div class="p_10 t_l f_0 v_b">
+        <form action="/maimai-mobile/record/playlogDetail/"></form>
+        <div class="basic_block m_5 m_t_17 m_r_60">Test Song</div>
+        <img class="playlog_diff" src="diff_master.png"><img class="playlog_music_kind_icon" src="music_dx.png">
+        <span class="playlog_level_icon">13+</span><span class="playlog_achievement_txt">99.5000%</span>
+        <div class="sub_title">TRACK 1 2026/09/18 20:40</div>
+      </div>
+    `));
+    expect(recent).toHaveLength(2);
+    expect(recent[0]).toMatchObject({
+      title: "Test Song", type: "dx", difficulty: "master", displayedLevel: "13+",
+      achievementRate: 100.1234, playedAt: "2026-09-18T20:45", track: 2,
+      newAchievement: true, dxScore: 1234, dxScoreMax: 1500, dxStar: 4,
+      comboFlag: "fc+", syncFlag: "fsd+", scoreRank: "sss"
+    });
   });
 
   it("parses only the two rating target sections and excludes candidates", () => {

@@ -5,6 +5,7 @@ import { createCollectRequest } from "../src/lib/connections";
 const profile = '<div class="name_block">Player</div><img src="/maimai-mobile/img/Plate/equipped.png">';
 const card = (title: string) => `<div class="music_master_score_back pointer w_450 m_15 p_3 f_0"><div class="music_name_block">${title}</div><div class="music_lv_block">13</div><div class="music_score_block">100.0000%</div></div>`;
 const b50 = '<div class="see_through_block"></div><div class="screw_block"></div>' + Array.from({length:15},(_,i)=>card(`New ${i}`)).join('') + '<div class="screw_block"></div>' + Array.from({length:35},(_,i)=>card(`Old ${i}`)).join('');
+const recent = `<div class="p_10 t_l f_0 v_b"><div class="sub_title">2026/09/18 20:30 TRACK 1</div><div class="basic_block m_5 m_t_17 m_r_60">New 0</div><img class="playlog_diff" src="/img/diff_master.png"><img class="playlog_music_kind_icon" src="/img/music_dx.png"><div class="playlog_level_icon">13</div><div class="playlog_achievement_txt">100.1234%</div><div class="playlog_achievement_newrecord"></div><form action="/maimai-mobile/record/playlogDetail/"></form></div>`;
 let dom: JSDOM;
 afterEach(() => { dom?.window.close(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
@@ -29,6 +30,7 @@ it('retries profile network failure, completes all difficulties despite decorati
   const fetcher=vi.fn(async(url:string)=>{
     if(url.endsWith('/home/')) { if(++homes===1) throw new TypeError('Failed to fetch'); return new Response(profile); }
     if(url.includes('ratingTargetMusic')) return new Response(b50);
+    if(new URL(url).pathname==='/maimai-mobile/record/') return new Response(recent);
     if(url.includes('/collection/')) return new Response('',{status:404});
     const diff=new URL(url).searchParams.get('diff');
     if (diff === '0') return new Response('<div class="main_wrapper"><section><div class="w_450"><div class="music_name_block">Unplayed BASIC</div><div class="music_lv_block">3</div></div></section></div>');
@@ -39,8 +41,9 @@ it('retries profile network failure, completes all difficulties despite decorati
   expect(homes).toBe(2);
   expect(result.data.player.plateUrl).toBeUndefined();
   expect(result.data.records[0]).toMatchObject({comboFlag:'ap+',syncFlag:'fdx+'});
-  expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8]);
-  expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(5);
+  expect(result.data.recentPlays).toEqual([expect.objectContaining({title:'New 0',playedAt:'2026-09-18T20:30',newAchievement:true})]);
+  expect(messages.filter(m=>m.stage==='fetch').map(m=>m.done)).toEqual([1,2,3,4,5,6,7,8,9]);
+  expect(fetcher.mock.calls.filter(([url])=>String(url).includes('/record/'))).toHaveLength(6);
   const paths=fetcher.mock.calls.map(([url])=>new URL(String(url)).pathname);
   expect(paths.at(-1)).toBe('/maimai-mobile/collection/frame/');
   expect(paths).not.toContain('/maimai-mobile/collection/plate/');
