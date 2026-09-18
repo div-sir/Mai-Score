@@ -46,6 +46,7 @@ import {
   type StudioData,
   type StudioOptions
 } from "../lib/types";
+import { decideAutoSync } from "../lib/auto-sync";
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
@@ -195,7 +196,8 @@ export default function Studio() {
   // Resolved after mount: navigator is not available while server-rendering.
   const [canShare, setCanShare] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [driveState, setDriveState] = useState<DriveUiState>("unavailable");
+  const [driveState, setDriveState] = useState<DriveUiState>("checking");
+  const [autoSyncSnapshot, setAutoSyncSnapshot] = useState<string>();
   const [syncing, setSyncing] = useState(false);
   const [connectingDrive, setConnectingDrive] = useState(false);
   const [disconnectingDrive, setDisconnectingDrive] = useState(false);
@@ -237,6 +239,7 @@ export default function Studio() {
 
     const extensionId = hash.get("extensionId");
     const transfer = hash.get("transfer");
+    const autoSync = hash.get("autoSync") === "1";
     // The handoff URL is the only place the extension's ID is ever given to
     // Studio; sync happens long after, so keep it.
     if (extensionId) {
@@ -307,7 +310,10 @@ export default function Studio() {
               generatedAt: timestamp,
               language: received.language
             });
-            if (!cancelled) setHistory(await listStudioHistory());
+            if (!cancelled) {
+              setHistory(await listStudioHistory());
+              if (autoSync) setAutoSyncSnapshot(parsed.exportedAt);
+            }
           } catch {
             if (!cancelled) setMessage(studioCopy(received.language).localSaveFailed);
           }
@@ -623,6 +629,18 @@ export default function Studio() {
       setSyncing(false);
     }
   }
+
+  useEffect(() => {
+    const decision = decideAutoSync(autoSyncSnapshot, data, history, driveState, syncing);
+    if (decision === "wait") return;
+    setAutoSyncSnapshot(undefined);
+    if (decision === "sync") {
+      setMessage(studioCopy(language).autoSyncing);
+      void syncHistory();
+    } else {
+      setMessage(studioCopy(language).autoSyncLocalOnly);
+    }
+  }, [autoSyncSnapshot, data, history, driveState, syncing, language]);
 
   async function deleteCloudHistory() {
     if (!window.confirm(copy.deleteCloudConfirm)) return;

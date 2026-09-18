@@ -1,0 +1,1037 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3E924AFF305D5C55006D626B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924AFE305D5C55006D626B /* AppDelegate.swift */; };
+		3E924B01305D5C55006D626B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924B00305D5C55006D626B /* SceneDelegate.swift */; };
+		3E924B04305D5C55006D626B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B02305D5C55006D626B /* LaunchScreen.storyboard */; };
+		3E924B07305D5C55006D626B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B05305D5C55006D626B /* Main.storyboard */; };
+		3E924B10305D5C55006D626B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924B0F305D5C55006D626B /* AppDelegate.swift */; };
+		3E924B13305D5C55006D626B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B11305D5C55006D626B /* Main.storyboard */; };
+		3E924B1A305D5C55006D626B /* Mai-Score Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3E924B19305D5C55006D626B /* Mai-Score Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3E924B24305D5C55006D626B /* Mai-Score Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3E924B23305D5C55006D626B /* Mai-Score Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3E924B29305D5C55006D626B /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AEE305D5C54006D626B /* Main.html */; };
+		3E924B2A305D5C55006D626B /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AEE305D5C54006D626B /* Main.html */; };
+		3E924B2B305D5C55006D626B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF0305D5C54006D626B /* Icon.png */; };
+		3E924B2C305D5C55006D626B /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF0305D5C54006D626B /* Icon.png */; };
+		3E924B2D305D5C55006D626B /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF1305D5C54006D626B /* Style.css */; };
+		3E924B2E305D5C55006D626B /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF1305D5C54006D626B /* Style.css */; };
+		3E924B2F305D5C55006D626B /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF2305D5C54006D626B /* Script.js */; };
+		3E924B30305D5C55006D626B /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF2305D5C54006D626B /* Script.js */; };
+		3E924B31305D5C55006D626B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924AF3305D5C54006D626B /* ViewController.swift */; };
+		3E924B32305D5C55006D626B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924AF3305D5C54006D626B /* ViewController.swift */; };
+		3E924B33305D5C55006D626B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF4305D5C55006D626B /* Assets.xcassets */; };
+		3E924B34305D5C55006D626B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E924AF4305D5C55006D626B /* Assets.xcassets */; };
+		3E924B35305D5C55006D626B /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924AF6305D5C55006D626B /* SafariWebExtensionHandler.swift */; };
+		3E924B36305D5C55006D626B /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924AF6305D5C55006D626B /* SafariWebExtensionHandler.swift */; };
+		3E924B58305D5C55006D626B /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B48305D5C55006D626B /* popup.js */; };
+		3E924B59305D5C55006D626B /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4A305D5C55006D626B /* background.js */; };
+		3E924B5A305D5C55006D626B /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4B305D5C55006D626B /* popup.html */; };
+		3E924B5B305D5C55006D626B /* THIRD_PARTY_NOTICES.md in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4C305D5C55006D626B /* THIRD_PARTY_NOTICES.md */; };
+		3E924B5C305D5C55006D626B /* drive-auth.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4D305D5C55006D626B /* drive-auth.css */; };
+		3E924B5D305D5C55006D626B /* drive-auth.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4E305D5C55006D626B /* drive-auth.html */; };
+		3E924B5E305D5C55006D626B /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B50305D5C55006D626B /* icons */; };
+		3E924B5F305D5C55006D626B /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B51305D5C55006D626B /* manifest.json */; };
+		3E924B60305D5C55006D626B /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B52305D5C55006D626B /* popup.css */; };
+		3E924B61305D5C55006D626B /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B53305D5C55006D626B /* content.js */; };
+		3E924B62305D5C55006D626B /* data in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B55305D5C55006D626B /* data */; };
+		3E924B63305D5C55006D626B /* drive-auth.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B57305D5C55006D626B /* drive-auth.js */; };
+		3E924B64305D5C55006D626B /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B48305D5C55006D626B /* popup.js */; };
+		3E924B65305D5C55006D626B /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4A305D5C55006D626B /* background.js */; };
+		3E924B66305D5C55006D626B /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4B305D5C55006D626B /* popup.html */; };
+		3E924B67305D5C55006D626B /* THIRD_PARTY_NOTICES.md in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4C305D5C55006D626B /* THIRD_PARTY_NOTICES.md */; };
+		3E924B68305D5C55006D626B /* drive-auth.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4D305D5C55006D626B /* drive-auth.css */; };
+		3E924B69305D5C55006D626B /* drive-auth.html in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B4E305D5C55006D626B /* drive-auth.html */; };
+		3E924B6A305D5C55006D626B /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B50305D5C55006D626B /* icons */; };
+		3E924B6B305D5C55006D626B /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B51305D5C55006D626B /* manifest.json */; };
+		3E924B6C305D5C55006D626B /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B52305D5C55006D626B /* popup.css */; };
+		3E924B6D305D5C55006D626B /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B53305D5C55006D626B /* content.js */; };
+		3E924B6E305D5C55006D626B /* data in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B55305D5C55006D626B /* data */; };
+		3E924B6F305D5C55006D626B /* drive-auth.js in Resources */ = {isa = PBXBuildFile; fileRef = 3E924B57305D5C55006D626B /* drive-auth.js */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3E924B1B305D5C55006D626B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3E924AE8305D5C54006D626B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3E924B18305D5C55006D626B;
+			remoteInfo = "Mai-Score Extension (iOS)";
+		};
+		3E924B25305D5C55006D626B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3E924AE8305D5C54006D626B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3E924B22305D5C55006D626B;
+			remoteInfo = "Mai-Score Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3E924B3C305D5C55006D626B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3E924B1A305D5C55006D626B /* Mai-Score Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B43305D5C55006D626B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3E924B24305D5C55006D626B /* Mai-Score Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		3E924AEF305D5C54006D626B /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		3E924AF0305D5C54006D626B /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		3E924AF1305D5C54006D626B /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		3E924AF2305D5C54006D626B /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		3E924AF3305D5C54006D626B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		3E924AF4305D5C55006D626B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3E924AF6305D5C55006D626B /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		3E924AFB305D5C55006D626B /* Mai-Score.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mai-Score.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E924AFE305D5C55006D626B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3E924B00305D5C55006D626B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		3E924B03305D5C55006D626B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		3E924B06305D5C55006D626B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		3E924B08305D5C55006D626B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3E924B0D305D5C55006D626B /* Mai-Score.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mai-Score.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E924B0F305D5C55006D626B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3E924B12305D5C55006D626B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		3E924B14305D5C55006D626B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3E924B19305D5C55006D626B /* Mai-Score Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Mai-Score Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E924B1E305D5C55006D626B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3E924B23305D5C55006D626B /* Mai-Score Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Mai-Score Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E924B28305D5C55006D626B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3E924B48305D5C55006D626B /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = popup.js; path = ../../../dist/popup.js; sourceTree = "<group>"; };
+		3E924B49305D5C55006D626B /* popup.js.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = popup.js.map; path = ../../../dist/popup.js.map; sourceTree = "<group>"; };
+		3E924B4A305D5C55006D626B /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../dist/background.js; sourceTree = "<group>"; };
+		3E924B4B305D5C55006D626B /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = ../../../dist/popup.html; sourceTree = "<group>"; };
+		3E924B4C305D5C55006D626B /* THIRD_PARTY_NOTICES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = THIRD_PARTY_NOTICES.md; path = ../../../dist/THIRD_PARTY_NOTICES.md; sourceTree = "<group>"; };
+		3E924B4D305D5C55006D626B /* drive-auth.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = "drive-auth.css"; path = "../../../dist/drive-auth.css"; sourceTree = "<group>"; };
+		3E924B4E305D5C55006D626B /* drive-auth.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "drive-auth.html"; path = "../../../dist/drive-auth.html"; sourceTree = "<group>"; };
+		3E924B4F305D5C55006D626B /* content.js.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = content.js.map; path = ../../../dist/content.js.map; sourceTree = "<group>"; };
+		3E924B50305D5C55006D626B /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = ../../../dist/icons; sourceTree = "<group>"; };
+		3E924B51305D5C55006D626B /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../manifest.json; sourceTree = "<group>"; };
+		3E924B52305D5C55006D626B /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = ../../../dist/popup.css; sourceTree = "<group>"; };
+		3E924B53305D5C55006D626B /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../dist/content.js; sourceTree = "<group>"; };
+		3E924B54305D5C55006D626B /* background.js.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = background.js.map; path = ../../../dist/background.js.map; sourceTree = "<group>"; };
+		3E924B55305D5C55006D626B /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ../../../dist/data; sourceTree = "<group>"; };
+		3E924B56305D5C55006D626B /* drive-auth.js.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = "drive-auth.js.map"; path = "../../../dist/drive-auth.js.map"; sourceTree = "<group>"; };
+		3E924B57305D5C55006D626B /* drive-auth.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "drive-auth.js"; path = "../../../dist/drive-auth.js"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3E924AF8305D5C55006D626B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B0A305D5C55006D626B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B16305D5C55006D626B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B20305D5C55006D626B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3E924AE7305D5C54006D626B = {
+			isa = PBXGroup;
+			children = (
+				3E924AEC305D5C54006D626B /* Shared (App) */,
+				3E924AF5305D5C55006D626B /* Shared (Extension) */,
+				3E924AFD305D5C55006D626B /* iOS (App) */,
+				3E924B0E305D5C55006D626B /* macOS (App) */,
+				3E924B1D305D5C55006D626B /* iOS (Extension) */,
+				3E924B27305D5C55006D626B /* macOS (Extension) */,
+				3E924AFC305D5C55006D626B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3E924AEC305D5C54006D626B /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924AF3305D5C54006D626B /* ViewController.swift */,
+				3E924AF4305D5C55006D626B /* Assets.xcassets */,
+				3E924AED305D5C54006D626B /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		3E924AED305D5C54006D626B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3E924AEE305D5C54006D626B /* Main.html */,
+				3E924AF0305D5C54006D626B /* Icon.png */,
+				3E924AF1305D5C54006D626B /* Style.css */,
+				3E924AF2305D5C54006D626B /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		3E924AF5305D5C55006D626B /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924B47305D5C55006D626B /* Resources */,
+				3E924AF6305D5C55006D626B /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		3E924AFC305D5C55006D626B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3E924AFB305D5C55006D626B /* Mai-Score.app */,
+				3E924B0D305D5C55006D626B /* Mai-Score.app */,
+				3E924B19305D5C55006D626B /* Mai-Score Extension.appex */,
+				3E924B23305D5C55006D626B /* Mai-Score Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3E924AFD305D5C55006D626B /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924AFE305D5C55006D626B /* AppDelegate.swift */,
+				3E924B00305D5C55006D626B /* SceneDelegate.swift */,
+				3E924B02305D5C55006D626B /* LaunchScreen.storyboard */,
+				3E924B05305D5C55006D626B /* Main.storyboard */,
+				3E924B08305D5C55006D626B /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		3E924B0E305D5C55006D626B /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924B0F305D5C55006D626B /* AppDelegate.swift */,
+				3E924B11305D5C55006D626B /* Main.storyboard */,
+				3E924B14305D5C55006D626B /* Info.plist */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		3E924B1D305D5C55006D626B /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924B1E305D5C55006D626B /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		3E924B27305D5C55006D626B /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				3E924B28305D5C55006D626B /* Info.plist */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		3E924B47305D5C55006D626B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3E924B48305D5C55006D626B /* popup.js */,
+				3E924B49305D5C55006D626B /* popup.js.map */,
+				3E924B4A305D5C55006D626B /* background.js */,
+				3E924B4B305D5C55006D626B /* popup.html */,
+				3E924B4C305D5C55006D626B /* THIRD_PARTY_NOTICES.md */,
+				3E924B4D305D5C55006D626B /* drive-auth.css */,
+				3E924B4E305D5C55006D626B /* drive-auth.html */,
+				3E924B4F305D5C55006D626B /* content.js.map */,
+				3E924B50305D5C55006D626B /* icons */,
+				3E924B51305D5C55006D626B /* manifest.json */,
+				3E924B52305D5C55006D626B /* popup.css */,
+				3E924B53305D5C55006D626B /* content.js */,
+				3E924B54305D5C55006D626B /* background.js.map */,
+				3E924B55305D5C55006D626B /* data */,
+				3E924B56305D5C55006D626B /* drive-auth.js.map */,
+				3E924B57305D5C55006D626B /* drive-auth.js */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3E924AFA305D5C55006D626B /* Mai-Score (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3E924B3D305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score (iOS)" */;
+			buildPhases = (
+				3E924AF7305D5C55006D626B /* Sources */,
+				3E924AF8305D5C55006D626B /* Frameworks */,
+				3E924AF9305D5C55006D626B /* Resources */,
+				3E924B3C305D5C55006D626B /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3E924B1C305D5C55006D626B /* PBXTargetDependency */,
+			);
+			name = "Mai-Score (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "Mai-Score (iOS)";
+			productReference = 3E924AFB305D5C55006D626B /* Mai-Score.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3E924B0C305D5C55006D626B /* Mai-Score (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3E924B44305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score (macOS)" */;
+			buildPhases = (
+				3E924B09305D5C55006D626B /* Sources */,
+				3E924B0A305D5C55006D626B /* Frameworks */,
+				3E924B0B305D5C55006D626B /* Resources */,
+				3E924B43305D5C55006D626B /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3E924B26305D5C55006D626B /* PBXTargetDependency */,
+			);
+			name = "Mai-Score (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "Mai-Score (macOS)";
+			productReference = 3E924B0D305D5C55006D626B /* Mai-Score.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3E924B18305D5C55006D626B /* Mai-Score Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3E924B39305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score Extension (iOS)" */;
+			buildPhases = (
+				3E924B15305D5C55006D626B /* Sources */,
+				3E924B16305D5C55006D626B /* Frameworks */,
+				3E924B17305D5C55006D626B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Mai-Score Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "Mai-Score Extension (iOS)";
+			productReference = 3E924B19305D5C55006D626B /* Mai-Score Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		3E924B22305D5C55006D626B /* Mai-Score Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3E924B40305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score Extension (macOS)" */;
+			buildPhases = (
+				3E924B1F305D5C55006D626B /* Sources */,
+				3E924B20305D5C55006D626B /* Frameworks */,
+				3E924B21305D5C55006D626B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Mai-Score Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "Mai-Score Extension (macOS)";
+			productReference = 3E924B23305D5C55006D626B /* Mai-Score Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3E924AE8305D5C54006D626B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					3E924AFA305D5C55006D626B = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					3E924B0C305D5C55006D626B = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					3E924B18305D5C55006D626B = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					3E924B22305D5C55006D626B = {
+						CreatedOnToolsVersion = 26.5;
+					};
+				};
+			};
+			buildConfigurationList = 3E924AEB305D5C54006D626B /* Build configuration list for PBXProject "Mai-Score" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3E924AE7305D5C54006D626B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3E924AFC305D5C55006D626B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3E924AFA305D5C55006D626B /* Mai-Score (iOS) */,
+				3E924B0C305D5C55006D626B /* Mai-Score (macOS) */,
+				3E924B18305D5C55006D626B /* Mai-Score Extension (iOS) */,
+				3E924B22305D5C55006D626B /* Mai-Score Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3E924AF9305D5C55006D626B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B2B305D5C55006D626B /* Icon.png in Resources */,
+				3E924B04305D5C55006D626B /* LaunchScreen.storyboard in Resources */,
+				3E924B29305D5C55006D626B /* Main.html in Resources */,
+				3E924B2F305D5C55006D626B /* Script.js in Resources */,
+				3E924B33305D5C55006D626B /* Assets.xcassets in Resources */,
+				3E924B07305D5C55006D626B /* Main.storyboard in Resources */,
+				3E924B2D305D5C55006D626B /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B0B305D5C55006D626B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B2C305D5C55006D626B /* Icon.png in Resources */,
+				3E924B2E305D5C55006D626B /* Style.css in Resources */,
+				3E924B13305D5C55006D626B /* Main.storyboard in Resources */,
+				3E924B30305D5C55006D626B /* Script.js in Resources */,
+				3E924B34305D5C55006D626B /* Assets.xcassets in Resources */,
+				3E924B2A305D5C55006D626B /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B17305D5C55006D626B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B65305D5C55006D626B /* background.js in Resources */,
+				3E924B66305D5C55006D626B /* popup.html in Resources */,
+				3E924B68305D5C55006D626B /* drive-auth.css in Resources */,
+				3E924B6E305D5C55006D626B /* data in Resources */,
+				3E924B64305D5C55006D626B /* popup.js in Resources */,
+				3E924B6D305D5C55006D626B /* content.js in Resources */,
+				3E924B6B305D5C55006D626B /* manifest.json in Resources */,
+				3E924B6C305D5C55006D626B /* popup.css in Resources */,
+				3E924B67305D5C55006D626B /* THIRD_PARTY_NOTICES.md in Resources */,
+				3E924B6F305D5C55006D626B /* drive-auth.js in Resources */,
+				3E924B6A305D5C55006D626B /* icons in Resources */,
+				3E924B69305D5C55006D626B /* drive-auth.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B21305D5C55006D626B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B59305D5C55006D626B /* background.js in Resources */,
+				3E924B5A305D5C55006D626B /* popup.html in Resources */,
+				3E924B5C305D5C55006D626B /* drive-auth.css in Resources */,
+				3E924B62305D5C55006D626B /* data in Resources */,
+				3E924B58305D5C55006D626B /* popup.js in Resources */,
+				3E924B61305D5C55006D626B /* content.js in Resources */,
+				3E924B5F305D5C55006D626B /* manifest.json in Resources */,
+				3E924B60305D5C55006D626B /* popup.css in Resources */,
+				3E924B5B305D5C55006D626B /* THIRD_PARTY_NOTICES.md in Resources */,
+				3E924B63305D5C55006D626B /* drive-auth.js in Resources */,
+				3E924B5E305D5C55006D626B /* icons in Resources */,
+				3E924B5D305D5C55006D626B /* drive-auth.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3E924AF7305D5C55006D626B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B31305D5C55006D626B /* ViewController.swift in Sources */,
+				3E924AFF305D5C55006D626B /* AppDelegate.swift in Sources */,
+				3E924B01305D5C55006D626B /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B09305D5C55006D626B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B32305D5C55006D626B /* ViewController.swift in Sources */,
+				3E924B10305D5C55006D626B /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B15305D5C55006D626B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B35305D5C55006D626B /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3E924B1F305D5C55006D626B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E924B36305D5C55006D626B /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3E924B1C305D5C55006D626B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3E924B18305D5C55006D626B /* Mai-Score Extension (iOS) */;
+			targetProxy = 3E924B1B305D5C55006D626B /* PBXContainerItemProxy */;
+		};
+		3E924B26305D5C55006D626B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3E924B22305D5C55006D626B /* Mai-Score Extension (macOS) */;
+			targetProxy = 3E924B25305D5C55006D626B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		3E924AEE305D5C54006D626B /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3E924AEF305D5C54006D626B /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		3E924B02305D5C55006D626B /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3E924B03305D5C55006D626B /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		3E924B05305D5C55006D626B /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3E924B06305D5C55006D626B /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		3E924B11305D5C55006D626B /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3E924B12305D5C55006D626B /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3E924B37305D5C55006D626B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3E924B38305D5C55006D626B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		3E924B3A305D5C55006D626B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore.Extension;
+				PRODUCT_NAME = "Mai-Score Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3E924B3B305D5C55006D626B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore.Extension;
+				PRODUCT_NAME = "Mai-Score Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3E924B3E305D5C55006D626B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore;
+				PRODUCT_NAME = "Mai-Score";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3E924B3F305D5C55006D626B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore;
+				PRODUCT_NAME = "Mai-Score";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3E924B41305D5C55006D626B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore.Extension;
+				PRODUCT_NAME = "Mai-Score Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3E924B42305D5C55006D626B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore.Extension;
+				PRODUCT_NAME = "Mai-Score Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3E924B45305D5C55006D626B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore;
+				PRODUCT_NAME = "Mai-Score";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3E924B46305D5C55006D626B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Mai-Score";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.milifix.maiscore;
+				PRODUCT_NAME = "Mai-Score";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3E924AEB305D5C54006D626B /* Build configuration list for PBXProject "Mai-Score" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E924B37305D5C55006D626B /* Debug */,
+				3E924B38305D5C55006D626B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3E924B39305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E924B3A305D5C55006D626B /* Debug */,
+				3E924B3B305D5C55006D626B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3E924B3D305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E924B3E305D5C55006D626B /* Debug */,
+				3E924B3F305D5C55006D626B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3E924B40305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E924B41305D5C55006D626B /* Debug */,
+				3E924B42305D5C55006D626B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3E924B44305D5C55006D626B /* Build configuration list for PBXNativeTarget "Mai-Score (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3E924B45305D5C55006D626B /* Debug */,
+				3E924B46305D5C55006D626B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3E924AE8305D5C54006D626B /* Project object */;
+}

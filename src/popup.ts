@@ -1,5 +1,10 @@
 import { isCollectProgressMessage } from "./lib/collect-progress";
-import { connectionForUrl, createCollectRequest } from "./lib/connections";
+import {
+  connectionForUrl,
+  createCollectRequest,
+  createSessionStatusRequest,
+  type SessionStatusResponse
+} from "./lib/connections";
 import { toDxratingJson, toFullJson, toRhythmRecordJson } from "./lib/export";
 import { DEFAULT_IMAGE_OPTIONS, timestampForFilename } from "./lib/image-options";
 import {
@@ -22,8 +27,8 @@ import {
 } from "./lib/drive-auth";
 import {
   STUDIO_TRANSFER_TTL_MS,
-  STUDIO_URL,
   studioTransferKey,
+  studioTransferUrl,
   type StudioTransferAssets,
   type StudioTransfer
 } from "./lib/studio-transfer";
@@ -35,12 +40,18 @@ const status = $("status");
 const exportButton = $<HTMLButtonElement>("export");
 const studioButton = $<HTMLButtonElement>("studio");
 const collectButton = $<HTMLButtonElement>("collect");
+const updateStudioButton = $<HTMLButtonElement>("update-studio");
 const fullRecordsCheckbox = $<HTMLInputElement>("include-full-records");
 const languageSelect = $<HTMLSelectElement>("language");
 const driveConnectButton = $<HTMLButtonElement>("drive-connect");
 const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
 const collectionModeInputs = document.querySelectorAll<HTMLInputElement>('input[name="collection-mode"]');
+const extensionDriveAvailable = typeof chrome.identity?.getAuthToken === "function";
+const directDownloadsAvailable = typeof chrome.downloads?.download === "function";
 let language: PopupLanguage = DEFAULT_LANGUAGE;
+type LoginState = "checking" | "signed-in" | "signed-out" | "unavailable";
+let loginState: LoginState = "checking";
+let loginPlayer = "";
 
 function t(key: string, ...values: Array<string | number>) {
   return popupText(language, key, ...values);
@@ -56,6 +67,22 @@ function applyLanguage() {
   renderChartDataState();
   if (result) renderUnmatchedCharts(result);
   updateCollectLabel();
+  renderLoginState(loginState, loginPlayer);
+}
+
+function renderLoginState(next: LoginState, playerName = "") {
+  loginState = next;
+  loginPlayer = playerName;
+  const panel = $("login-state");
+  panel.className = `login-state ${next}`;
+  $("login-state-label").textContent = t(next === "signed-in" ? "loginSignedIn"
+    : next === "signed-out" ? "loginSignedOut"
+      : next === "unavailable" ? "loginUnavailable" : "loginChecking");
+  $("login-player").textContent = playerName;
+  $("open-dxnet").hidden = next === "signed-in" || next === "checking";
+  const canCollect = next === "signed-in";
+  collectButton.disabled = !canCollect;
+  updateStudioButton.disabled = !canCollect;
 }
 
 function renderUnmatchedCharts(data: CollectionResult) {
@@ -104,12 +131,49 @@ function setStatus(text: string, kind = "") {
 }
 
 function updateCollectLabel() {
-  collectButton.textContent = t(fullRecordsCheckbox.checked ? "collectFull" : "collect");
+  collectButton.textContent = t("collectOnly");
+  updateStudioButton.textContent = t("updateStudio");
 }
 
 function setCollectionModeDisabled(disabled: boolean) {
   collectionModeInputs.forEach((input) => { input.disabled = disabled; });
 }
+
+async function refreshLoginState() {
+  renderLoginState("checking");
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const connection = tab?.url ? connectionForUrl(tab.url) : undefined;
+    if (!tab?.id || !connection || connection.transport !== "content-script") {
+      renderLoginState("signed-out");
+      setStatus(t("login"));
+      return;
+    }
+    const response = await chrome.tabs.sendMessage(
+      tab.id,
+      createSessionStatusRequest(connection.id)
+    ) as SessionStatusResponse | undefined;
+    if (!response?.ok) {
+      renderLoginState("unavailable");
+      setStatus(response?.error ?? t("loginUnavailable"), "error");
+      return;
+    }
+    if (!response.signedIn) {
+      renderLoginState("signed-out");
+      setStatus(t("login"));
+      return;
+    }
+    renderLoginState("signed-in", response.playerName);
+    setStatus(t("loginSignedIn"), "ok");
+  } catch (error) {
+    renderLoginState("unavailable");
+    setStatus(error instanceof Error ? error.message : String(error), "error");
+  }
+}
+
+$("open-dxnet").addEventListener("click", async () => {
+  await chrome.tabs.create({ url: "https://maimaidx-eng.com/maimai-mobile/" });
+});
 
 const authDeps: AuthDeps = {
   identity: chrome.identity,
@@ -124,6 +188,10 @@ function renderDriveState(connected: boolean) {
 }
 
 async function refreshDriveState() {
+  if (!extensionDriveAvailable) {
+    $("drive-panel").hidden = true;
+    return;
+  }
   if (!await driveEnabled(chrome.storage.local)) {
     renderDriveState(false);
     return;
@@ -324,77 +392,97 @@ async function prepareStudioAssets(): Promise<StudioTransferAssets> {
 // so a stray message from a stale run (or a previous popup instance) can't
 // overwrite the final result once collection has finished.
 chrome.runtime.onMessage.addListener((message) => {
-  if (!isCollectProgressMessage(message) || !collectButton.classList.contains("busy")) return;
+  if (!isCollectProgressMessage(message)
+    || (!collectButton.classList.contains("busy") && !updateStudioButton.classList.contains("busy"))) return;
   setStatus(message.stage === "matching" ? t("matchingCharts") : t("fetchProgress", message.done ?? 0, message.total ?? 3));
 });
 
-collectButton.addEventListener("click", async () => {
-  // Collecting fetches three DX NET pages; without this guard a double-click
-  // starts a second run whose result races the first.
-  if (collectButton.disabled) return;
+function renderCollectionResult(data: CollectionResult) {
+  result = data;
+  $("summary").hidden = false;
+  $("player").textContent = data.player.name;
+  const gap = data.b50Rating - data.player.rating;
+  $("b50-rating").textContent = gap === 0
+    ? String(data.b50Rating)
+    : `${data.b50Rating} (${gap > 0 ? "+" : ""}${gap})`;
+  $("resolved").textContent = data.fullRecords
+    ? t("resolvedFull", data.records.length - data.warnings.length, data.fullRecords.length - (data.fullRecordsUnmatched ?? 0), data.fullRecords.length)
+    : `${data.records.length - data.warnings.length}/50`;
+  renderUnmatchedCharts(data);
+  exportButton.disabled = false;
+  studioButton.disabled = false;
+}
+
+function showCollectionStatus(connectionLabel: string) {
+  if (!result) return;
+  const gap = result.b50Rating - result.player.rating;
+  const unmatchedFullRecords = result.fullRecordsUnmatched ?? 0;
+  setStatus(
+    gap !== 0
+      ? t("ratingGap", `${gap > 0 ? "+" : ""}${gap}`, result.warnings.length)
+      : result.warnings.length
+        ? t("unmatched", connectionLabel, result.warnings.length)
+        : result.fullRecords
+          ? t("collectedFull", result.fullRecords.length, unmatchedFullRecords)
+          : t("collected"),
+    gap === 0 && !result.warnings.length && !unmatchedFullRecords ? "ok" : unmatchedFullRecords ? "warning" : ""
+  );
+}
+
+async function openStudio(autoSync: boolean) {
+  if (!result) return;
+  const token = crypto.randomUUID();
+  const assets = await prepareStudioAssets();
+  const transfer: StudioTransfer = {
+    data: result,
+    assets,
+    language,
+    expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
+  };
+  await chrome.storage.session.set({ [studioTransferKey(token)]: transfer });
+  await chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token, autoSync) });
+  setStatus(t(autoSync ? "studioAutoOpened" : "studioOpened", Object.keys(assets.covers).length), "ok");
+}
+
+async function runCollection(trigger: HTMLButtonElement, updateStudio: boolean) {
+  // A collection is sequential and must have only one owner; otherwise two
+  // runs can race the shared DX NET session and overwrite the popup result.
+  if (trigger.disabled) return;
   collectButton.disabled = true;
+  updateStudioButton.disabled = true;
   setCollectionModeDisabled(true);
-  collectButton.classList.add("busy");
+  trigger.classList.add("busy");
   setStatus(t(fullRecordsCheckbox.checked ? "fetchingFull" : "fetching"));
   try {
     const { response, connection } = await collect();
     if (!response.ok) throw new Error(response.error);
-    result = response.data;
-    $("summary").hidden = false;
-    $("player").textContent = result.player.name;
-    // The official rating is the sum of the same 50 charts, so any gap means
-    // this build disagrees with the game. Show it rather than let it pass.
-    const gap = result.b50Rating - result.player.rating;
-    $("b50-rating").textContent = gap === 0
-      ? String(result.b50Rating)
-      : `${result.b50Rating} (${gap > 0 ? "+" : ""}${gap})`;
-    $("resolved").textContent = result.fullRecords
-      ? t("resolvedFull", result.records.length - result.warnings.length, result.fullRecords.length - (result.fullRecordsUnmatched ?? 0), result.fullRecords.length)
-      : `${result.records.length - result.warnings.length}/50`;
-    renderUnmatchedCharts(result);
-    exportButton.disabled = false;
-    studioButton.disabled = false;
-    const unmatchedFullRecords = result.fullRecordsUnmatched ?? 0;
-    setStatus(
-      gap !== 0
-        ? t("ratingGap", `${gap > 0 ? "+" : ""}${gap}`, result.warnings.length)
-        : result.warnings.length
-          ? t("unmatched", connection.label, result.warnings.length)
-          : result.fullRecords
-            ? t("collectedFull", result.fullRecords.length, unmatchedFullRecords)
-            : t("collected"),
-      gap === 0 && !result.warnings.length && !unmatchedFullRecords ? "ok" : unmatchedFullRecords ? "warning" : ""
-    );
+    renderCollectionResult(response.data);
+    if (updateStudio) {
+      setStatus(t("studioUpdating"));
+      await openStudio(true);
+    } else {
+      showCollectionStatus(connection.label);
+    }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   } finally {
-    collectButton.disabled = false;
+    const canCollect = loginState === "signed-in";
+    collectButton.disabled = !canCollect;
+    updateStudioButton.disabled = !canCollect;
     setCollectionModeDisabled(false);
-    collectButton.classList.remove("busy");
+    trigger.classList.remove("busy");
   }
-});
+}
+
+collectButton.addEventListener("click", () => void runCollection(collectButton, false));
+updateStudioButton.addEventListener("click", () => void runCollection(updateStudioButton, true));
 
 $<HTMLButtonElement>("studio").addEventListener("click", async () => {
   if (!result) return;
   studioButton.disabled = true;
   setStatus(t("preparingAssets"));
   try {
-    const token = crypto.randomUUID();
-    const assets = await prepareStudioAssets();
-    const transfer: StudioTransfer = {
-      data: result,
-      assets,
-      language,
-      expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
-    };
-    await chrome.storage.session.set({ [studioTransferKey(token)]: transfer });
-    const url = new URL(STUDIO_URL);
-    url.hash = new URLSearchParams({
-      extensionId: chrome.runtime.id,
-      transfer: token
-    }).toString();
-    await chrome.tabs.create({ url: url.toString() });
-    setStatus(t("studioOpened", Object.keys(assets.covers).length), "ok");
+    await openStudio(false);
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "error");
   } finally {
@@ -434,7 +522,7 @@ languageSelect.addEventListener("change", () => {
   applyLanguage();
   void chrome.storage.local.set({ [LANGUAGE_STORAGE_KEY]: language });
   void refreshDriveState();
-  if (!result) setStatus(t("login"));
+  void refreshLoginState();
 });
 
 collectionModeInputs.forEach((input) => {
@@ -443,9 +531,11 @@ collectionModeInputs.forEach((input) => {
 
 async function initializePopup() {
   await initializeLanguage();
+  if (!directDownloadsAvailable) $("direct-export").hidden = true;
   // Never interactive on open: the panel reflects existing state, and consent
   // is only ever raised by the user pressing Connect.
   await refreshDriveState();
+  await refreshLoginState();
 }
 
 void initializePopup();

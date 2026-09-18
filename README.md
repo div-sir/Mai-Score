@@ -4,6 +4,8 @@
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
+An Apple project for a shared macOS and iOS Safari Web Extension is available under [`apple/`](apple/). Build the shared Web Extension resources with `npm run build:apple`, then continue signing and device work from the Xcode handoff in [`apple/XCODE_HANDOFF.md`](apple/XCODE_HANDOFF.md).
+
 > The Japan-domestic (`maimaidx.jp`) adapter reuses the international parser on the assumption both sites share the same page template. That assumption has not been checked against a real, logged-in domestic account — please open an issue if Collect fails there.
 
 ## Install
@@ -30,7 +32,7 @@ Building from source instead? See [Development](#development).
 - Supports English (default), 繁體中文 (Traditional Chinese), and 日本語 (Japanese) — switch anytime from the language picker at the top of the popup; the choice also carries over to Studio, timestamps, and exported image labels.
 - Keeps image choices for timestamp, watermark, accent reach, equipped player title, assets, difficulty figures, and score fields in Studio; timestamps always use the device's local time zone. Previously saved or imported nameplate artwork remains renderable, but new Extension collections no longer request or retain it.
 - Offers a separate dark or light Studio interface without changing the selected export theme.
-- Uses a simple primary flow: collect B50, then open [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded.
+- Shows whether the current DX NET tab is signed in, then offers a one-click **Update Studio** flow that collects the selected mode and opens [Mai-Score Studio](https://mai-score.milifix.com) with the result already saved.
 - Keeps quick PNG and JSON downloads under a secondary direct-export selector.
 - Uses a versioned connection registry so future file/API/site adapters can share the same popup and export pipeline.
 - Shows the packaged chart-catalog date and sheet count, carries its provenance into JSON and history, and warns when the bundled data is older than 30 days.
@@ -53,8 +55,8 @@ Building from source instead? See [Development](#development).
 
 1. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) or [maimai でらっくす NET](https://maimaidx.jp/maimai-mobile/home/) in the same browser.
 2. Click the Mai-Score icon in the toolbar. If needed, pick your language from the dropdown at the top (**English**, **繁體中文**, or **日本語**) — this also carries over to Studio and exported images.
-3. Leave **Include Full Records (Beta)** off for the fastest B50 export, or enable it to add all played charts for Studio completion/progress tools. Full Records currently supports International DX NET only.
-4. Click **Collect B50**. The popup fetches your profile and rating-target page, then (when selected) five difficulty pages. It also makes one optional recent-play request for Session tools and shows separate B50 and Full Records matching totals.
+3. Choose **B50 only** for the fastest update, or **B50 + Full Records** to add all played charts for Studio completion/progress tools. Full Records currently supports International DX NET only.
+4. Click **Update Studio**. The popup fetches your profile and rating-target page, then (when selected) five difficulty pages. It also makes one optional recent-play request for Session tools, saves the result in Studio, and syncs automatically if Google Drive is already connected. **Collect without opening Studio** remains available as a secondary action.
 5. Choose how to use the result:
    - **Preview and customize online** opens [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded, for choosing a layout/theme and exporting PNG or SVG.
    - **Direct export** (collapsed section below the buttons) downloads a quick PNG in the default style, or JSON in the dxrating, Mai-Score full, or Rhythm Record format, without leaving the popup.

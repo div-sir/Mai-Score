@@ -4,7 +4,9 @@ import {
   CONNECTION_PROTOCOL_VERSION,
   connectionForUrl,
   createCollectRequest,
-  isCollectRequest
+  createSessionStatusRequest,
+  isCollectRequest,
+  isSessionStatusRequest
 } from "../src/lib/connections";
 
 describe("connection registry", () => {
@@ -28,6 +30,13 @@ describe("connection registry", () => {
     expect(isCollectRequest(createCollectRequest("dxnet-intl", true))).toBe(true);
     expect(isCollectRequest({ ...request, includeFullRecords: undefined })).toBe(true);
     expect(isCollectRequest({ ...request, includeFullRecords: "yes" })).toBe(false);
+  });
+
+  it("versions non-destructive login-status probes", () => {
+    const request = createSessionStatusRequest("dxnet-intl");
+    expect(isSessionStatusRequest(request)).toBe(true);
+    expect(isSessionStatusRequest({ ...request, protocolVersion: 99 })).toBe(false);
+    expect(isSessionStatusRequest({ ...request, connectionId: "rhythm-record-file" })).toBe(false);
   });
 
   it("reserves adapters for shared rhythm-game records", () => {

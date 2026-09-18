@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import { afterEach, expect, it, vi } from "vitest";
-import { createCollectRequest } from "../src/lib/connections";
+import { createCollectRequest, createSessionStatusRequest } from "../src/lib/connections";
 
 const profile = '<div class="name_block">Player</div><img src="/maimai-mobile/img/Plate/equipped.png">';
 const card = (title: string) => `<div class="music_master_score_back pointer w_450 m_15 p_3 f_0"><div class="music_name_block">${title}</div><div class="music_lv_block">13</div><div class="music_score_block">100.0000%</div></div>`;
@@ -12,7 +12,7 @@ afterEach(() => { dom?.window.close(); vi.unstubAllGlobals(); vi.restoreAllMocks
 async function setup(fetcher: ReturnType<typeof vi.fn>) {
   vi.resetModules();
   dom = new JSDOM('', {url:'https://maimaidx-eng.com/maimai-mobile/home/'});
-  vi.stubGlobal('window',dom.window); vi.stubGlobal('DOMParser',dom.window.DOMParser);
+  vi.stubGlobal('window',dom.window); vi.stubGlobal('document',dom.window.document); vi.stubGlobal('DOMParser',dom.window.DOMParser);
   vi.stubGlobal('fetch',fetcher);
   let listener: (message: unknown, sender: unknown, reply: (r:any)=>void)=>void;
   const messages: any[] = [];
@@ -22,8 +22,22 @@ async function setup(fetcher: ReturnType<typeof vi.fn>) {
     sendMessage:async(message:any)=>{ messages.push(message); return {ok:true,records:message.records?.map((r:any)=>({...r,chartRating:280,internalLevelValue:13}))}; }
   }});
   await import('../src/content');
-  return { run:()=>new Promise<any>(resolve=>listener(createCollectRequest('dxnet-intl',true),{},resolve)), messages };
+  return {
+    run:()=>new Promise<any>(resolve=>listener(createCollectRequest('dxnet-intl',true),{},resolve)),
+    probe:()=>new Promise<any>(resolve=>listener(createSessionStatusRequest('dxnet-intl'),{},resolve)),
+    messages
+  };
 }
+
+it('reports the current DX NET sign-in state without collecting scores', async()=>{
+  const {probe}=await setup(vi.fn(async()=>new Response(profile)));
+  expect(await probe()).toEqual({ok:true,signedIn:true,playerName:'Player'});
+});
+
+it('reports an expired DX NET application session as signed out', async()=>{
+  const {probe}=await setup(vi.fn(async()=>new Response('<div>ERROR CODE : 200002</div>')));
+  expect(await probe()).toEqual({ok:true,signedIn:false});
+});
 
 it('retries profile network failure, completes all difficulties despite decorative failures, and preserves flags', async()=>{
   let homes=0;

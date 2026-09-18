@@ -4,4 +4,6 @@ dist/
 *.tsbuildinfo
 *.zip
 .DS_Store
+xcuserdata/
+*.xcuserstate
 studio/public/data/catalog.json
