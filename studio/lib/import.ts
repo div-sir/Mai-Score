@@ -3,6 +3,7 @@ import type {
   PlateProgress,
   StudioData,
   StudioFullRecord,
+  StudioRecentPlay,
   StudioRecord,
   VersionChartTotals
 } from "./types";
@@ -107,6 +108,50 @@ export function normalizeB50(data: StudioData): StudioData {
     b35Rating,
     b50Rating: b15Rating + b35Rating
   };
+}
+
+function parseRecentPlays(value: unknown): StudioRecentPlay[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const plays = value.flatMap((candidate) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return [];
+    const play = candidate as Record<string, unknown>;
+    const difficulty = String(play.difficulty ?? "");
+    const type = play.type;
+    const achievementRate = optionalNumber(play.achievementRate);
+    const playedAt = optionalString(play.playedAt);
+    if (!playedAt || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(playedAt)
+      || !DIFFICULTIES.has(difficulty)
+      || (type !== "std" && type !== "dx")
+      || achievementRate === undefined || achievementRate < 0 || achievementRate > 101) return [];
+    const comboFlag = COMBO_FLAGS.has(String(play.comboFlag))
+      ? String(play.comboFlag) as StudioRecentPlay["comboFlag"] : undefined;
+    const syncFlag = SYNC_FLAGS.has(String(play.syncFlag))
+      ? String(play.syncFlag) as StudioRecentPlay["syncFlag"] : undefined;
+    return [{
+      chartId: optionalString(play.sheetId) ?? optionalString(play.chartId),
+      songId: optionalString(play.songId),
+      title: optionalString(play.title) ?? "Unknown",
+      type: type as StudioRecentPlay["type"],
+      difficulty: difficulty as StudioRecentPlay["difficulty"],
+      displayedLevel: optionalString(play.displayedLevel) ?? "?",
+      achievementRate,
+      internalLevelValue: optionalNumber(play.internalLevelValue),
+      chartRating: optionalNumber(play.chartRating),
+      imageName: optionalString(play.imageName),
+      version: optionalString(play.version),
+      comboFlag,
+      syncFlag,
+      playedAt,
+      track: Math.max(0, Math.trunc(optionalNumber(play.track) ?? 0)),
+      newAchievement: play.newAchievement === true,
+      dxScore: optionalNumber(play.dxScore),
+      dxScoreMax: optionalNumber(play.dxScoreMax),
+      dxStar: optionalNumber(play.dxStar),
+      newDxScore: play.newDxScore === true,
+      scoreRank: optionalString(play.scoreRank)
+    }];
+  });
+  return plays.length || value.length === 0 ? plays : undefined;
 }
 
 function parseRhythmRecord(input: Record<string, unknown>): StudioData {
@@ -246,6 +291,7 @@ export function parseMaiScore(input: unknown): StudioData {
           internalLevelValue: optionalNumber(record.internalLevelValue)
         }))
       : undefined,
+    recentPlays: parseRecentPlays(value.recentPlays),
     fullRecords,
     versionTotals,
     b15Rating: Number(value.b15Rating ?? 0),

@@ -8,6 +8,7 @@ import {
   parseCurrentFrame,
   parseFullRecordsPage,
   parseProfile,
+  parseRecentPlaysPage,
   parseRatingTargetPage
 } from "./lib/parser";
 import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
@@ -20,6 +21,7 @@ import type {
   ParsedChartScore,
   ParsedFullScore,
   ResolvedChartScore,
+  ResolvedRecentPlay,
   ResolvedScore,
   VersionChartTotals
 } from "./lib/types";
@@ -140,7 +142,7 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   if (includeFullRecords && connection.id !== "dxnet-intl") {
     throw new Error(text("fullRecordsIntlOnly"));
   }
-  const total = 3 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
+  const total = 4 + (includeFullRecords ? FULL_RECORD_DIFFICULTIES.length : 0);
   const tracked = (promise: Promise<Document>) => promise.then((doc) => {
     fetched += 1;
     reportProgress(createFetchProgress(fetched, total));
@@ -188,13 +190,15 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
 
   // Finish required score requests before visiting optional collection pages.
   // These share the authenticated session even when their failures are ignored.
+  const recentPage = await decoration("/record/", text("labelRecentPlays"));
+  const parsedRecentPlays = recentPage ? parseRecentPlaysPage(recentPage) : [];
   const frame = await decoration("/collection/frame/", text("labelFrame"));
   player.frameUrl = (frame && parseCurrentFrame(frame, `${ROOT}/collection/frame/`)) ?? player.frameUrl;
 
   reportProgress(createMatchingProgress());
   const b50Count = parsedB15.length + parsedB35.length;
   const { records: resolved, versionTotals } = await resolveViaBackground(
-    [...parsedB15, ...parsedB35, ...parsedPage.candidates, ...parsedFullRecords],
+    [...parsedB15, ...parsedB35, ...parsedPage.candidates, ...parsedFullRecords, ...parsedRecentPlays],
     connection.id,
     text,
     // Only meaningful next to Full Records: a plate denominator counts charts
@@ -204,7 +208,9 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
   const records = resolved.slice(0, b50Count) as ResolvedScore[];
   const candidateEnd = b50Count + parsedPage.candidates.length;
   const candidateRecords = resolved.slice(b50Count, candidateEnd) as ResolvedScore[];
-  const resolvedFullRecords = resolved.slice(candidateEnd);
+  const fullRecordsEnd = candidateEnd + parsedFullRecords.length;
+  const resolvedFullRecords = resolved.slice(candidateEnd, fullRecordsEnd);
+  const recentPlays = resolved.slice(fullRecordsEnd) as ResolvedRecentPlay[];
   const fullByChart = new Map(resolvedFullRecords.map((record) => [recordKey(record), record]));
   // Prefer the canonical Rating Target copy for charts in B50. It preserves
   // the exact same score/flags used to calculate the visible B15/B35.
@@ -235,6 +241,7 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
     ...(fullRecords ? { fullRecords, fullRecordsUnmatched } : {}),
     ...(versionTotals ? { versionTotals } : {}),
     ...(candidateRecords.length ? { candidateRecords } : {}),
+    ...(recentPage ? { recentPlays } : {}),
     b15Rating,
     b35Rating,
     b50Rating,

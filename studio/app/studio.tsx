@@ -5,8 +5,9 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import B50Preview from "./b50-preview";
 import ProgressDashboard from "./progress";
 import RecordsDashboard from "./records";
+import SessionDashboard from "./session";
 import { renderStudioSvg } from "../lib/render";
-import { studioCopy } from "../lib/i18n";
+import { sessionCopy, studioCopy } from "../lib/i18n";
 import {
   clearStudioHistory,
   clearStudioSnapshot,
@@ -51,7 +52,7 @@ const UI_THEME_KEY = "mai-score-studio-ui-theme";
 const UI_VIEW_KEY = "mai-score-studio-view";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
-type StudioView = "export" | "progress" | "records";
+type StudioView = "export" | "session" | "progress" | "records";
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -140,7 +141,7 @@ async function mapConcurrent<T, R>(
 }
 
 async function loadPublicAssets(data: StudioData): Promise<StudioAssets> {
-  const coverNames = [...new Set([...data.records, ...(data.candidateRecords ?? [])]
+  const coverNames = [...new Set([...data.records, ...(data.candidateRecords ?? []), ...(data.recentPlays ?? [])]
     .flatMap((record) => record.imageName ? [record.imageName] : []))];
   const coverPairs = await mapConcurrent(coverNames, 8, async (name) => [
     name,
@@ -202,6 +203,7 @@ export default function Studio() {
   const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(language);
+  const sessionText = sessionCopy(language);
   const copyRef = useRef(copy);
   copyRef.current = copy;
 
@@ -210,7 +212,7 @@ export default function Studio() {
     setOrigin(window.location.origin);
     setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
     const savedView = localStorage.getItem(UI_VIEW_KEY);
-    if (savedView === "export" || savedView === "progress" || savedView === "records") setStudioView(savedView);
+    if (savedView === "export" || savedView === "session" || savedView === "progress" || savedView === "records") setStudioView(savedView);
     setUiPreferencesReady(true);
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
@@ -754,6 +756,7 @@ export default function Studio() {
           </div>
           <nav className="studio-tabs" aria-label={copy.studioSections}>
             <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
+            <button type="button" aria-pressed={studioView === "session"} onClick={() => setStudioView("session")}>{sessionText.tab}</button>
             <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
             <button type="button" aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
           </nav>
@@ -862,7 +865,15 @@ export default function Studio() {
         <div className="status-message"><span />{message}</div>
       </div>
 
-      {studioView === "progress" ? (
+      {studioView === "session" ? (
+        <SessionDashboard
+          data={data}
+          assets={assets}
+          history={history}
+          language={language}
+          onStatus={setMessage}
+        />
+      ) : studioView === "progress" ? (
         <ProgressDashboard
           data={data}
           assets={assets}

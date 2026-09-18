@@ -50,6 +50,19 @@ describe("history sync document", () => {
     expect(parseSyncDocument(serialized).entries.every(item => item.fullRecords?.[0].title === "Outside B50")).toBe(true);
   });
 
+  it("round-trips and validates recent plays", () => {
+    const recentPlay = {
+      title: "Session chart", type: "dx" as const, difficulty: "master" as const,
+      displayedLevel: "13+", achievementRate: 100.1, playedAt: "2026-09-18T20:30",
+      track: 1, newAchievement: true
+    };
+    const serialized = serializeSyncDocument([entry({ recentPlays: [recentPlay] })]);
+    expect(parseSyncDocument(serialized).entries[0].recentPlays).toEqual([recentPlay]);
+    const broken = JSON.parse(serialized);
+    broken.entries[0].recentPlays[0].playedAt = "not-a-date";
+    expect(parseSyncDocument(JSON.stringify(broken))).toMatchObject({ entries: [], skipped: 1 });
+  });
+
   it("keeps a year of weekly 1,762-chart snapshots within the sync limit when scores are unchanged", () => {
     const fullRecords = Array.from({ length: 1762 }, (_, index) => ({
       title: `Chart ${index}`,

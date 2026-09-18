@@ -159,6 +159,23 @@ describe("history entries", () => {
     expect(saved.fullRecords?.[0].achievementRate).toBe(99.5);
   });
 
+  it("preserves recent plays without sharing object references", () => {
+    const recentPlay = {
+      title: "Session chart", type: "dx" as const, difficulty: "master" as const,
+      displayedLevel: "13+", achievementRate: 100.1, playedAt: "2026-09-18T20:30",
+      track: 1, newAchievement: true
+    };
+    const data = {
+      schema: "mai-score/v1", exportedAt: "2026-09-18T21:00:00.000Z",
+      player: { name: "DIV", title: "", rating: 15000 }, records: [record()],
+      recentPlays: [recentPlay], b15Rating: 280, b35Rating: 0, b50Rating: 280
+    } as StudioData;
+    const saved = toHistoryEntry(data, "extension", "en");
+    expect(fromHistoryEntry(saved).recentPlays).toEqual([recentPlay]);
+    recentPlay.achievementRate = 1;
+    expect(saved.recentPlays?.[0].achievementRate).toBe(100.1);
+  });
+
   it("distinguishes the same song across type and difficulty", () => {
     const master = record({ difficulty: "master" });
     expect(chartKey(master)).not.toBe(chartKey(record({ difficulty: "expert" })));

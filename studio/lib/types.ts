@@ -54,6 +54,18 @@ export interface StudioRecord extends StudioChartRecord {
 
 export type StudioFullRecord = StudioChartRecord;
 
+export interface StudioRecentPlay extends StudioChartRecord {
+  /** Local wall-clock time displayed by DX NET; no timezone is invented. */
+  playedAt: string;
+  track: number;
+  newAchievement: boolean;
+  dxScore?: number;
+  dxScoreMax?: number;
+  dxStar?: number;
+  newDxScore?: boolean;
+  scoreRank?: string;
+}
+
 export interface PlateProgress {
   kind: "kiwami" | "shou" | "kami" | "maimai";
   version?: string;
@@ -98,6 +110,8 @@ export interface StudioData {
   fullRecords?: StudioFullRecord[];
   /** Resolved charts from DX NET's candidate sections, outside the current B50. */
   candidateRecords?: StudioRecord[];
+  /** Rolling DX NET play log. Repeated attempts intentionally remain separate. */
+  recentPlays?: StudioRecentPlay[];
   b15Rating: number;
   b35Rating: number;
   b50Rating: number;

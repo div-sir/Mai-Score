@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "September 9, 2026";
+const UPDATED = "September 18, 2026";
 
 export default function Privacy() {
   return (
@@ -46,6 +46,11 @@ export default function Privacy() {
             from five International DX NET difficulty pages, including achievement and
             FC/AP/FS/FDX status
           </li>
+          <li>
+            an optional rolling recent-play list for Session tools, including local play time,
+            chart, achievement, DX score, and visible result flags; the extension does not keep
+            the opaque DX NET play-log identifier
+          </li>
         </ul>
         <p>
           The extension does not read your SEGA password, payment details, or any page other
@@ -82,6 +87,14 @@ export default function Privacy() {
             If you opt in to Google Drive sync, Full Records snapshots and version totals are
             included in the same private history document. Repeated chart observations are
             deduplicated into a shared pool to keep that document compact.
+          </li>
+          <li>
+            <strong>Recent plays</strong> are stored with their Studio snapshot in local history
+            and, if you enable Google Drive sync, in the same private history document. Session
+            summaries, weakness prescriptions, practice lists, and share-card images are generated
+            in your browser. A share card contains the player name, summary, and coaching rather
+            than the complete score list, Google data, or opaque DX NET play-log ID, and leaves the device only when you
+            explicitly download or share it.
           </li>
           <li>
             <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google

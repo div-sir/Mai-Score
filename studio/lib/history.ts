@@ -1,4 +1,4 @@
-import type { ChartDataMetadata, LanguageId, PlateProgress, StudioData, StudioRecord, StudioChartRecord, VersionChartTotals } from "./types";
+import type { ChartDataMetadata, LanguageId, PlateProgress, StudioData, StudioRecord, StudioChartRecord, StudioRecentPlay, VersionChartTotals } from "./types";
 
 export interface HistoryEntry {
   /** When the collection was taken. Doubles as the store key, so re-saving
@@ -30,6 +30,8 @@ export interface HistoryEntry {
   records: StudioRecord[];
   /** Optional DX NET near-miss lists captured with this B50 snapshot. */
   candidateRecords?: StudioRecord[];
+  /** Optional rolling play log captured with this snapshot. */
+  recentPlays?: StudioRecentPlay[];
   /** Best-per-chart observations at collection time, not individual plays. */
   fullRecords?: StudioChartRecord[];
   versionTotals?: VersionChartTotals[];
@@ -91,7 +93,8 @@ export function toHistoryEntry(
     ...(data.versionTotals ? { versionTotals: data.versionTotals.map(total => ({ ...total })) } : {}),
     ...(data.candidateRecords?.length
       ? { candidateRecords: data.candidateRecords.map((record) => ({ ...record })) }
-      : {})
+      : {}),
+    ...(data.recentPlays ? { recentPlays: data.recentPlays.map((play) => ({ ...play })) } : {})
   };
 }
 
@@ -124,6 +127,7 @@ export function fromHistoryEntry(entry: HistoryEntry): StudioData {
     },
     records: entry.records.map((record) => ({ ...record })),
     candidateRecords: entry.candidateRecords?.map((record) => ({ ...record })),
+    recentPlays: entry.recentPlays?.map((play) => ({ ...play })),
     fullRecords: entry.fullRecords?.map(record => ({ ...record })),
     versionTotals: entry.versionTotals?.map(total => ({ ...total })),
     b15Rating,

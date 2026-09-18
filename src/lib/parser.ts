@@ -1,4 +1,4 @@
-import type { ComboFlag, Difficulty, ParsedFullScore, ParsedScore, PlayerProfile, SyncFlag } from "./types";
+import type { ComboFlag, Difficulty, ParsedFullScore, ParsedRecentPlay, ParsedScore, PlayerProfile, SyncFlag } from "./types";
 
 const absolute = (value: string | null, base: string): string | undefined => {
   if (!value) return undefined;
@@ -160,6 +160,75 @@ export function parseFullRecordsPage(doc: Document, difficulty: Difficulty): Par
 
 export function parseCurrentFrame(doc: Document, base = "https://maimaidx-eng.com/maimai-mobile/collection/frame"): string | undefined {
   return currentCollectionImage(doc, "/img/Frame/", base);
+}
+
+const playlogImageName = (image?: HTMLImageElement | null) => (image?.getAttribute("src") ?? "")
+  .split("/").at(-1)?.replace(/\.png(?:\?.*)?$/i, "").toLowerCase() ?? "";
+
+const PLAYLOG_DIFFICULTY: Record<string, Difficulty> = {
+  diff_basic: "basic",
+  diff_advanced: "advanced",
+  diff_expert: "expert",
+  diff_master: "master",
+  diff_remaster: "remaster"
+};
+
+function playlogTitle(block: Element): string | undefined {
+  const title = block.querySelector<HTMLElement>(".basic_block.m_5.m_t_17.m_r_60");
+  if (!title) return undefined;
+  const clone = title.cloneNode(true) as HTMLElement;
+  clone.querySelector(".w_80")?.remove();
+  const raw = clone.textContent;
+  return raw?.trim() || (raw?.includes("\u3000") ? "\u3000" : undefined);
+}
+
+function playlogFlags(block: Element): Pick<ParsedRecentPlay, "comboFlag" | "syncFlag"> {
+  const names = [...block.querySelectorAll<HTMLImageElement>(".playlog_result_innerblock img")].map(playlogImageName);
+  const comboName = names.find((name) => ["fc", "fcplus", "ap", "applus"].includes(name));
+  const syncName = names.find((name) => ["fs", "fsplus", "fsd", "fsdplus", "fdx", "fdxplus"].includes(name));
+  const comboFlag = comboName
+    ?.replace("fcplus", "fc+").replace("applus", "ap+") as ComboFlag | undefined;
+  const syncFlag = syncName
+    ?.replace("fsplus", "fs+").replace("fsdplus", "fsd+")
+    .replace("fdxplus", "fdx+") as SyncFlag | undefined;
+  return { comboFlag, syncFlag };
+}
+
+/** Parses the rolling recent-play list with one entry per actual play. */
+export function parseRecentPlaysPage(doc: Document): ParsedRecentPlay[] {
+  const blocks = [...doc.querySelectorAll<HTMLElement>(".p_10.t_l.f_0.v_b")]
+    .filter((block) => block.querySelector('form[action*="playlogDetail"]'));
+  return blocks.flatMap((block) => {
+    const title = playlogTitle(block);
+    const difficulty = PLAYLOG_DIFFICULTY[playlogImageName(block.querySelector<HTMLImageElement>(".playlog_diff"))];
+    const achievementRate = Number((block.querySelector(".playlog_achievement_txt")?.textContent ?? "")
+      .replace("%", "").replace(/,/g, "").trim());
+    const subTitle = block.querySelector(".sub_title")?.textContent ?? "";
+    const played = subTitle.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/);
+    if (!title || !difficulty || !played || !Number.isFinite(achievementRate)) return [];
+    const kind = playlogImageName(block.querySelector<HTMLImageElement>(".playlog_music_kind_icon, .playlog_music_kind_icon_utage img"));
+    const type: ParsedRecentPlay["type"] = kind === "music_dx" ? "dx" : "std";
+    const scorePair = (block.querySelector(".playlog_score_block .white")?.textContent ?? "")
+      .split("/").map((part) => Number(part.replace(/,/g, "").trim()));
+    const dxStarName = playlogImageName(block.querySelector<HTMLImageElement>(".playlog_deluxscore_star"));
+    const dxStar = Number(dxStarName.match(/dxstar_(\d)/)?.[1]);
+    return [{
+      title,
+      type,
+      difficulty,
+      displayedLevel: block.querySelector(".playlog_level_icon")?.textContent?.trim() ?? "",
+      achievementRate,
+      playedAt: `${played[1]}-${played[2]}-${played[3]}T${played[4]}:${played[5]}`,
+      track: Number(subTitle.match(/TRACK\s+(\d+)/i)?.[1] ?? 0),
+      newAchievement: Boolean(block.querySelector(".playlog_achievement_newrecord")),
+      ...(Number.isFinite(scorePair[0]) ? { dxScore: scorePair[0] } : {}),
+      ...(Number.isFinite(scorePair[1]) ? { dxScoreMax: scorePair[1] } : {}),
+      ...(Number.isFinite(dxStar) ? { dxStar } : {}),
+      newDxScore: Boolean(block.querySelector(".playlog_deluxscore_newrecord")),
+      scoreRank: playlogImageName(block.querySelector<HTMLImageElement>(".playlog_scorerank")) || undefined,
+      ...playlogFlags(block)
+    }];
+  });
 }
 
 function currentCollectionImage(doc: Document, fragment: string, base: string): string | undefined {

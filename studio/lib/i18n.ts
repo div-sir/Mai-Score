@@ -1,5 +1,81 @@
 import type { LanguageId } from "./types";
 
+export interface SessionCopy {
+  tab: string;
+  heading: string;
+  description: string;
+  empty: string;
+  collectHint: string;
+  latestVisit: string;
+  plays: string;
+  uniqueCharts: string;
+  personalBests: string;
+  ratingSinceSnapshot: string;
+  topPlays: string;
+  diagnosis: string;
+  diagnosisDescription: string;
+  practiceList: string;
+  practiceDescription: string;
+  target: string;
+  attempts: (count: number) => string;
+  evidence: (count: number) => string;
+  shareCard: string;
+  shareCardDescription: string;
+  downloadCard: string;
+  shareCardAction: string;
+  cardReady: string;
+  generatedLocally: string;
+  weakness: Record<"precision" | "accuracy" | "combo" | "consistency", { title: string; description: string }>;
+}
+
+export function sessionCopy(language: LanguageId): SessionCopy {
+  if (language === "zh-Hant") return {
+    tab: "Session", heading: "遊玩 Session", description: "自動整理最近一次到機台的遊玩內容、刷新紀錄與下一輪練習重點。",
+    empty: "這份資料沒有最近遊玩紀錄。", collectHint: "請更新並重新載入 Extension，再收集一次 B50；最近遊玩失敗不會影響其他資料。",
+    latestVisit: "最近一次遊玩", plays: "遊玩曲數", uniqueCharts: "不同譜面", personalBests: "刷新最佳", ratingSinceSnapshot: "自上次快照 Rating",
+    topPlays: "本次亮點", diagnosis: "弱項處方", diagnosisDescription: "依 Full Records 與本次重複挑戰，自動找出最值得改善的環節。",
+    practiceList: "今日練習單", practiceDescription: "從各項處方挑出不重複的六張譜面。", target: "目標",
+    attempts: (count) => `本次 ${count} 次`, evidence: (count) => `${count} 張譜面`, shareCard: "Session 分享卡", shareCardDescription: "只包含玩家名稱、摘要與建議，不包含完整成績、Google 資料或 DX NET 內部紀錄 ID。",
+    downloadCard: "下載分享卡", shareCardAction: "分享卡片", cardReady: "Session 分享卡已準備完成。", generatedLocally: "由 Mai-Score 在瀏覽器本機產生",
+    weakness: {
+      precision: { title: "高分精度", description: "多張譜面停在 SSS 到 SSS+ 之間；集中練習低 GREAT 與 BREAK 精度。" },
+      accuracy: { title: "基礎準度", description: "多張譜面仍在 97%～99.5%；先穩定讀譜與節奏，再追求高分。" },
+      combo: { title: "斷 Combo", description: "達成率已足夠，但 FC／AP 缺口較多；練習固定失誤段落。" },
+      consistency: { title: "穩定度", description: "本次重複挑戰同一譜面但未刷新；先降低失誤波動再繼續硬推。" }
+    }
+  };
+  if (language === "ja") return {
+    tab: "セッション", heading: "プレイセッション", description: "直近の来店プレイ、自己ベスト更新、次の練習ポイントをまとめます。",
+    empty: "このデータには最近のプレイ履歴がありません。", collectHint: "最新版の拡張機能を再読み込みして B50 を取得してください。最近のプレイ取得に失敗しても他のデータには影響しません。",
+    latestVisit: "最新セッション", plays: "プレイ数", uniqueCharts: "譜面数", personalBests: "自己ベスト", ratingSinceSnapshot: "前回からの Rating",
+    topPlays: "今回のハイライト", diagnosis: "弱点処方", diagnosisDescription: "全成績と今回の再挑戦から、優先して改善するポイントを選びます。",
+    practiceList: "今日の練習リスト", practiceDescription: "各処方から重複なしで最大6譜面を選びます。", target: "目標",
+    attempts: (count) => `今回 ${count} 回`, evidence: (count) => `${count} 譜面`, shareCard: "セッション共有カード", shareCardDescription: "プレイヤー名・概要・提案のみを含み、全成績・Google データ・DX NET 内部ログ ID は含みません。",
+    downloadCard: "カードを保存", shareCardAction: "カードを共有", cardReady: "セッション共有カードを作成しました。", generatedLocally: "Mai-Score がブラウザ内で生成",
+    weakness: {
+      precision: { title: "高精度", description: "SSS～SSS+ 間の譜面が多めです。GREAT と BREAK 精度を重点的に練習しましょう。" },
+      accuracy: { title: "基礎精度", description: "97%～99.5% の譜面が多めです。高スコアより先に読譜とリズムを安定させましょう。" },
+      combo: { title: "コンボ切れ", description: "達成率に対して FC／AP が不足しています。決まったミス箇所を分解して練習しましょう。" },
+      consistency: { title: "安定性", description: "同じ譜面を再挑戦しても更新できていません。スコアの振れ幅を小さくする練習がおすすめです。" }
+    }
+  };
+  return {
+    tab: "Session", heading: "Play session", description: "Summarize the latest arcade visit, personal bests, and the most useful practice focus.",
+    empty: "This collection has no recent-play data.", collectHint: "Reload the latest Extension and collect B50 again. A recent-play failure never blocks the rest of the collection.",
+    latestVisit: "Latest visit", plays: "Plays", uniqueCharts: "Unique charts", personalBests: "Personal bests", ratingSinceSnapshot: "Rating since snapshot",
+    topPlays: "Session highlights", diagnosis: "Weakness prescription", diagnosisDescription: "Uses Full Records and repeated attempts from this visit to prioritize what to improve.",
+    practiceList: "Today's practice list", practiceDescription: "Up to six unique charts selected across the prescriptions.", target: "Target",
+    attempts: (count) => `${count} attempts`, evidence: (count) => `${count} charts`, shareCard: "Session share card", shareCardDescription: "Contains the player name, summary, and coaching; never full scores, Google data, or an internal DX NET play-log ID.",
+    downloadCard: "Download card", shareCardAction: "Share card", cardReady: "Session share card is ready.", generatedLocally: "Generated locally by Mai-Score",
+    weakness: {
+      precision: { title: "High-score precision", description: "Several charts sit between SSS and SSS+. Focus on reducing GREATs and improving BREAK accuracy." },
+      accuracy: { title: "Accuracy foundation", description: "Several charts sit between 97% and 99.5%. Stabilize reading and timing before chasing peak scores." },
+      combo: { title: "Combo breaks", description: "Achievement is healthy but FC/AP coverage lags. Isolate the sections that repeatedly break combo." },
+      consistency: { title: "Consistency", description: "Repeated attempts did not set a new best. Reduce score variance before pushing the chart again." }
+    }
+  };
+}
+
 export interface PlannerCopy {
   goalTab: string;
   recommendationsTab: string;

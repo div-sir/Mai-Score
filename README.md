@@ -44,6 +44,8 @@ Building from source instead? See [Development](#development).
 - Opens collected sibling difficulties, observed best-score history, and target chart Rating from Records, while keeping STD and DX identities separate.
 - Simulates an eligible catalog chart against its explicit B15/B35 cutoff and saves optional target achievements and notes in a validated browser-local play queue.
 - Builds a target Rating plan from resolved Full Records, recalculating the B15/B35 cutoffs after every recommended achievement milestone and reporting the known played-chart ceiling.
+- Groups the newest recent-play entries into a visit Session, highlights personal bests, and turns Full Records plus repeated attempts into a local weakness prescription and practice list.
+- Creates a 1080×1350 Session share card locally in Studio; the card contains the player name, session summary, and coaching, not the complete score list or opaque DX NET play-log ID.
 - Recommends efficient Rating gains across all resolved played charts, including charts outside the current B50, without guessing the bucket for records whose current-version eligibility is ambiguous.
 - Searches the International catalog by title, song/sheet identity, level, difficulty, STD/DX type, version, exact constant, and sort order.
 
@@ -52,7 +54,7 @@ Building from source instead? See [Development](#development).
 1. Log in to [maimai DX NET International](https://maimaidx-eng.com/maimai-mobile/home/) or [maimai でらっくす NET](https://maimaidx.jp/maimai-mobile/home/) in the same browser.
 2. Click the Mai-Score icon in the toolbar. If needed, pick your language from the dropdown at the top (**English**, **繁體中文**, or **日本語**) — this also carries over to Studio and exported images.
 3. Leave **Include Full Records (Beta)** off for the fastest B50 export, or enable it to add all played charts for Studio completion/progress tools. Full Records currently supports International DX NET only.
-4. Click **Collect B50**. The popup fetches your profile and rating-target page, then (when selected) five difficulty pages, and shows separate B50 and Full Records matching totals.
+4. Click **Collect B50**. The popup fetches your profile and rating-target page, then (when selected) five difficulty pages. It also makes one optional recent-play request for Session tools and shows separate B50 and Full Records matching totals.
 5. Choose how to use the result:
    - **Preview and customize online** opens [Mai-Score Studio](https://mai-score.milifix.com) with the result already loaded, for choosing a layout/theme and exporting PNG or SVG.
    - **Direct export** (collapsed section below the buttons) downloads a quick PNG in the default style, or JSON in the dxrating, Mai-Score full, or Rhythm Record format, without leaving the popup.
@@ -66,6 +68,8 @@ The compact international chart dataset is generated from [gekichumai/dxrating](
 The exporter intentionally uses the official Rating Target page's first 15 / remaining 35 ordering. Unmatched charts remain in the full JSON and image with a warning, but are omitted from dxrating JSON.
 
 In v0.14, Full Records can come from an explicit Rhythm Record file or the Extension's opt-in International collector. The collector requests `musicGenre` once per difficulty (five requests total), keeps only played charts, and never stores raw authenticated HTML. A compatible maimai envelope marks exactly 15 records as `b15` and 35 as `b35`; additional records power completion views. Starting in v0.18, each complete snapshot is retained in local history and can be included in the optional Drive sync through a deduplicated shared-record pool. See [Rhythm Record v1](docs/rhythm-record-v1.md).
+
+The Extension separately makes one optional request to the rolling International recent-play page. It retains parsed play time, chart identity, achievement, DX score, and visible result flags, never raw HTML or the opaque DX NET play-log identifier. These entries power the Session view and follow the same local-history and opt-in Drive-sync choices as their snapshot.
 
 ## Development
 
