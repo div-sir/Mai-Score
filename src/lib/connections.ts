@@ -37,6 +37,17 @@ export interface CollectRequest {
   includeFullRecords?: boolean;
 }
 
+export interface SessionStatusRequest {
+  type: "MAI_SCORE_SESSION_STATUS";
+  protocolVersion: number;
+  connectionId: ConnectionId;
+}
+
+export type SessionStatusResponse =
+  | { ok: true; signedIn: true; playerName: string }
+  | { ok: true; signedIn: false }
+  | { ok: false; error: string };
+
 export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
   id: "dxnet-intl",
   game: "maimai-dx",
@@ -109,6 +120,14 @@ export function createCollectRequest(connectionId: ConnectionId, includeFullReco
   };
 }
 
+export function createSessionStatusRequest(connectionId: ConnectionId): SessionStatusRequest {
+  return {
+    type: "MAI_SCORE_SESSION_STATUS",
+    protocolVersion: CONNECTION_PROTOCOL_VERSION,
+    connectionId
+  };
+}
+
 export function isCollectRequest(value: unknown): value is CollectRequest {
   if (!value || typeof value !== "object") return false;
   const message = value as Partial<CollectRequest>;
@@ -116,4 +135,13 @@ export function isCollectRequest(value: unknown): value is CollectRequest {
     && message.protocolVersion === CONNECTION_PROTOCOL_VERSION
     && (message.includeFullRecords === undefined || typeof message.includeFullRecords === "boolean")
     && CONNECTIONS.some((connection) => connection.id === message.connectionId && connection.status === "active");
+}
+
+export function isSessionStatusRequest(value: unknown): value is SessionStatusRequest {
+  if (!value || typeof value !== "object") return false;
+  const message = value as Partial<SessionStatusRequest>;
+  return message.type === "MAI_SCORE_SESSION_STATUS"
+    && message.protocolVersion === CONNECTION_PROTOCOL_VERSION
+    && CONNECTIONS.some((connection) => connection.id === message.connectionId
+      && connection.status === "active" && connection.transport === "content-script");
 }

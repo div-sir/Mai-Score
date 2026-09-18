@@ -14,6 +14,11 @@
         <option value="zh-Hant">繁體中文</option>
         <option value="ja">日本語</option>
       </select></label>
+      <section id="login-state" class="login-state checking" aria-live="polite">
+        <span class="login-dot" aria-hidden="true"></span>
+        <div><strong id="login-state-label" data-i18n="loginChecking">Checking DX NET sign-in…</strong><small id="login-player"></small></div>
+        <button id="open-dxnet" type="button" data-i18n="openDxnetAction">Open DX NET</button>
+      </section>
       <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
       <section id="summary" class="summary" hidden>
         <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
@@ -33,7 +38,8 @@
         </div>
         <small class="mode-hint" data-i18n="includeFullRecordsHint">Full Records enables completion and progress tools.</small>
       </fieldset>
-      <button id="collect" class="primary" data-i18n="collect">Collect B50</button>
+      <button id="update-studio" class="primary" disabled data-i18n="updateStudio">Update Studio</button>
+      <button id="collect" class="collect-only" disabled data-i18n="collectOnly">Collect only</button>
       <button id="studio" class="studio-button" disabled data-i18n="studio">Preview and customize online</button>
       <details class="direct-export">
         <summary data-i18n="directExport">Direct export</summary>

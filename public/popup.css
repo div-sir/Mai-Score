@@ -10,6 +10,7 @@ header p,.privacy{margin:2px 0;color:#9aa5c8;font-size:12px}
 .chart-data.stale{color:#e4b777}
 .language-picker{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 12px;color:#8f9abf;font-size:11px}
 .language-picker select{min-width:130px;padding:6px 8px;font-size:11px}
+.login-state{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin-bottom:10px;border:1px solid #2c3456;border-radius:10px;padding:9px 10px;background:#11162a}.login-dot{width:9px;height:9px;border-radius:50%;background:#78839f;box-shadow:0 0 0 4px #78839f18}.login-state div{display:grid;min-width:0;gap:2px}.login-state strong{font-size:11px}.login-state small{overflow:hidden;color:#78839f;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.login-state button{padding:6px 8px;font-size:9px}.login-state.signed-in{border-color:#2e5b50}.login-state.signed-in .login-dot{background:#67d5ad;box-shadow:0 0 0 4px #67d5ad18}.login-state.signed-out{border-color:#675237}.login-state.signed-out .login-dot{background:#e4b777;box-shadow:0 0 0 4px #e4b77718}.login-state.unavailable{border-color:#63394a}.login-state.unavailable .login-dot{background:#d98aa1;box-shadow:0 0 0 4px #d98aa118}
 .status{padding:10px;border-radius:10px;background:#191e36;color:#bbc4e1;font-size:13px;margin-bottom:12px}
 .status.error{background:#3a1c2b;color:#ffb5c8}
 .status.ok{background:#12372f;color:#a9f5d6}
@@ -35,7 +36,7 @@ select:hover{border-color:#4a5588}
 button:active:not(:disabled){filter:brightness(.95)}
 button:disabled{opacity:.4;cursor:not-allowed;filter:none}
 :focus-visible{outline:2px solid #65e0ff;outline-offset:2px}
-.primary,.studio-button{width:100%;border:0}
+.primary,.studio-button,.collect-only{width:100%}.primary,.studio-button{border:0}
 .collection-mode{margin:0 0 10px;padding:0;border:0}
 .collection-mode legend{margin-bottom:6px;color:#8f9abf;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .mode-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -49,6 +50,7 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:none}
 .mode-options input:disabled+span{opacity:.55;cursor:wait}
 .mode-hint{display:block;margin:6px 2px 0;color:#78839f;font-size:9px;line-height:1.35}
 .primary{background:linear-gradient(135deg,#24bde8,#7667ff)}
+.collect-only{margin-top:7px;border-color:#303858;background:#171e38;color:#bbc4e1}
 .studio-button{margin-top:8px;background:#edf1ff;color:#11172a}
 .busy{position:relative;color:transparent!important}
 .busy::after{content:"";position:absolute;inset:0;margin:auto;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}

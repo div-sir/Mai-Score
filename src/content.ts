@@ -11,7 +11,14 @@ import {
   parseRecentPlaysPage,
   parseRatingTargetPage
 } from "./lib/parser";
-import { CONNECTION_PROTOCOL_VERSION, connectionForUrl, isCollectRequest, type ConnectionDescriptor } from "./lib/connections";
+import {
+  CONNECTION_PROTOCOL_VERSION,
+  connectionForUrl,
+  isCollectRequest,
+  isSessionStatusRequest,
+  type ConnectionDescriptor,
+  type SessionStatusResponse
+} from "./lib/connections";
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
 import { CHART_DATA_SOURCE } from "./lib/chart-data";
@@ -134,6 +141,38 @@ const FULL_RECORD_DIFFICULTIES: readonly Difficulty[] = ["basic", "advanced", "e
 const recordKey = (record: ResolvedChartScore) => record.sheetId
   ?? `${record.title.normalize("NFKC").trim().toLocaleLowerCase()}\u0000${record.type}\u0000${record.difficulty}`;
 
+/** A lightweight, read-only check used when the popup opens. It never stores
+ * credentials and only reads the same authenticated home page as collection. */
+async function probeSession(): Promise<SessionStatusResponse> {
+  const profileFrom = (document: Document) => {
+    try { return parseProfile(document, `${ROOT}/home/`).name; }
+    catch { return undefined; }
+  };
+  const visiblePlayer = profileFrom(document);
+  if (visiblePlayer) return { ok: true, signedIn: true, playerName: visiblePlayer };
+
+  try {
+    const response = await fetch(`${ROOT}/home/`, {
+      credentials: "include",
+      cache: "no-store",
+      signal: AbortSignal.timeout(OPTIONAL_FETCH_TIMEOUT_MS)
+    });
+    if (!response.ok) return { ok: false, error: `DX NET returned ${response.status}.` };
+    if (response.url && new URL(response.url).origin !== window.location.origin) {
+      return { ok: true, signedIn: false };
+    }
+    const html = await response.text();
+    const home = new DOMParser().parseFromString(html, "text/html");
+    if (/ERROR\s+CODE\s*[:：]\s*200002(?!\d)/i.test(home.body.textContent ?? "")) {
+      return { ok: true, signedIn: false };
+    }
+    const playerName = profileFrom(home);
+    return playerName ? { ok: true, signedIn: true, playerName } : { ok: true, signedIn: false };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 async function collect(connection: ConnectionDescriptor, includeFullRecords: boolean): Promise<CollectionResult> {
   const language = await currentLanguage();
   const text = (key: string, ...values: Array<string | number>) => popupText(language, key, ...values);
@@ -250,7 +289,15 @@ async function collect(connection: ConnectionDescriptor, includeFullRecords: boo
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!isCollectRequest(message) || !CONNECTION || message.connectionId !== CONNECTION.id) return;
+  if (!CONNECTION || message?.connectionId !== CONNECTION.id) return;
+  if (isSessionStatusRequest(message)) {
+    probeSession().then(sendResponse).catch((error: unknown) => sendResponse({
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    } satisfies SessionStatusResponse));
+    return true;
+  }
+  if (!isCollectRequest(message)) return;
   collect(CONNECTION, message.includeFullRecords === true).then((data) => sendResponse({ ok: true, data })).catch((error: unknown) => {
     const manifest = chrome.runtime.getManifest();
     sendResponse({ ok: false, error: `${error instanceof Error ? error.message : String(error)} [${manifest.version_name ?? manifest.version}]` });

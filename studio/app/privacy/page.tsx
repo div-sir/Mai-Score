@@ -32,7 +32,9 @@ export default function Privacy() {
       <section>
         <h2>What the extension reads</h2>
         <p>
-          When you click <strong>Collect B50</strong>, the extension requests your Best-50
+          When you open the popup on DX NET, the extension reads the authenticated home page
+          once to show whether you are signed in and, when available, your player name. When
+          you click <strong>Update Studio</strong> or the collect-only action, it requests your Best-50
           pages from whichever maimai DX NET you are signed in to
           &mdash; <code>maimaidx-eng.com</code> (International) or{" "}
           <code>maimaidx.jp</code> (Japan) &mdash; using the session you already have open,
@@ -97,8 +99,10 @@ export default function Privacy() {
             explicitly download or share it.
           </li>
           <li>
-            <strong>Optional Google Drive sync</strong> runs only after you choose Connect Google
-            Drive in Studio. On desktop, an already-authorized Mai-Score Extension can continue
+            <strong>Optional Google Drive sync</strong> is enabled only after you choose Connect Google
+            Drive in Studio. After that choice, a one-click Studio update synchronizes the newly
+            saved snapshot automatically while the connection remains active. On desktop, an
+            already-authorized Mai-Score Extension can continue
             to proxy the request. On mobile or another browser without the Extension, Studio uses
             Google&rsquo;s account chooser and requests the same limited{" "}
             <code>drive.appdata</code> scope directly. The short-lived web access token stays in

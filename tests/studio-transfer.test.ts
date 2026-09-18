@@ -4,6 +4,7 @@ import {
   isStudioImportRequest,
   isStudioSender,
   studioTransferKey,
+  studioTransferUrl,
   type StudioTransfer
 } from "../src/lib/studio-transfer";
 
@@ -32,6 +33,15 @@ describe("Studio transfer", () => {
     expect(isStudioImportRequest({ type: "MAI_SCORE_STUDIO_IMPORT", token })).toBe(true);
     expect(isStudioImportRequest({ type: "MAI_SCORE_STUDIO_IMPORT", token: "short" })).toBe(false);
     expect(studioTransferKey(token)).toBe(`studioTransfer:${token}`);
+  });
+
+  it("marks one-click handoffs for automatic Studio sync", () => {
+    const url = new URL(studioTransferUrl("extension-id", TOKEN, true));
+    const hash = new URLSearchParams(url.hash.slice(1));
+    expect(url.origin).toBe("https://mai-score.milifix.com");
+    expect(hash.get("extensionId")).toBe("extension-id");
+    expect(hash.get("transfer")).toBe(TOKEN);
+    expect(hash.get("autoSync")).toBe("1");
   });
 
   it("accepts only the deployed Studio origin", () => {

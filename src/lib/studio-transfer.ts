@@ -27,6 +27,16 @@ export interface StudioImportRequest {
 
 export const studioTransferKey = (token: string) => `${STUDIO_TRANSFER_PREFIX}${token}`;
 
+export function studioTransferUrl(extensionId: string, token: string, autoSync = false): string {
+  const url = new URL(STUDIO_URL);
+  url.hash = new URLSearchParams({
+    extensionId,
+    transfer: token,
+    ...(autoSync ? { autoSync: "1" } : {})
+  }).toString();
+  return url.toString();
+}
+
 export function isStudioImportRequest(value: unknown): value is StudioImportRequest {
   if (!value || typeof value !== "object") return false;
   const message = value as Partial<StudioImportRequest>;

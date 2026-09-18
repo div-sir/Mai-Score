@@ -283,6 +283,8 @@ export interface StudioCopy {
   driveDisconnectWarning: (error: string) => string;
   syncNow: string;
   syncing: string;
+  autoSyncing: string;
+  autoSyncLocalOnly: string;
   deleteCloudHistory: string;
   deletingCloudHistory: string;
   deleteCloudConfirm: string;
@@ -469,6 +471,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     driveDisconnectWarning: (error) => `Disconnected locally, but Google could not confirm revocation: ${error}`,
     syncNow: "Sync latest B50",
     syncing: "Syncing…",
+    autoSyncing: "New snapshot saved. Syncing Google Drive…",
+    autoSyncLocalOnly: "Studio was updated locally. Connect Google Drive to sync this snapshot.",
     deleteCloudHistory: "Delete cloud history",
     deletingCloudHistory: "Deleting cloud history…",
     deleteCloudConfirm: "Permanently delete the synced Mai-Score history from Google Drive? Local browser history will remain.",
@@ -654,6 +658,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     driveDisconnectWarning: (error) => `已清除本機連結，但 Google 無法確認撤銷授權：${error}`,
     syncNow: "同步最新 B50",
     syncing: "同步中…",
+    autoSyncing: "新快照已儲存，正在同步 Google 雲端硬碟…",
+    autoSyncLocalOnly: "Studio 已在本機更新；連結 Google 雲端硬碟後即可同步這份快照。",
     deleteCloudHistory: "刪除雲端歷史紀錄",
     deletingCloudHistory: "正在刪除雲端歷史紀錄…",
     deleteCloudConfirm: "要永久刪除 Google 雲端硬碟中的 Mai-Score 同步歷史嗎？此瀏覽器的本機歷史不會被刪除。",
@@ -839,6 +845,8 @@ const COPY: Record<LanguageId, StudioCopy> = {
     driveDisconnectWarning: (error) => `ローカル連携は解除しましたが、Google で認証の取り消しを確認できませんでした：${error}`,
     syncNow: "最新 B50 を同期",
     syncing: "同期中…",
+    autoSyncing: "新しいスナップショットを保存しました。Google ドライブと同期中…",
+    autoSyncLocalOnly: "Studio をローカルで更新しました。Google ドライブと連携すると、このスナップショットを同期できます。",
     deleteCloudHistory: "クラウド履歴を削除",
     deletingCloudHistory: "クラウド履歴を削除中…",
     deleteCloudConfirm: "Google ドライブ上の Mai-Score 同期履歴を完全に削除しますか？このブラウザのローカル履歴は削除されません。",

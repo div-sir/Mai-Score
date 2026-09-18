@@ -34,6 +34,8 @@ describe("extension package", () => {
     const popupPage = await readFile("public/popup.html", "utf8");
     expect(popupPage).toContain('id="unmatched-charts"');
     expect(popupPage).toContain('id="unmatched-list"');
+    expect(popupPage).toContain('id="login-state"');
+    expect(popupPage).toContain('id="update-studio"');
   });
 
   it("keeps the unpacked extension ID pinned for local OAuth testing", async () => {
