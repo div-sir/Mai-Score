@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decideAutoSync } from "./auto-sync";
-import type { HistoryEntry } from "./history";
-import type { StudioData } from "./types";
+import { decideAutoSync } from "../studio/lib/auto-sync";
+import type { HistoryEntry } from "../studio/lib/history";
+import type { StudioData } from "../studio/lib/types";
 
 const data = { exportedAt: "2026-09-18T12:00:00.000Z" } as StudioData;
 const history = [{ generatedAt: data.exportedAt }] as HistoryEntry[];
