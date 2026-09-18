@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.20.0] — 2026-09-18
+
 ### Added
 
 - Capture the rolling International DX NET recent-play page with one optional authenticated request, then group the newest plays into an arcade Session using a two-hour inactivity boundary. A recent-play failure never blocks B50 or Full Records collection.
