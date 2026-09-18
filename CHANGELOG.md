@@ -6,6 +6,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Added
 
+- Add a shared Xcode Safari Web Extension project with macOS and iOS app/extension targets, a Safari-specific least-privilege manifest, and an Xcode AI handoff checklist.
 - Show the current DX NET sign-in state and player name when the Extension popup opens, using a lightweight authenticated home-page check without retaining credentials or raw HTML.
 - Add a one-click **Update Studio** action that collects the selected B50 or Full Records mode, saves the new Studio snapshot, and automatically syncs it when Google Drive is already connected.
 

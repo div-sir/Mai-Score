@@ -4,6 +4,8 @@
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
+An Apple project for a shared macOS and iOS Safari Web Extension is available under [`apple/`](apple/). Build the shared Web Extension resources with `npm run build:apple`, then continue signing and device work from the Xcode handoff in [`apple/XCODE_HANDOFF.md`](apple/XCODE_HANDOFF.md).
+
 > The Japan-domestic (`maimaidx.jp`) adapter reuses the international parser on the assumption both sites share the same page template. That assumption has not been checked against a real, logged-in domestic account — please open an issue if Collect fails there.
 
 ## Install

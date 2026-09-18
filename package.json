@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:apple": "npm run build",
     "sync-data": "node scripts/sync-dxdata.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

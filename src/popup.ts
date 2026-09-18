@@ -46,6 +46,8 @@ const languageSelect = $<HTMLSelectElement>("language");
 const driveConnectButton = $<HTMLButtonElement>("drive-connect");
 const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
 const collectionModeInputs = document.querySelectorAll<HTMLInputElement>('input[name="collection-mode"]');
+const extensionDriveAvailable = typeof chrome.identity?.getAuthToken === "function";
+const directDownloadsAvailable = typeof chrome.downloads?.download === "function";
 let language: PopupLanguage = DEFAULT_LANGUAGE;
 type LoginState = "checking" | "signed-in" | "signed-out" | "unavailable";
 let loginState: LoginState = "checking";
@@ -186,6 +188,10 @@ function renderDriveState(connected: boolean) {
 }
 
 async function refreshDriveState() {
+  if (!extensionDriveAvailable) {
+    $("drive-panel").hidden = true;
+    return;
+  }
   if (!await driveEnabled(chrome.storage.local)) {
     renderDriveState(false);
     return;
@@ -525,6 +531,7 @@ collectionModeInputs.forEach((input) => {
 
 async function initializePopup() {
   await initializeLanguage();
+  if (!directDownloadsAvailable) $("direct-export").hidden = true;
   // Never interactive on open: the panel reflects existing state, and consent
   // is only ever raised by the user pressing Connect.
   await refreshDriveState();
