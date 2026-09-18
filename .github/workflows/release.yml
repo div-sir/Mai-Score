@@ -53,10 +53,12 @@ jobs:
             const previous = JSON.parse(execFileSync('git', ['show', `${process.env.BEFORE_SHA}:package.json`], {encoding:'utf8'}));
             publish = previous.version !== version;
           }
-          try {
-            const existing = execFileSync('git', ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`], {encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
-            if (existing !== process.env.GITHUB_SHA) throw Error('Existing tag points to a different commit');
-          } catch (error) { if (!error.status) throw error; }
+          if (publish) {
+            try {
+              const existing = execFileSync('git', ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`], {encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
+              if (existing !== process.env.GITHUB_SHA) throw Error('Existing tag points to a different commit');
+            } catch (error) { if (!error.status) throw error; }
+          }
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\npublish=${publish}\n`);
           JS
 
