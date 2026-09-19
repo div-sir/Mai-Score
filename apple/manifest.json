@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.20.0",
-  "description": "Export maimai DX International B50 as customizable images or versioned JSON.",
+  "version": "0.21.0",
+  "description": "Collect and review maimai DX, SOUND VOLTEX, and beatmania IIDX scores locally.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -28,6 +28,8 @@
   "host_permissions": [
     "https://maimaidx-eng.com/maimai-mobile/*",
     "https://maimaidx.jp/maimai-mobile/*",
+    "https://p.eagate.573.jp/game/sdvx/*",
+    "https://p.eagate.573.jp/game/2dx/*",
     "https://shama.dxrating.net/images/cover/v2/*"
   ],
   "externally_connectable": {
@@ -43,6 +45,16 @@
       ],
       "js": [
         "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://p.eagate.573.jp/game/sdvx/*",
+        "https://p.eagate.573.jp/game/2dx/*"
+      ],
+      "js": [
+        "konami-content.js"
       ],
       "run_at": "document_idle"
     }

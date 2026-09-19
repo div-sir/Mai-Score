@@ -20,6 +20,21 @@
         <button id="open-dxnet" type="button" data-i18n="openDxnetAction">Open DX NET</button>
       </section>
       <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
+      <section class="konami-import">
+        <div class="konami-heading"><div><strong id="konami-title">KONAMI 成績匯入</strong><small id="konami-hint">選擇官方 CSV，整理後直接在 Studio 開啟。</small></div><span>K</span></div>
+        <div class="konami-controls">
+          <select id="konami-game" aria-label="KONAMI game">
+            <option value="auto">Auto detect</option>
+            <option value="sound-voltex">SOUND VOLTEX</option>
+            <option value="beatmania-iidx">beatmania IIDX</option>
+          </select>
+          <button id="konami-official" type="button">開啟官方 CSV</button>
+        </div>
+        <input id="konami-file" type="file" accept=".csv,text/csv,text/plain" hidden>
+        <button id="konami-import" class="konami-import-button" type="button">選擇 CSV 並在 Studio 開啟</button>
+        <button id="konami-open-last" class="konami-last-button" type="button" hidden>重新開啟上次成績</button>
+        <p id="konami-result" class="konami-result" hidden></p>
+      </section>
       <section id="summary" class="summary" hidden>
         <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
         <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>

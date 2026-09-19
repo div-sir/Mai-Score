@@ -44,15 +44,15 @@ describe("connection registry", () => {
     expect(planned.map((connection) => connection.id)).toEqual([
       "rhythm-record-file",
       "popn-konami",
-      "sdvx-konami",
       "ddr-konami"
     ]);
     expect(planned.map((connection) => connection.game)).toEqual([
       "maimai-dx",
       "popn-music",
-      "sound-voltex",
       "dance-dance-revolution"
     ]);
     expect(isCollectRequest(createCollectRequest("sdvx-konami"))).toBe(false);
+    expect(connectionForUrl("https://p.eagate.573.jp/game/sdvx/vii/playdata/download/index.html")?.id).toBe("sdvx-konami");
+    expect(connectionForUrl("https://p.eagate.573.jp/game/2dx/33/djdata/score_download.html")?.id).toBe("iidx-konami-csv");
   });
 });

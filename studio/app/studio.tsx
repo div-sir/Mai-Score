@@ -6,6 +6,7 @@ import B50Preview from "./b50-preview";
 import ProgressDashboard from "./progress";
 import RecordsDashboard from "./records";
 import SessionDashboard from "./session";
+import RhythmRecordsDashboard from "./rhythm-records";
 import { renderStudioSvg } from "../lib/render";
 import { sessionCopy, studioCopy } from "../lib/i18n";
 import {
@@ -47,6 +48,8 @@ import {
   type StudioOptions
 } from "../lib/types";
 import { decideAutoSync } from "../lib/auto-sync";
+import { isGenericRhythmRecord, parseGenericRhythmRecord, rhythmGameLabel } from "../lib/generic-rhythm";
+import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
@@ -178,6 +181,7 @@ function safeName(value: string) {
 
 export default function Studio() {
   const [data, setData] = useState<StudioData | null>(null);
+  const [rhythmData, setRhythmData] = useState<RhythmRecordEnvelope | null>(null);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [language, setLanguage] = useState<LanguageId>("en");
@@ -287,8 +291,21 @@ export default function Studio() {
         try {
           const received = await receiveFromExtension(extensionId, transfer, savedLanguage);
           if (cancelled) return;
-          const parsed = parseMaiScore(received.data);
           const timestamp = new Date().toISOString();
+          if (isGenericRhythmRecord(received.data)) {
+            const parsed = parseGenericRhythmRecord(received.data);
+            setRhythmData(parsed);
+            setData(null);
+            setAssets({ covers: {} });
+            setLanguage(received.language);
+            setSource("Mai-Score extension");
+            setGeneratedAt(timestamp);
+            setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString()} charts imported.`);
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+            return;
+          }
+          const parsed = parseMaiScore(received.data);
+          setRhythmData(null);
           setData(parsed);
           setAssets(received.assets);
           setLanguage(received.language);
@@ -380,7 +397,9 @@ export default function Studio() {
     setLanguage(next);
     touchSettings();
     const nextCopy = studioCopy(next);
-    setMessage(data ? nextCopy.ready(data.player.name, data.records.length) : nextCopy.emptyMessage);
+    setMessage(data ? nextCopy.ready(data.player.name, data.records.length)
+      : rhythmData ? `${rhythmGameLabel(rhythmData.source.game)} · ${rhythmData.records.length.toLocaleString(next)} charts imported.`
+        : nextCopy.emptyMessage);
   }
 
   /** What this device would contribute to a sync, or nothing if untouched. */
@@ -392,7 +411,19 @@ export default function Studio() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const parsed = parseMaiScore(JSON.parse(await file.text()));
+      const input = JSON.parse(await file.text());
+      if (isGenericRhythmRecord(input)) {
+        const parsed = parseGenericRhythmRecord(input);
+        setRhythmData(parsed);
+        setData(null);
+        setAssets({ covers: {} });
+        setSource(file.name);
+        setGeneratedAt(new Date().toISOString());
+        setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString(language)} charts imported.`);
+        return;
+      }
+      const parsed = parseMaiScore(input);
+      setRhythmData(null);
       setData(parsed);
       setAssets({ covers: {} });
       setSource(file.name);
@@ -754,6 +785,7 @@ export default function Studio() {
       await clearStudioHistory();
       setHistory([]);
       setData(null);
+      setRhythmData(null);
       setAssets({ covers: {} });
       setSource("");
       setGeneratedAt(new Date().toISOString());
@@ -772,7 +804,7 @@ export default function Studio() {
             <span className="brand-mark">M</span>
             <div><strong>Mai-Score Studio</strong><small>{copy.subtitle}</small></div>
           </div>
-          <nav className="studio-tabs" aria-label={copy.studioSections}>
+          <nav className="studio-tabs" aria-label={copy.studioSections} hidden={Boolean(rhythmData)}>
             <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
             <button type="button" aria-pressed={studioView === "session"} onClick={() => setStudioView("session")}>{sessionText.tab}</button>
             <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
@@ -782,10 +814,12 @@ export default function Studio() {
         <div className="data-actions">
           <div className="data-summary">
             <span>{source || copy.emptySource}</span>
-            <strong>{data?.player.name ?? "—"}</strong>
-            <small>{data ? `B50 ${data.b50Rating} · ${new Date(data.exportedAt).toLocaleString(language)}` : copy.emptyPreview}</small>
+            <strong>{data?.player.name ?? (rhythmData ? rhythmGameLabel(rhythmData.source.game) : "—")}</strong>
+            <small>{data ? `B50 ${data.b50Rating} · ${new Date(data.exportedAt).toLocaleString(language)}`
+              : rhythmData ? `${rhythmData.records.length.toLocaleString(language)} charts · ${new Date(rhythmData.generatedAt).toLocaleString(language)}`
+                : copy.emptyPreview}</small>
           </div>
-          <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading}>
+          <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading} hidden={Boolean(rhythmData)}>
             <span className="drive-logo" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
@@ -883,7 +917,7 @@ export default function Studio() {
         <div className="status-message"><span />{message}</div>
       </div>
 
-      {studioView === "session" ? (
+      {rhythmData ? <RhythmRecordsDashboard data={rhythmData} language={language} /> : studioView === "session" ? (
         <SessionDashboard
           data={data}
           assets={assets}

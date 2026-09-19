@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.20.0 — play sessions, coaching, and share cards.** Studio now groups the latest arcade visit, recommends practice from Full Records, and creates a local Session share card. Download the packaged version from Releases.
+> **v0.21.0 — KONAMI imports and persistent collection.** Import official SOUND VOLTEX and beatmania IIDX CSV files from the Extension or supported e-amusement pages, review them in Studio, and reopen the latest local result after closing the popup. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 

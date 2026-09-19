@@ -4,15 +4,23 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.21.0] — 2026-09-18
+
 ### Added
 
 - Add a shared Xcode Safari Web Extension project with macOS and iOS app/extension targets, a Safari-specific least-privilege manifest, and an Xcode AI handoff checklist.
 - Show the current DX NET sign-in state and player name when the Extension popup opens, using a lightweight authenticated home-page check without retaining credentials or raw HTML.
 - Add a one-click **Update Studio** action that collects the selected B50 or Full Records mode, saves the new Studio snapshot, and automatically syncs it when Google Drive is already connected.
+- Import official SOUND VOLTEX and beatmania IIDX CSV files locally, including automatic game detection and UTF-8/Shift_JIS decoding, then hand the normalized Rhythm Record directly to Studio.
+- Show a dismissible Mai-Score import prompt on supported e-amusement pages without reading page content, account credentials, cookies, or session data.
+- Add a multi-game Studio score dashboard with song/artist search, difficulty filtering, and native score, grade, clear, and miss fields.
+- Keep the latest maimai collection and latest KONAMI import in Extension-local storage so closing and reopening the popup does not discard collected work.
 
 ### Changed
 
 - Keep collection user-initiated while making the existing collect-only and Studio preview actions available as secondary choices.
+- Expand the Rhythm Record schema and connection registry with an official-file beatmania IIDX adapter and active SDVX CSV transport.
+- Update the privacy disclosure and Chrome/Safari host permissions for the local e-amusement import prompt.
 
 ## [0.20.0] — 2026-09-18
 

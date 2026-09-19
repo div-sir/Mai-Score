@@ -1,7 +1,12 @@
 import type { CollectionResult } from "./types";
 
 export const RHYTHM_RECORD_SCHEMA = "mai-score/rhythm-record/v1" as const;
-export type RhythmGameId = "maimai-dx" | "popn-music" | "sound-voltex" | "dance-dance-revolution";
+export type RhythmGameId =
+  | "maimai-dx"
+  | "beatmania-iidx"
+  | "popn-music"
+  | "sound-voltex"
+  | "dance-dance-revolution";
 
 export interface RhythmRecordEnvelope {
   schema: typeof RHYTHM_RECORD_SCHEMA;

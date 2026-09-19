@@ -10,9 +10,14 @@ import {
 import {
   consumeStudioTransfer,
   isStudioImportRequest,
-  isStudioSender
+  isStudioSender,
+  STUDIO_TRANSFER_TTL_MS,
+  studioTransferKey,
+  studioTransferUrl,
+  type StudioTransfer
 } from "./lib/studio-transfer";
 import type { ParsedScore } from "./lib/types";
+import { isKonamiImportRequest, LAST_RHYTHM_RECORD_KEY } from "./lib/konami-import";
 
 // The chart database is shared across every maimai DX region — a song's
 // internal level doesn't change with which DX NET a player logged into — so
@@ -41,6 +46,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         error: error instanceof Error ? error.message : String(error)
       });
     });
+  return true;
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!isKonamiImportRequest(message)) return;
+  const token = crypto.randomUUID();
+  const transfer: StudioTransfer = {
+    data: message.data,
+    assets: { covers: {} },
+    language: message.language,
+    expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
+  };
+  Promise.all([
+    chrome.storage.session.set({ [studioTransferKey(token)]: transfer }),
+    chrome.storage.local.set({ [LAST_RHYTHM_RECORD_KEY]: message.data })
+  ]).then(() => chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token) }))
+    .then(() => sendResponse({ ok: true }))
+    .catch((error: unknown) => sendResponse({
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    }));
   return true;
 });
 

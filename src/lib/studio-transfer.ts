@@ -1,5 +1,6 @@
 import type { CollectionResult } from "./types";
 import type { PopupLanguage } from "./i18n";
+import type { RhythmRecordEnvelope } from "./rhythm-record";
 
 export const STUDIO_URL = "https://mai-score.milifix.com";
 export const STUDIO_TRANSFER_TTL_MS = 5 * 60 * 1000;
@@ -14,7 +15,7 @@ export interface StudioTransferAssets {
 }
 
 export interface StudioTransfer {
-  data: CollectionResult;
+  data: CollectionResult | RhythmRecordEnvelope;
   assets: StudioTransferAssets;
   language: PopupLanguage;
   expiresAt: number;
