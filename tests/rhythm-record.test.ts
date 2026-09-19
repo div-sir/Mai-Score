@@ -86,6 +86,7 @@ describe("Rhythm Record v1", () => {
     expect(schema.properties.schema.const).toBe(RHYTHM_RECORD_SCHEMA);
     expect(schema.$defs.source.properties.game.enum).toEqual([
       "maimai-dx",
+      "beatmania-iidx",
       "popn-music",
       "sound-voltex",
       "dance-dance-revolution"

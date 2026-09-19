@@ -20,12 +20,24 @@ export default function Privacy() {
       <section>
         <h2>Summary</h2>
         <p>
-          Mai-Score reads your own maimai DX NET score page so you can export it as an image
-          or a JSON file. Your scores are processed in your browser and remain local by default.
+          Mai-Score reads your own maimai DX NET score page, or a KONAMI score CSV that you
+          explicitly select, so you can review and export your records. Your scores are processed
+          in your browser and remain local by default.
           If you explicitly connect Google Drive, your Studio history can be synchronized to
           your private Drive app-data folder. There is no Mai-Score account, no analytics, and
           no advertising. The one case where a request reaches our server is song cover art,
           described under <em>Cover art</em> below.
+        </p>
+      </section>
+
+      <section>
+        <h2>KONAMI score imports</h2>
+        <p>
+          On supported SOUND VOLTEX and beatmania IIDX e-amusement pages, the Extension displays
+          a local import prompt. It does not read the page, your KONAMI ID, password, cookies, or
+          e-amusement pass details. A score import begins only when you select an official CSV file.
+          The file is decoded and normalized in the browser, and the original CSV is not uploaded
+          or retained.
         </p>
       </section>
 
@@ -71,10 +83,11 @@ export default function Privacy() {
           </li>
           <li>
             <strong>Collected scores</strong>{" "}
-            are held in memory while the popup is open. When
-            you open Studio, they are placed in the extension&rsquo;s session storage under a
-            single-use token and handed to the Studio tab. That entry expires and is removed;
-            session storage is cleared when the browser closes.
+            keep one latest maimai collection and one latest KONAMI import in the Extension&rsquo;s
+            local storage so closing and reopening the popup does not discard your work. When you
+            open Studio, the selected result is also placed in session storage under a single-use
+            token and handed to the Studio tab. That handoff entry expires and is removed; session
+            storage is cleared when the browser closes.
           </li>
           <li>
             <strong>In Studio</strong>, your most recent snapshot and history are saved in your
@@ -163,10 +176,11 @@ export default function Privacy() {
       <section>
         <h2>Permissions the extension asks for</h2>
         <ul>
-          <li><strong>storage</strong> — save your language preference and the single-use Studio handoff.</li>
+          <li><strong>storage</strong> — save your language preference, latest local score results, and the single-use Studio handoff.</li>
           <li><strong>downloads</strong> — save the image or JSON file you asked to export.</li>
           <li><strong>identity</strong> — request Google consent, obtain the limited Drive token, and revoke it when you disconnect.</li>
           <li><strong>maimaidx-eng.com</strong> and <strong>maimaidx.jp</strong> — read your own score pages, International or Japan.</li>
+          <li><strong>p.eagate.573.jp</strong> — display the local CSV import prompt on supported SDVX and IIDX pages; the page and its login session are not collected.</li>
           <li><strong>shama.dxrating.net</strong> — fetch song cover art for the export.</li>
           <li><strong>www.googleapis.com</strong> — synchronize the optional history document in Drive app data.</li>
           <li><strong>oauth2.googleapis.com</strong> — revoke the Google grant when you disconnect.</li>
@@ -176,8 +190,8 @@ export default function Privacy() {
       <section>
         <h2>Removing your data</h2>
         <p>
-          Use <strong>Clear local data</strong> in Studio to delete local snapshots and history,
-          and uninstall the extension to remove its stored preferences. Choosing
+          Use <strong>Clear local data</strong> in Studio to delete Studio snapshots and history,
+          and uninstall the extension to remove its stored preferences and latest score results. Choosing
           <strong>Disconnect Google Drive</strong> in Studio revokes the active web or Extension
           grant and clears the local token; it does not silently delete data. Use the separate
           <strong>Delete cloud history</strong> action in Studio to permanently delete the
@@ -207,7 +221,8 @@ export default function Privacy() {
 
       <footer className="legal-footer">
         Mai-Score is a community project. It is not affiliated with, endorsed by, or sponsored
-        by SEGA. &ldquo;maimai&rdquo; is a trademark of its respective owner.
+        by SEGA or KONAMI. &ldquo;maimai&rdquo;, &ldquo;SOUND VOLTEX&rdquo;, and
+        &ldquo;beatmania IIDX&rdquo; are trademarks of their respective owners.
       </footer>
     </main>
   );

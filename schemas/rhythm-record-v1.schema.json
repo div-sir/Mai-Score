@@ -42,6 +42,7 @@
         "game": {
           "enum": [
             "maimai-dx",
+            "beatmania-iidx",
             "popn-music",
             "sound-voltex",
             "dance-dance-revolution"

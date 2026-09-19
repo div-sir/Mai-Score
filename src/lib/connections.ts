@@ -6,6 +6,7 @@ export type ConnectionId =
   | "dxnet-intl"
   | "dxnet-jp"
   | "rhythm-record-file"
+  | "iidx-konami-csv"
   | "popn-konami"
   | "sdvx-konami"
   | "ddr-konami";
@@ -58,6 +59,14 @@ export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
   region: "intl",
   capabilities: { profile: true, assets: true, best50: true, records: true }
 }, {
+  id: "iidx-konami-csv",
+  game: "beatmania-iidx",
+  label: "beatmania IIDX official CSV",
+  transport: "file",
+  status: "active",
+  matches: ["https://p.eagate.573.jp/game/2dx/"],
+  capabilities: { profile: false, assets: false, best50: false, records: true }
+}, {
   id: "dxnet-jp",
   game: "maimai-dx",
   label: "maimai でらっくす NET",
@@ -91,11 +100,11 @@ export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
 }, {
   id: "sdvx-konami",
   game: "sound-voltex",
-  label: "SOUND VOLTEX record service",
-  transport: "api",
-  status: "planned",
-  matches: [],
-  capabilities: { profile: true, assets: false, best50: false, records: true }
+  label: "SOUND VOLTEX official CSV",
+  transport: "file",
+  status: "active",
+  matches: ["https://p.eagate.573.jp/game/sdvx/"],
+  capabilities: { profile: false, assets: false, best50: false, records: true }
 }, {
   id: "ddr-konami",
   game: "dance-dance-revolution",
@@ -134,7 +143,8 @@ export function isCollectRequest(value: unknown): value is CollectRequest {
   return message.type === "MAI_SCORE_COLLECT"
     && message.protocolVersion === CONNECTION_PROTOCOL_VERSION
     && (message.includeFullRecords === undefined || typeof message.includeFullRecords === "boolean")
-    && CONNECTIONS.some((connection) => connection.id === message.connectionId && connection.status === "active");
+    && CONNECTIONS.some((connection) => connection.id === message.connectionId
+      && connection.status === "active" && connection.transport === "content-script");
 }
 
 export function isSessionStatusRequest(value: unknown): value is SessionStatusRequest {

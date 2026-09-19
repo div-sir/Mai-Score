@@ -33,8 +33,12 @@ import {
   type StudioTransfer
 } from "./lib/studio-transfer";
 import type { CollectionResult } from "./lib/types";
+import { decodeKonamiCsvBytes, parseKonamiCsv, type KonamiCsvGame } from "./lib/konami-csv";
+import { isKonamiImportRequest, LAST_COLLECTION_KEY, LAST_RHYTHM_RECORD_KEY } from "./lib/konami-import";
+import type { RhythmRecordEnvelope } from "./lib/rhythm-record";
 
 let result: CollectionResult | null = null;
+let latestRhythmRecord: RhythmRecordEnvelope | null = null;
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const status = $("status");
 const exportButton = $<HTMLButtonElement>("export");
@@ -43,6 +47,10 @@ const collectButton = $<HTMLButtonElement>("collect");
 const updateStudioButton = $<HTMLButtonElement>("update-studio");
 const fullRecordsCheckbox = $<HTMLInputElement>("include-full-records");
 const languageSelect = $<HTMLSelectElement>("language");
+const konamiGame = $<HTMLSelectElement>("konami-game");
+const konamiFile = $<HTMLInputElement>("konami-file");
+const konamiImportButton = $<HTMLButtonElement>("konami-import");
+const konamiOpenLastButton = $<HTMLButtonElement>("konami-open-last");
 const driveConnectButton = $<HTMLButtonElement>("drive-connect");
 const driveDisconnectButton = $<HTMLButtonElement>("drive-disconnect");
 const collectionModeInputs = document.querySelectorAll<HTMLInputElement>('input[name="collection-mode"]');
@@ -68,6 +76,21 @@ function applyLanguage() {
   if (result) renderUnmatchedCharts(result);
   updateCollectLabel();
   renderLoginState(loginState, loginPlayer);
+  const konami = language === "zh-Hant" ? {
+    title: "KONAMI 成績匯入", hint: "選擇官方 CSV，整理後直接在 Studio 開啟。",
+    official: "開啟官方 CSV", action: "選擇 CSV 並在 Studio 開啟", last: "重新開啟上次成績"
+  } : language === "ja" ? {
+    title: "KONAMI スコア取込", hint: "公式CSVを選び、Studioで直接開きます。",
+    official: "公式CSVを開く", action: "CSVを選んでStudioで開く", last: "前回のスコアを開く"
+  } : {
+    title: "KONAMI score import", hint: "Choose an official CSV and open the organized records in Studio.",
+    official: "Open official CSV", action: "Choose CSV and open Studio", last: "Open last imported scores"
+  };
+  $("konami-title").textContent = konami.title;
+  $("konami-hint").textContent = konami.hint;
+  $("konami-official").textContent = konami.official;
+  konamiImportButton.textContent = konami.action;
+  konamiOpenLastButton.textContent = konami.last;
 }
 
 function renderLoginState(next: LoginState, playerName = "") {
@@ -128,6 +151,12 @@ async function initializeLanguage() {
 function setStatus(text: string, kind = "") {
   status.textContent = text;
   status.className = `status ${kind}`;
+}
+
+async function readCsvFile(file: File): Promise<string> {
+  // KONAMI downloads have historically used both UTF-8 and Windows Japanese
+  // encodings. Decode locally; the original file never leaves the browser.
+  return decodeKonamiCsvBytes(await file.arrayBuffer());
 }
 
 function updateCollectLabel() {
@@ -444,6 +473,68 @@ async function openStudio(autoSync: boolean) {
   setStatus(t(autoSync ? "studioAutoOpened" : "studioOpened", Object.keys(assets.covers).length), "ok");
 }
 
+async function openRhythmStudio(data: RhythmRecordEnvelope) {
+  const token = crypto.randomUUID();
+  const transfer: StudioTransfer = {
+    data,
+    assets: { covers: {} },
+    language,
+    expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
+  };
+  await chrome.storage.session.set({ [studioTransferKey(token)]: transfer });
+  await chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token) });
+}
+
+function renderRhythmResult(data: RhythmRecordEnvelope) {
+  latestRhythmRecord = data;
+  const game = data.source.game === "beatmania-iidx" ? "beatmania IIDX" : "SOUND VOLTEX";
+  const resultLine = $("konami-result");
+  resultLine.hidden = false;
+  resultLine.textContent = `${game} · ${data.records.length.toLocaleString()} charts`;
+  konamiOpenLastButton.hidden = false;
+}
+
+$("konami-official").addEventListener("click", async () => {
+  const game = konamiGame.value;
+  const url = game === "beatmania-iidx"
+    ? "https://p.eagate.573.jp/game/2dx/33/djdata/score_download.html"
+    : "https://p.eagate.573.jp/game/sdvx/vii/playdata/download/index.html";
+  await chrome.tabs.create({ url });
+});
+
+konamiImportButton.addEventListener("click", () => konamiFile.click());
+konamiOpenLastButton.addEventListener("click", async () => {
+  if (!latestRhythmRecord) return;
+  konamiOpenLastButton.disabled = true;
+  try {
+    await openRhythmStudio(latestRhythmRecord);
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : String(error), "error");
+  } finally {
+    konamiOpenLastButton.disabled = false;
+  }
+});
+konamiFile.addEventListener("change", async () => {
+  const file = konamiFile.files?.[0];
+  if (!file) return;
+  konamiImportButton.disabled = true;
+  konamiImportButton.classList.add("busy");
+  try {
+    const rhythmResult = parseKonamiCsv(await readCsvFile(file), file.name, konamiGame.value as KonamiCsvGame);
+    renderRhythmResult(rhythmResult);
+    await chrome.storage.local.set({ [LAST_RHYTHM_RECORD_KEY]: rhythmResult });
+    await openRhythmStudio(rhythmResult);
+    const game = rhythmResult.source.game === "beatmania-iidx" ? "beatmania IIDX" : "SOUND VOLTEX";
+    setStatus(`${game}: ${rhythmResult.records.length.toLocaleString()} charts imported.`, "ok");
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : String(error), "error");
+  } finally {
+    konamiFile.value = "";
+    konamiImportButton.disabled = false;
+    konamiImportButton.classList.remove("busy");
+  }
+});
+
 async function runCollection(trigger: HTMLButtonElement, updateStudio: boolean) {
   // A collection is sequential and must have only one owner; otherwise two
   // runs can race the shared DX NET session and overwrite the popup result.
@@ -457,6 +548,7 @@ async function runCollection(trigger: HTMLButtonElement, updateStudio: boolean) 
     const { response, connection } = await collect();
     if (!response.ok) throw new Error(response.error);
     renderCollectionResult(response.data);
+    await chrome.storage.local.set({ [LAST_COLLECTION_KEY]: response.data });
     if (updateStudio) {
       setStatus(t("studioUpdating"));
       await openStudio(true);
@@ -531,11 +623,26 @@ collectionModeInputs.forEach((input) => {
 
 async function initializePopup() {
   await initializeLanguage();
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const detected = tab?.url ? connectionForUrl(tab.url) : undefined;
+  if (detected?.id === "iidx-konami-csv") konamiGame.value = "beatmania-iidx";
+  if (detected?.id === "sdvx-konami") konamiGame.value = "sound-voltex";
   if (!directDownloadsAvailable) $("direct-export").hidden = true;
   // Never interactive on open: the panel reflects existing state, and consent
   // is only ever raised by the user pressing Connect.
   await refreshDriveState();
   await refreshLoginState();
+  const stored = await chrome.storage.local.get([LAST_COLLECTION_KEY, LAST_RHYTHM_RECORD_KEY]);
+  const collection = stored[LAST_COLLECTION_KEY];
+  if (collection && typeof collection === "object" && Array.isArray((collection as CollectionResult).records)
+    && (collection as CollectionResult).player?.name) {
+    renderCollectionResult(collection as CollectionResult);
+  }
+  const rhythm = stored[LAST_RHYTHM_RECORD_KEY];
+  const restoreRequest = { type: "MAI_SCORE_KONAMI_IMPORT", data: rhythm, language };
+  if (isKonamiImportRequest(restoreRequest)) {
+    renderRhythmResult(restoreRequest.data);
+  }
 }
 
 void initializePopup();

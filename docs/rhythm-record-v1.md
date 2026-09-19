@@ -41,6 +41,7 @@ Full Records are saved only in the browser's latest local snapshot. Drive histor
 | Game ID | Expected common fields | `gameSpecific` examples |
 | --- | --- | --- |
 | `maimai-dx` | `achievementRate`, DX Rating, displayed/internal level | combo flag (`fc`, `fc+`, `ap`, `ap+`), sync flag (`fs`, `fs+`, `fsd`, `fsd+`, `fdx`, `fdx+`), B15/B35 |
+| `beatmania-iidx` | EX score, DJ level, clear status, miss count | SP/DP play style, play count, version |
 | `popn-music` | raw score, clear status, miss/BAD count | button count, clear medal details |
 | `sound-voltex` | raw/EX score, grade, clear status, VOLFORCE rating | effective rate, skill analyzer context |
 | `dance-dance-revolution` | raw/EX score, grade, clear status, judgments | play style, flare skill, fast/slow counts |
