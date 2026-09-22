@@ -4,6 +4,21 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.22.0] — 2026-09-22
+
+### Added
+
+- Collect readable DanceDanceRevolution, SOUND VOLTEX, and beatmania IIDX PLAY DATA or DJ DATA pages directly from the current browser session without requiring an official CSV.
+- Follow same-game data-page links, retain headings, profile fields, tables, and other visible content locally, and report pages blocked by sign-in, paid access, or a fetch error instead of bypassing those restrictions.
+- Add a dedicated Studio dashboard for collected KONAMI pages with source-page links, access-state badges, searchable content, responsive field cards, and scrollable tables.
+- Keep the latest direct KONAMI page collection in Extension-local storage so it can be reopened after the popup closes.
+
+### Changed
+
+- Make the Extension popup page-aware: maimai shows DX NET collection, SDVX and IIDX show direct collection plus optional CSV import, DDR shows its own direct collection controls, and unrelated sites hide unusable game actions.
+- Show the in-page collection prompt on DDR in addition to SDVX and IIDX, while keeping collection explicitly user-triggered and confined to the current game’s data area.
+- Update Chrome and Safari host permissions, documentation, and privacy disclosure for direct e-amusement page collection.
+
 ## [0.21.0] — 2026-09-18
 
 ### Added

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.21.0",
-  "description": "Collect and review maimai DX, SOUND VOLTEX, and beatmania IIDX scores locally.",
+  "version": "0.22.0",
+  "description": "Collect and review maimai DX, DDR, SOUND VOLTEX, and beatmania IIDX data locally.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -30,6 +30,7 @@
     "https://maimaidx.jp/maimai-mobile/*",
     "https://p.eagate.573.jp/game/sdvx/*",
     "https://p.eagate.573.jp/game/2dx/*",
+    "https://p.eagate.573.jp/game/ddr/*",
     "https://shama.dxrating.net/images/cover/v2/*"
   ],
   "externally_connectable": {
@@ -51,7 +52,8 @@
     {
       "matches": [
         "https://p.eagate.573.jp/game/sdvx/*",
-        "https://p.eagate.573.jp/game/2dx/*"
+        "https://p.eagate.573.jp/game/2dx/*",
+        "https://p.eagate.573.jp/game/ddr/*"
       ],
       "js": [
         "konami-content.js"

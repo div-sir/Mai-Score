@@ -18,6 +18,7 @@ import {
 } from "./lib/studio-transfer";
 import type { ParsedScore } from "./lib/types";
 import { isKonamiImportRequest, LAST_RHYTHM_RECORD_KEY } from "./lib/konami-import";
+import { isKonamiPageImportRequest, LAST_KONAMI_PAGE_KEY } from "./lib/konami-page";
 
 // The chart database is shared across every maimai DX region — a song's
 // internal level doesn't change with which DX NET a player logged into — so
@@ -46,6 +47,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         error: error instanceof Error ? error.message : String(error)
       });
     });
+  return true;
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!isKonamiPageImportRequest(message)) return;
+  const token = crypto.randomUUID();
+  const transfer: StudioTransfer = {
+    data: message.data,
+    assets: { covers: {} },
+    language: message.language,
+    expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
+  };
+  Promise.all([
+    chrome.storage.session.set({ [studioTransferKey(token)]: transfer }),
+    chrome.storage.local.set({ [LAST_KONAMI_PAGE_KEY]: message.data })
+  ]).then(() => chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token) }))
+    .then(() => sendResponse({ ok: true }))
+    .catch((error: unknown) => sendResponse({
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    }));
   return true;
 });
 

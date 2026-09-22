@@ -3,6 +3,8 @@ import {
   connectionForUrl,
   createCollectRequest,
   createSessionStatusRequest,
+  popupPageContextForUrl,
+  type PopupPageContext,
   type SessionStatusResponse
 } from "./lib/connections";
 import { toDxratingJson, toFullJson, toRhythmRecordJson } from "./lib/export";
@@ -27,6 +29,7 @@ import {
 } from "./lib/drive-auth";
 import {
   STUDIO_TRANSFER_TTL_MS,
+  STUDIO_URL,
   studioTransferKey,
   studioTransferUrl,
   type StudioTransferAssets,
@@ -36,9 +39,17 @@ import type { CollectionResult } from "./lib/types";
 import { decodeKonamiCsvBytes, parseKonamiCsv, type KonamiCsvGame } from "./lib/konami-csv";
 import { isKonamiImportRequest, LAST_COLLECTION_KEY, LAST_RHYTHM_RECORD_KEY } from "./lib/konami-import";
 import type { RhythmRecordEnvelope } from "./lib/rhythm-record";
+import {
+  isKonamiPageSnapshot,
+  LAST_KONAMI_PAGE_KEY,
+  type KonamiPageCollectRequest,
+  type KonamiPageSnapshot
+} from "./lib/konami-page";
 
 let result: CollectionResult | null = null;
 let latestRhythmRecord: RhythmRecordEnvelope | null = null;
+let latestKonamiPage: KonamiPageSnapshot | null = null;
+let pageContext: PopupPageContext = "other";
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const status = $("status");
 const exportButton = $<HTMLButtonElement>("export");
@@ -65,6 +76,54 @@ function t(key: string, ...values: Array<string | number>) {
   return popupText(language, key, ...values);
 }
 
+function pageCopy() {
+  const copies = language === "zh-Hant" ? {
+    maimai: ["maimai DX 成績收集", "maimai DX NET", "開啟 DX NET 後可收集 B50 與完整記錄。"],
+    "sound-voltex": ["SOUND VOLTEX 資料收集", "SOUND VOLTEX", "直接收集可讀 PLAY DATA；官方 CSV 保留為選用方式。"],
+    "beatmania-iidx": ["beatmania IIDX 資料收集", "beatmania IIDX", "直接收集可讀 DJ DATA；官方 CSV 保留為選用方式。"],
+    "dance-dance-revolution": ["DDR WORLD 資料收集", "已偵測 DanceDanceRevolution WORLD", "可以直接整理目前登入狀態下能開啟的 PLAY DATA；付費或登入限制頁會標示為無法取得。"],
+    other: ["選擇支援的音樂遊戲網站", "目前頁面不支援直接收集", "請開啟 maimai DX NET、SOUND VOLTEX 或 beatmania IIDX 的成績頁。"],
+    studio: "開啟 Mai-Score Studio"
+  } : language === "ja" ? {
+    maimai: ["maimai DX スコア収集", "maimai DX NET", "DX NETからB50と全記録を収集できます。"],
+    "sound-voltex": ["SOUND VOLTEX スコア取込", "SOUND VOLTEX", "このページの公式CSVを端末内で整理します。"],
+    "beatmania-iidx": ["beatmania IIDX スコア取込", "beatmania IIDX", "このページの公式CSVを端末内で整理します。"],
+    "dance-dance-revolution": ["DDR WORLD データ収集", "DanceDanceRevolution WORLDを検出", "現在のログイン状態で開けるPLAY DATAを整理できます。有料・ログイン制限ページは取得不可として表示します。"],
+    other: ["対応サイトを開いてください", "このページでは直接収集できません", "maimai DX NET、SOUND VOLTEX、beatmania IIDXのスコアページを開いてください。"],
+    studio: "Mai-Score Studioを開く"
+  } : {
+    maimai: ["maimai DX score collection", "maimai DX NET", "Collect B50 and Full Records from DX NET."],
+    "sound-voltex": ["SOUND VOLTEX score import", "SOUND VOLTEX", "Use the official CSV from this site; processing stays on this device."],
+    "beatmania-iidx": ["beatmania IIDX score import", "beatmania IIDX", "Use the official CSV from this site; processing stays on this device."],
+    "dance-dance-revolution": ["DDR WORLD data collection", "DanceDanceRevolution WORLD detected", "Collect PLAY DATA available in the current session. Paid or sign-in-gated pages are reported as unavailable."],
+    other: ["Open a supported rhythm-game site", "Direct collection is unavailable here", "Open a maimai DX NET, SOUND VOLTEX, or beatmania IIDX score page."],
+    studio: "Open Mai-Score Studio"
+  };
+  return copies;
+}
+
+function applyPageContext() {
+  const isMaimai = pageContext === "maimai";
+  const isKonamiFile = pageContext === "sound-voltex" || pageContext === "beatmania-iidx";
+  const isKonamiPage = isKonamiFile || pageContext === "dance-dance-revolution";
+  document.querySelectorAll<HTMLElement>(".maimai-context").forEach((element) => { element.hidden = !isMaimai; });
+  document.querySelectorAll<HTMLElement>(".konami-context").forEach((element) => { element.hidden = !isKonamiFile; });
+  document.querySelectorAll<HTMLElement>(".konami-page-context").forEach((element) => { element.hidden = !isKonamiPage; });
+  const notice = $("context-notice");
+  notice.hidden = isMaimai || isKonamiFile;
+  const text = pageCopy();
+  const [subtitle, title, message] = text[pageContext];
+  $("context-subtitle").textContent = subtitle;
+  $("context-title").textContent = title;
+  $("context-message").textContent = message;
+  $("context-game-mark").textContent = pageContext === "dance-dance-revolution" ? "DDR" : "♪";
+  $("context-open-studio").textContent = text.studio;
+  if (isKonamiFile) {
+    konamiGame.value = pageContext;
+    konamiGame.disabled = true;
+  }
+}
+
 function applyLanguage() {
   document.documentElement.lang = language;
   languageSelect.value = language;
@@ -76,14 +135,15 @@ function applyLanguage() {
   if (result) renderUnmatchedCharts(result);
   updateCollectLabel();
   renderLoginState(loginState, loginPlayer);
+  const gameName = pageContext === "beatmania-iidx" ? "beatmania IIDX" : "SOUND VOLTEX";
   const konami = language === "zh-Hant" ? {
-    title: "KONAMI 成績匯入", hint: "選擇官方 CSV，整理後直接在 Studio 開啟。",
+    title: `${gameName} 成績匯入`, hint: "選擇這個遊戲的官方 CSV，整理後直接在 Studio 開啟。",
     official: "開啟官方 CSV", action: "選擇 CSV 並在 Studio 開啟", last: "重新開啟上次成績"
   } : language === "ja" ? {
-    title: "KONAMI スコア取込", hint: "公式CSVを選び、Studioで直接開きます。",
+    title: `${gameName} スコア取込`, hint: "このゲームの公式CSVを選び、Studioで直接開きます。",
     official: "公式CSVを開く", action: "CSVを選んでStudioで開く", last: "前回のスコアを開く"
   } : {
-    title: "KONAMI score import", hint: "Choose an official CSV and open the organized records in Studio.",
+    title: `${gameName} score import`, hint: "Choose this game's official CSV and open the organized records in Studio.",
     official: "Open official CSV", action: "Choose CSV and open Studio", last: "Open last imported scores"
   };
   $("konami-title").textContent = konami.title;
@@ -91,6 +151,21 @@ function applyLanguage() {
   $("konami-official").textContent = konami.official;
   konamiImportButton.textContent = konami.action;
   konamiOpenLastButton.textContent = konami.last;
+  const direct = language === "zh-Hant" ? {
+    title: "免費收集可讀資料", hint: "整理目前登入狀態能開啟的頁面；不讀取帳密，也不繞過付費限制。",
+    action: "收集所有可以找到的資料", last: "重新開啟上次收集"
+  } : language === "ja" ? {
+    title: "閲覧可能なデータを無料収集", hint: "現在開けるページのみ整理します。認証情報や有料制限は回避しません。",
+    action: "見つかるデータをすべて収集", last: "前回の収集を開く"
+  } : {
+    title: "Collect readable data for free", hint: "Organizes pages available now; credentials and paid restrictions are never bypassed.",
+    action: "Collect everything available", last: "Open last collection"
+  };
+  $("konami-page-title").textContent = direct.title;
+  $("konami-page-hint").textContent = direct.hint;
+  $("konami-page-action").textContent = direct.action;
+  $("konami-page-open-last").textContent = direct.last;
+  applyPageContext();
 }
 
 function renderLoginState(next: LoginState, playerName = "") {
@@ -169,6 +244,7 @@ function setCollectionModeDisabled(disabled: boolean) {
 }
 
 async function refreshLoginState() {
+  if (pageContext !== "maimai") return;
   renderLoginState("checking");
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -485,13 +561,39 @@ async function openRhythmStudio(data: RhythmRecordEnvelope) {
   await chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token) });
 }
 
+async function openKonamiPageStudio(data: KonamiPageSnapshot) {
+  const token = crypto.randomUUID();
+  const transfer: StudioTransfer = {
+    data,
+    assets: { covers: {} },
+    language,
+    expiresAt: Date.now() + STUDIO_TRANSFER_TTL_MS
+  };
+  await chrome.storage.session.set({ [studioTransferKey(token)]: transfer });
+  await chrome.tabs.create({ url: studioTransferUrl(chrome.runtime.id, token) });
+}
+
+function renderKonamiPageResult(data: KonamiPageSnapshot) {
+  latestKonamiPage = data;
+  const matchesPage = data.source.game === pageContext;
+  const line = $("konami-page-result");
+  line.hidden = !matchesPage;
+  line.textContent = language === "zh-Hant"
+    ? `可讀 ${data.summary.collected} 頁 · ${data.summary.fields} 個欄位 · ${data.summary.tables} 個表格 · ${data.summary.paid + data.summary.signInRequired} 頁受限`
+    : language === "ja"
+      ? `取得 ${data.summary.collected}ページ · ${data.summary.fields}項目 · ${data.summary.tables}表 · 制限 ${data.summary.paid + data.summary.signInRequired}ページ`
+      : `${data.summary.collected} pages · ${data.summary.fields} fields · ${data.summary.tables} tables · ${data.summary.paid + data.summary.signInRequired} restricted`;
+  $("konami-page-open-last").hidden = !matchesPage;
+}
+
 function renderRhythmResult(data: RhythmRecordEnvelope) {
   latestRhythmRecord = data;
+  const matchesPage = data.source.game === pageContext;
   const game = data.source.game === "beatmania-iidx" ? "beatmania IIDX" : "SOUND VOLTEX";
   const resultLine = $("konami-result");
-  resultLine.hidden = false;
+  resultLine.hidden = !matchesPage;
   resultLine.textContent = `${game} · ${data.records.length.toLocaleString()} charts`;
-  konamiOpenLastButton.hidden = false;
+  konamiOpenLastButton.hidden = !matchesPage;
 }
 
 $("konami-official").addEventListener("click", async () => {
@@ -500,6 +602,42 @@ $("konami-official").addEventListener("click", async () => {
     ? "https://p.eagate.573.jp/game/2dx/33/djdata/score_download.html"
     : "https://p.eagate.573.jp/game/sdvx/vii/playdata/download/index.html";
   await chrome.tabs.create({ url });
+});
+
+$("context-open-studio").addEventListener("click", async () => {
+  await chrome.tabs.create({ url: STUDIO_URL });
+});
+
+$<HTMLButtonElement>("konami-page-action").addEventListener("click", async () => {
+  const button = $<HTMLButtonElement>("konami-page-action");
+  if (button.disabled) return;
+  button.disabled = true;
+  button.classList.add("busy");
+  const resultLine = $("konami-page-result");
+  resultLine.hidden = false;
+  resultLine.textContent = language === "zh-Hant" ? "正在檢查可讀的 PLAY DATA 頁面…"
+    : language === "ja" ? "閲覧可能なPLAY DATAを確認中…" : "Checking readable PLAY DATA pages…";
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) throw new Error(t("noTab"));
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      type: "MAI_SCORE_KONAMI_PAGE_COLLECT"
+    } satisfies KonamiPageCollectRequest) as { ok: true; data: KonamiPageSnapshot } | { ok: false; error: string };
+    if (!response?.ok) throw new Error(response?.error ?? "Mai-Score did not respond.");
+    renderKonamiPageResult(response.data);
+    await chrome.storage.local.set({ [LAST_KONAMI_PAGE_KEY]: response.data });
+    await openKonamiPageStudio(response.data);
+  } catch (error) {
+    resultLine.textContent = error instanceof Error ? error.message : String(error);
+  } finally {
+    button.disabled = false;
+    button.classList.remove("busy");
+  }
+});
+
+$<HTMLButtonElement>("konami-page-open-last").addEventListener("click", async () => {
+  if (!latestKonamiPage) return;
+  await openKonamiPageStudio(latestKonamiPage);
 });
 
 konamiImportButton.addEventListener("click", () => konamiFile.click());
@@ -613,8 +751,10 @@ languageSelect.addEventListener("change", () => {
   language = languageSelect.value as PopupLanguage;
   applyLanguage();
   void chrome.storage.local.set({ [LANGUAGE_STORAGE_KEY]: language });
-  void refreshDriveState();
-  void refreshLoginState();
+  if (pageContext === "maimai") {
+    void refreshDriveState();
+    void refreshLoginState();
+  }
 });
 
 collectionModeInputs.forEach((input) => {
@@ -622,19 +762,22 @@ collectionModeInputs.forEach((input) => {
 });
 
 async function initializePopup() {
-  await initializeLanguage();
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  pageContext = popupPageContextForUrl(tab?.url);
+  await initializeLanguage();
   const detected = tab?.url ? connectionForUrl(tab.url) : undefined;
   if (detected?.id === "iidx-konami-csv") konamiGame.value = "beatmania-iidx";
   if (detected?.id === "sdvx-konami") konamiGame.value = "sound-voltex";
   if (!directDownloadsAvailable) $("direct-export").hidden = true;
   // Never interactive on open: the panel reflects existing state, and consent
   // is only ever raised by the user pressing Connect.
-  await refreshDriveState();
-  await refreshLoginState();
-  const stored = await chrome.storage.local.get([LAST_COLLECTION_KEY, LAST_RHYTHM_RECORD_KEY]);
+  if (pageContext === "maimai") {
+    await refreshDriveState();
+    await refreshLoginState();
+  }
+  const stored = await chrome.storage.local.get([LAST_COLLECTION_KEY, LAST_RHYTHM_RECORD_KEY, LAST_KONAMI_PAGE_KEY]);
   const collection = stored[LAST_COLLECTION_KEY];
-  if (collection && typeof collection === "object" && Array.isArray((collection as CollectionResult).records)
+  if (pageContext === "maimai" && collection && typeof collection === "object" && Array.isArray((collection as CollectionResult).records)
     && (collection as CollectionResult).player?.name) {
     renderCollectionResult(collection as CollectionResult);
   }
@@ -642,6 +785,9 @@ async function initializePopup() {
   const restoreRequest = { type: "MAI_SCORE_KONAMI_IMPORT", data: rhythm, language };
   if (isKonamiImportRequest(restoreRequest)) {
     renderRhythmResult(restoreRequest.data);
+  }
+  if (isKonamiPageSnapshot(stored[LAST_KONAMI_PAGE_KEY])) {
+    renderKonamiPageResult(stored[LAST_KONAMI_PAGE_KEY]);
   }
 }
 

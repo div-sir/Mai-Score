@@ -8,19 +8,19 @@
   </head>
   <body>
     <main>
-      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p data-i18n="subtitle">International B50 exporter</p></div></header>
+      <header><img src="icons/icon.svg" alt=""><div><h1>Mai-Score</h1><p id="context-subtitle">International B50 exporter</p></div></header>
       <label class="language-picker"><span>Language</span><select id="language">
         <option value="en">English</option>
         <option value="zh-Hant">繁體中文</option>
         <option value="ja">日本語</option>
       </select></label>
-      <section id="login-state" class="login-state checking" aria-live="polite">
+      <section id="login-state" class="login-state checking maimai-context" aria-live="polite">
         <span class="login-dot" aria-hidden="true"></span>
         <div><strong id="login-state-label" data-i18n="loginChecking">Checking DX NET sign-in…</strong><small id="login-player"></small></div>
         <button id="open-dxnet" type="button" data-i18n="openDxnetAction">Open DX NET</button>
       </section>
-      <div id="status" class="status" data-i18n="login">Open maimai DX NET International and sign in first.</div>
-      <section class="konami-import">
+      <div id="status" class="status maimai-context" data-i18n="login">Open maimai DX NET International and sign in first.</div>
+      <section class="konami-import konami-context">
         <div class="konami-heading"><div><strong id="konami-title">KONAMI 成績匯入</strong><small id="konami-hint">選擇官方 CSV，整理後直接在 Studio 開啟。</small></div><span>K</span></div>
         <div class="konami-controls">
           <select id="konami-game" aria-label="KONAMI game">
@@ -35,17 +35,28 @@
         <button id="konami-open-last" class="konami-last-button" type="button" hidden>重新開啟上次成績</button>
         <p id="konami-result" class="konami-result" hidden></p>
       </section>
-      <section id="summary" class="summary" hidden>
+      <section id="context-notice" class="context-notice" hidden>
+        <span id="context-game-mark" aria-hidden="true">♪</span>
+        <div><strong id="context-title"></strong><p id="context-message"></p></div>
+        <button id="context-open-studio" type="button">Open Studio</button>
+      </section>
+      <section id="konami-page-collect" class="konami-page-collect konami-page-context" hidden>
+        <div><span aria-hidden="true">↻</span><div><strong id="konami-page-title">收集可讀資料</strong><small id="konami-page-hint">整理目前登入狀態能開啟的 PLAY DATA 頁面。</small></div></div>
+        <button id="konami-page-action" type="button">收集所有可以找到的資料</button>
+        <button id="konami-page-open-last" type="button" hidden>重新開啟上次收集</button>
+        <p id="konami-page-result" hidden></p>
+      </section>
+      <section id="summary" class="summary maimai-context" hidden>
         <div><span data-i18n="player">Player</span><strong id="player">—</strong></div>
         <div><span data-i18n="b50Total">B50 total</span><strong id="b50-rating">—</strong></div>
         <div class="summary-wide"><span data-i18n="dataHealth">Data health</span><strong id="resolved">—</strong></div>
       </section>
-      <section id="unmatched-charts" class="unmatched-charts" hidden>
+      <section id="unmatched-charts" class="unmatched-charts maimai-context" hidden>
         <header><div><strong data-i18n="unmatchedCharts">Unmatched charts</strong><small id="unmatched-count"></small></div><span aria-hidden="true">!</span></header>
         <ul id="unmatched-list"></ul>
         <p data-i18n="unmatchedHint">Send these exact chart details when reporting a catalog mismatch.</p>
       </section>
-      <fieldset class="collection-mode">
+      <fieldset class="collection-mode maimai-context">
         <legend data-i18n="collectionMode">Collection mode</legend>
         <div class="mode-options">
           <label><input type="radio" name="collection-mode" value="b50" checked><span><strong data-i18n="b50Only">B50 only</strong><small>50</small></span></label>
@@ -53,10 +64,10 @@
         </div>
         <small class="mode-hint" data-i18n="includeFullRecordsHint">Full Records enables completion and progress tools.</small>
       </fieldset>
-      <button id="update-studio" class="primary" disabled data-i18n="updateStudio">Update Studio</button>
-      <button id="collect" class="collect-only" disabled data-i18n="collectOnly">Collect only</button>
-      <button id="studio" class="studio-button" disabled data-i18n="studio">Preview and customize online</button>
-      <details id="direct-export" class="direct-export">
+      <button id="update-studio" class="primary maimai-context" disabled data-i18n="updateStudio">Update Studio</button>
+      <button id="collect" class="collect-only maimai-context" disabled data-i18n="collectOnly">Collect only</button>
+      <button id="studio" class="studio-button maimai-context" disabled data-i18n="studio">Preview and customize online</button>
+      <details id="direct-export" class="direct-export maimai-context">
         <summary data-i18n="directExport">Direct export</summary>
         <div class="export-picker">
           <select id="export-format" aria-label="直接匯出格式">
@@ -68,14 +79,14 @@
           <button id="export" disabled data-i18n="download">Download</button>
         </div>
       </details>
-      <details id="drive-panel" class="drive-panel">
+      <details id="drive-panel" class="drive-panel maimai-context">
         <summary data-i18n="driveHeading">Google Drive sync</summary>
         <p class="drive-state" id="drive-state">Not connected. History stays on this device.</p>
         <p class="drive-account-hint" data-i18n="driveAccountHint">Chrome uses this profile's Google account. Switch Chrome profiles to use another account.</p>
         <button id="drive-connect" data-i18n="driveConnect">Connect Google Drive</button>
         <button id="drive-disconnect" class="danger-button" hidden data-i18n="driveDisconnect">Disconnect</button>
       </details>
-      <p id="chart-data" class="chart-data"></p>
+      <p id="chart-data" class="chart-data maimai-context"></p>
       <p class="privacy" data-i18n="privacy">Data is processed locally; Studio uses a single-use transfer token.</p>
     </main>
     <script src="popup.js"></script>

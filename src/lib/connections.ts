@@ -11,6 +11,7 @@ export type ConnectionId =
   | "sdvx-konami"
   | "ddr-konami";
 export type ConnectionTransport = "content-script" | "file" | "api";
+export type PopupPageContext = "maimai" | "sound-voltex" | "beatmania-iidx" | "dance-dance-revolution" | "other";
 
 export interface ConnectionDescriptor {
   id: ConnectionId;
@@ -118,6 +119,22 @@ export const CONNECTIONS: readonly ConnectionDescriptor[] = [{
 export function connectionForUrl(url: string): ConnectionDescriptor | undefined {
   return CONNECTIONS.find((connection) =>
     connection.status === "active" && connection.matches.some((prefix) => url.startsWith(prefix)));
+}
+
+export function popupPageContextForUrl(url?: string): PopupPageContext {
+  if (!url) return "other";
+  try {
+    const page = new URL(url);
+    if ((page.hostname === "maimaidx-eng.com" || page.hostname === "maimaidx.jp")
+      && page.pathname.startsWith("/maimai-mobile/")) return "maimai";
+    if (page.hostname !== "p.eagate.573.jp") return "other";
+    if (page.pathname.startsWith("/game/sdvx/")) return "sound-voltex";
+    if (page.pathname.startsWith("/game/2dx/")) return "beatmania-iidx";
+    if (page.pathname.startsWith("/game/ddr/")) return "dance-dance-revolution";
+    return "other";
+  } catch {
+    return "other";
+  }
 }
 
 export function createCollectRequest(connectionId: ConnectionId, includeFullRecords = false): CollectRequest {
