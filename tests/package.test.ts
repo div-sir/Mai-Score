@@ -36,6 +36,7 @@ describe("extension package", () => {
     expect(popupPage).toContain('id="unmatched-list"');
     expect(popupPage).toContain('id="login-state"');
     expect(popupPage).toContain('id="update-studio"');
+    expect(popupPage).toContain('id="konami-page-action"');
   });
 
   it("keeps a Safari manifest without Chromium-only permissions", async () => {
@@ -94,6 +95,20 @@ describe("extension package", () => {
       const wildcard = `${prefix}*`;
       expect(manifest.host_permissions).toContain(wildcard);
       expect(manifest.content_scripts[0].matches).toContain(wildcard);
+    }
+  });
+
+  it("injects the readable-page collector on every supported KONAMI game", async () => {
+    const manifest = JSON.parse(await readFile("public/manifest.json", "utf8"));
+    const matches = manifest.content_scripts.find((entry: { js?: string[] }) =>
+      entry.js?.includes("konami-content.js"))?.matches ?? [];
+    for (const pattern of [
+      "https://p.eagate.573.jp/game/sdvx/*",
+      "https://p.eagate.573.jp/game/2dx/*",
+      "https://p.eagate.573.jp/game/ddr/*"
+    ]) {
+      expect(manifest.host_permissions).toContain(pattern);
+      expect(matches).toContain(pattern);
     }
   });
 

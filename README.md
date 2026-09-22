@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.21.0 — KONAMI imports and persistent collection.** Import official SOUND VOLTEX and beatmania IIDX CSV files from the Extension or supported e-amusement pages, review them in Studio, and reopen the latest local result after closing the popup. Download the packaged version from Releases.
+> **v0.22.0 — Free KONAMI page collection.** Collect every readable DDR, SOUND VOLTEX, or beatmania IIDX PLAY DATA page available to the current browser session, review structured fields and tables in Studio, and clearly identify data that remains behind sign-in or paid access. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -25,6 +25,7 @@ Building from source instead? See [Development](#development).
 - Captures player name, title, icon, equipped frame, course rank, class rank, stars, and official rating where available.
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
+- On DDR, SOUND VOLTEX, and beatmania IIDX pages, can directly collect the fields, tables, and visible text from PLAY DATA pages available to the current browser session. Paid and sign-in-gated pages are reported rather than bypassed.
 - Generates PNG and SVG locally with Night, Light, and maimai themes.
 - Uses official DX NET artwork for achievement ranks and FC/AP/FS result badges in image exports.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.

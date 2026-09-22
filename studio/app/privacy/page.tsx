@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "September 18, 2026";
+const UPDATED = "September 20, 2026";
 
 export default function Privacy() {
   return (
@@ -20,8 +20,8 @@ export default function Privacy() {
       <section>
         <h2>Summary</h2>
         <p>
-          Mai-Score reads your own maimai DX NET score page, or a KONAMI score CSV that you
-          explicitly select, so you can review and export your records. Your scores are processed
+          Mai-Score reads your own maimai DX NET score page, a KONAMI score CSV that you
+          explicitly select, or KONAMI PLAY DATA pages you explicitly ask it to collect. Your data is processed
           in your browser and remain local by default.
           If you explicitly connect Google Drive, your Studio history can be synchronized to
           your private Drive app-data folder. There is no Mai-Score account, no analytics, and
@@ -31,13 +31,15 @@ export default function Privacy() {
       </section>
 
       <section>
-        <h2>KONAMI score imports</h2>
+        <h2>KONAMI page collection and score imports</h2>
         <p>
-          On supported SOUND VOLTEX and beatmania IIDX e-amusement pages, the Extension displays
-          a local import prompt. It does not read the page, your KONAMI ID, password, cookies, or
-          e-amusement pass details. A score import begins only when you select an official CSV file.
-          The file is decoded and normalized in the browser, and the original CSV is not uploaded
-          or retained.
+          On supported DanceDanceRevolution, SOUND VOLTEX, and beatmania IIDX e-amusement pages,
+          the Extension can collect the visible text, fields, and tables from PLAY DATA pages that
+          your current browser session is allowed to open. Collection starts only when you press
+          the collection button, stays within the current game&rsquo;s PLAY DATA area, and reports paid
+          or sign-in-gated pages as unavailable. It does not read your password, cookies,
+          payment fields, or hidden paid data. IIDX and SDVX can also import an official CSV you
+          explicitly select; the original file is not uploaded or retained.
         </p>
       </section>
 
@@ -83,7 +85,8 @@ export default function Privacy() {
           </li>
           <li>
             <strong>Collected scores</strong>{" "}
-            keep one latest maimai collection and one latest KONAMI import in the Extension&rsquo;s
+            keep one latest maimai collection, one latest KONAMI CSV import, and one latest KONAMI
+            page collection in the Extension&rsquo;s
             local storage so closing and reopening the popup does not discard your work. When you
             open Studio, the selected result is also placed in session storage under a single-use
             token and handed to the Studio tab. That handoff entry expires and is removed; session
@@ -180,7 +183,7 @@ export default function Privacy() {
           <li><strong>downloads</strong> — save the image or JSON file you asked to export.</li>
           <li><strong>identity</strong> — request Google consent, obtain the limited Drive token, and revoke it when you disconnect.</li>
           <li><strong>maimaidx-eng.com</strong> and <strong>maimaidx.jp</strong> — read your own score pages, International or Japan.</li>
-          <li><strong>p.eagate.573.jp</strong> — display the local CSV import prompt on supported SDVX and IIDX pages; the page and its login session are not collected.</li>
+          <li><strong>p.eagate.573.jp</strong> — when you request it, read accessible DDR, SDVX, or IIDX PLAY DATA pages using your existing browser session; credentials, cookies, and payment fields are never copied.</li>
           <li><strong>shama.dxrating.net</strong> — fetch song cover art for the export.</li>
           <li><strong>www.googleapis.com</strong> — synchronize the optional history document in Drive app data.</li>
           <li><strong>oauth2.googleapis.com</strong> — revoke the Google grant when you disconnect.</li>
