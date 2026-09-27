@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isGenericRhythmRecord, parseGenericRhythmRecord } from "../studio/lib/generic-rhythm";
+import { isGenericRhythmRecord, parseGenericRhythmRecord, rhythmGameLabel } from "../studio/lib/generic-rhythm";
 
 const input = () => ({
   schema: "mai-score/rhythm-record/v1",
@@ -27,5 +27,12 @@ describe("generic Rhythm Record dashboard import", () => {
     duplicate.records.push({ ...duplicate.records[0] });
     expect(() => parseGenericRhythmRecord(duplicate)).toThrow(/Duplicate/);
     expect(isGenericRhythmRecord({ ...input(), source: { game: "maimai-dx", connectionId: "dxnet" } })).toBe(false);
+  });
+
+  it("accepts DDR records and uses the product name in Studio", () => {
+    const ddr = { ...input(), source: { game: "dance-dance-revolution", connectionId: "ddr-direct" } };
+    expect(isGenericRhythmRecord(ddr)).toBe(true);
+    expect(parseGenericRhythmRecord(ddr).source.game).toBe("dance-dance-revolution");
+    expect(rhythmGameLabel("dance-dance-revolution")).toBe("DanceDanceRevolution");
   });
 });

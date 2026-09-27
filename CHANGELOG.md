@@ -4,6 +4,26 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.0] — 2026-09-27
+
+### Added
+
+- Keep the latest maimai DX, DanceDanceRevolution, SOUND VOLTEX, and beatmania IIDX datasets separately in Studio, restore them across reloads, and switch games from the shared header without replacing another game's data.
+- Read explicit DDR Flare Skill tables, separate SINGLE and DOUBLE, total the best 30 charts in CLASSIC, WHITE, and GOLD, and show counted songs, category cutoffs, and exact entry gaps for nearby charts.
+- Add reusable DDR and SOUND VOLTEX score insights for collected pages and Rhythm Record imports: performance by level, grade and clear distributions, target-score presets, and the closest charts to each target.
+- Add SOUND VOLTEX VOLFORCE Best 50, B50 cutoff, and VF Potential estimates using chart level, score, grade, and clear type, while preferring an official per-chart VF value when available.
+- Render DDR-specific score, Flare, gauge, and play-style fields instead of reusing the IIDX and SOUND VOLTEX record labels.
+
+### Changed
+
+- Retain direct KONAMI page collections and normalized rhythm records in browser-local Studio storage so collected multi-game data remains available offline.
+- Accept normalized DanceDanceRevolution Rhythm Record documents in the multi-game Studio dashboard.
+
+### Data limitations
+
+- Flare Skill totals use only explicit collected Skill and category values; Mai-Score does not infer Skill from DDR score.
+- VOLFORCE estimates appear only when the collected data contains enough chart-constant and clear information to apply the current supported formula safely.
+
 ## [0.23.0] — 2026-09-26
 
 ### Added

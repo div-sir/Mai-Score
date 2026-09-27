@@ -3,19 +3,29 @@
 import { useDeferredValue, useMemo, useState, type CSSProperties } from "react";
 import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
 import { rhythmGameLabel } from "../lib/generic-rhythm";
+import { scoresFromRhythmRecord } from "../lib/rhythm-insights";
 import type { LanguageId } from "../lib/types";
+import ScoreInsights from "./score-insights";
 
 interface Props { data: RhythmRecordEnvelope; language: LanguageId; }
 
 const labels = (language: LanguageId) => language === "zh-Hant" ? {
   charts: "已遊玩譜面", search: "搜尋歌曲或藝人", all: "全部難度", score: "分數", grade: "等級",
-  clear: "通關狀態", miss: "MISS", empty: "沒有符合條件的譜面", imported: "匯入時間"
+  clear: "通關狀態", miss: "MISS", empty: "沒有符合條件的譜面", imported: "匯入時間", flare: "Flare Skill", gauge: "Flare／量表", style: "模式"
 } : language === "ja" ? {
   charts: "プレー済み譜面", search: "曲名・アーティストを検索", all: "すべての難易度", score: "スコア", grade: "グレード",
-  clear: "クリア", miss: "ミス", empty: "条件に一致する譜面がありません", imported: "インポート日時"
+  clear: "クリア", miss: "ミス", empty: "条件に一致する譜面がありません", imported: "インポート日時", flare: "フレアスキル", gauge: "フレア／ゲージ", style: "スタイル"
 } : {
   charts: "Played charts", search: "Search songs or artists", all: "All difficulties", score: "Score", grade: "Grade",
-  clear: "Clear", miss: "Miss", empty: "No charts match these filters", imported: "Imported"
+  clear: "Clear", miss: "Miss", empty: "No charts match these filters", imported: "Imported", flare: "Flare Skill", gauge: "Flare / gauge", style: "Style"
+};
+
+const gameValue = (record: RhythmRecordEnvelope["records"][number], keys: string[]) => {
+  for (const key of keys) {
+    const value = record.gameSpecific?.[key];
+    if (typeof value === "string" || typeof value === "number") return String(value);
+  }
+  return undefined;
 };
 
 export default function RhythmRecordsDashboard({ data, language }: Props) {
@@ -30,13 +40,16 @@ export default function RhythmRecordsDashboard({ data, language }: Props) {
       && (!needle || `${record.song.title} ${record.song.artist ?? ""}`.normalize("NFKC").toLocaleLowerCase().includes(needle)))
       .sort((a, b) => Number(b.result.rawScore ?? 0) - Number(a.result.rawScore ?? 0));
   }, [data, difficulty, deferredQuery]);
-  const accent = data.source.game === "sound-voltex" ? "#ef4c88" : "#5a8cff";
+  const isDdr = data.source.game === "dance-dance-revolution";
+  const accent = data.source.game === "sound-voltex" ? "#ef4c88" : isDdr ? "#d8903f" : "#5a8cff";
+  const insightRecords = useMemo(() => scoresFromRhythmRecord(data), [data]);
 
   return <section className="rhythm-dashboard" style={{ "--rhythm-accent": accent } as CSSProperties}>
     <header className="rhythm-hero">
       <div><span>KONAMI / e-amusement</span><h1>{rhythmGameLabel(data.source.game)}</h1><p>{text.imported}: {new Date(data.generatedAt).toLocaleString(language)}</p></div>
       <div className="rhythm-count"><strong>{data.records.length.toLocaleString(language)}</strong><span>{text.charts}</span></div>
     </header>
+    {data.source.game === "sound-voltex" || isDdr ? <ScoreInsights key={data.source.game} game={data.source.game} records={insightRecords} language={language} /> : null}
     <div className="rhythm-filters">
       <input aria-label={text.search} type="search" value={query} placeholder={text.search} onChange={(event) => setQuery(event.target.value)} />
       <select aria-label={text.all} value={difficulty} onChange={(event) => setDifficulty(event.target.value)}>
@@ -44,16 +57,21 @@ export default function RhythmRecordsDashboard({ data, language }: Props) {
       </select>
     </div>
     <div className="rhythm-results-heading"><strong>{records.length.toLocaleString(language)}</strong><span>/ {data.records.length.toLocaleString(language)}</span></div>
-    {records.length ? <div className="rhythm-record-grid">{records.map((record) => <article key={record.recordId}>
+    {records.length ? <div className="rhythm-record-grid">{records.map((record) => {
+      const flareSkill = gameValue(record, ["flareSkill", "flare_skill"])
+        ?? (record.result.rating?.system.toLowerCase().includes("flare") ? String(record.result.rating.value) : undefined);
+      const flareGauge = gameValue(record, ["flareRank", "flareGauge", "danceGauge", "gauge"]);
+      const playStyle = gameValue(record, ["playStyle", "style"]) ?? record.chart.type;
+      return <article key={record.recordId}>
       <span className="rhythm-difficulty">{record.chart.difficulty}</span>
       <div className="rhythm-song"><strong>{record.song.title}</strong><span>{record.song.artist || "—"}</span></div>
       <div className="rhythm-level">{record.chart.type ? <span>{record.chart.type}</span> : null}<strong>Lv {record.chart.level || "—"}</strong></div>
       <div className="rhythm-score"><span>{text.score}</span><strong>{Number(record.result.rawScore ?? 0).toLocaleString("en-US")}</strong></div>
       <dl>
-        <div><dt>{text.grade}</dt><dd>{record.result.grade || "—"}</dd></div>
-        <div><dt>{text.clear}</dt><dd>{record.result.clearStatus || "—"}</dd></div>
-        <div><dt>{text.miss}</dt><dd>{record.result.missCount ?? "—"}</dd></div>
+        <div><dt>{isDdr ? text.flare : text.grade}</dt><dd>{isDdr ? flareSkill ?? "—" : record.result.grade || "—"}</dd></div>
+        <div><dt>{isDdr ? text.gauge : text.clear}</dt><dd>{isDdr ? flareGauge ?? record.result.clearStatus ?? "—" : record.result.clearStatus || "—"}</dd></div>
+        <div><dt>{isDdr ? text.style : text.miss}</dt><dd>{isDdr ? playStyle ?? "—" : record.result.missCount ?? "—"}</dd></div>
       </dl>
-    </article>)}</div> : <div className="rhythm-empty">{text.empty}</div>}
+    </article>;})}</div> : <div className="rhythm-empty">{text.empty}</div>}
   </section>;
 }

@@ -1,11 +1,14 @@
 import { type HistoryEntry, sortHistory, toHistoryEntry } from "./history";
 import { mergeHistories } from "./history-sync";
 import type { LanguageId, StudioAssets, StudioData } from "./types";
+import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
+import type { KonamiPageSnapshot, KonamiPageGame } from "./konami-page";
 
 const DB_NAME = "mai-score-studio";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = "snapshots";
 const HISTORY_STORE = "history";
+const GAME_STORE = "game-data";
 const LATEST_KEY = "latest";
 
 export interface StudioSnapshot {
@@ -16,6 +19,22 @@ export interface StudioSnapshot {
   language: LanguageId;
   savedAt: string;
 }
+
+export type ExternalGameDataset = {
+  game: KonamiPageGame;
+  kind: "rhythm-record";
+  data: RhythmRecordEnvelope;
+  source: string;
+  language: LanguageId;
+  savedAt: string;
+} | {
+  game: KonamiPageGame;
+  kind: "konami-pages";
+  data: KonamiPageSnapshot;
+  source: string;
+  language: LanguageId;
+  savedAt: string;
+};
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -30,10 +49,55 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(HISTORY_STORE)) {
         database.createObjectStore(HISTORY_STORE, { keyPath: "generatedAt" });
       }
+      if (!database.objectStoreNames.contains(GAME_STORE)) {
+        database.createObjectStore(GAME_STORE, { keyPath: "game" });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error("Could not open local storage."));
   });
+}
+
+export async function saveExternalGameDataset(
+  dataset: Omit<ExternalGameDataset, "savedAt">
+): Promise<ExternalGameDataset> {
+  const database = await openDatabase();
+  try {
+    const saved = { ...dataset, savedAt: new Date().toISOString() } as ExternalGameDataset;
+    const transaction = database.transaction(GAME_STORE, "readwrite");
+    transaction.objectStore(GAME_STORE).put(saved);
+    await complete(transaction);
+    return saved;
+  } finally {
+    database.close();
+  }
+}
+
+export async function listExternalGameDatasets(): Promise<ExternalGameDataset[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(GAME_STORE, "readonly");
+    const request = transaction.objectStore(GAME_STORE).getAll();
+    const result = await new Promise<ExternalGameDataset[]>((resolve, reject) => {
+      request.onsuccess = () => resolve((request.result as ExternalGameDataset[]) ?? []);
+      request.onerror = () => reject(request.error ?? new Error("Could not read saved game data."));
+    });
+    await complete(transaction);
+    return result.sort((left, right) => right.savedAt.localeCompare(left.savedAt));
+  } finally {
+    database.close();
+  }
+}
+
+export async function clearExternalGameDatasets(): Promise<void> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(GAME_STORE, "readwrite");
+    transaction.objectStore(GAME_STORE).clear();
+    await complete(transaction);
+  } finally {
+    database.close();
+  }
 }
 
 function complete(transaction: IDBTransaction): Promise<void> {
