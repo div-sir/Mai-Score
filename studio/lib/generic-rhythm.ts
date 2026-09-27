@@ -2,7 +2,7 @@ import type { RhythmGameId, RhythmRecordEnvelope } from "../../src/lib/rhythm-re
 
 const RHYTHM_RECORD_SCHEMA = "mai-score/rhythm-record/v1";
 
-const SUPPORTED_GAMES = new Set<RhythmGameId>(["beatmania-iidx", "sound-voltex"]);
+const SUPPORTED_GAMES = new Set<RhythmGameId>(["beatmania-iidx", "sound-voltex", "dance-dance-revolution"]);
 
 function object(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object.`);
@@ -98,4 +98,5 @@ export function parseGenericRhythmRecord(value: unknown): RhythmRecordEnvelope {
 
 export const rhythmGameLabel = (game: RhythmGameId) => game === "beatmania-iidx"
   ? "beatmania IIDX"
-  : game === "sound-voltex" ? "SOUND VOLTEX" : game;
+  : game === "sound-voltex" ? "SOUND VOLTEX"
+    : game === "dance-dance-revolution" ? "DanceDanceRevolution" : game;

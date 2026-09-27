@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.23.0 — Charts and a calmer interface.** Turn readable KONAMI page tables into useful charts and CSV/JSON exports, collect maimai data from a prompt inside DX NET, and use a more restrained, consistent Extension and Studio interface. Download the packaged version from Releases.
+> **v0.24.0 — DDR and SDVX insights.** Switch among saved game datasets in Studio, inspect DDR Flare Skill contributors and entry thresholds, and use cross-game level, target-score, grade, clear, VOLFORCE Best 50, and VF Potential analysis. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -26,6 +26,10 @@ Building from source instead? See [Development](#development).
 - Exports dxrating-compatible JSON: `[{ "sheetId", "achievementRate" }]`.
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
 - On DDR, SOUND VOLTEX, and beatmania IIDX pages, can directly collect the fields, tables, and visible text from PLAY DATA pages available to the current browser session. Paid and sign-in-gated pages are reported rather than bypassed.
+- Keeps the latest maimai, DDR, SOUND VOLTEX, and beatmania IIDX datasets separately in Studio and switches between them without discarding another game's result.
+- Analyzes explicit DDR Flare Skill tables as separate SINGLE and DOUBLE totals, taking the best 30 charts from each of CLASSIC, WHITE, and GOLD and showing the exact entry gap for nearby charts.
+- Summarizes DDR and SOUND VOLTEX scores by level, grade, clear or full-combo state, and target-score gap when the collected page exposes those fields.
+- Estimates SOUND VOLTEX VOLFORCE Best 50, cutoff, and VF Potential only when chart constants and clear types are present, preferring an official per-chart VF value when supplied.
 - Generates PNG and SVG locally with Night, Light, and maimai themes.
 - Uses official DX NET artwork for achievement ranks and FC/AP/FS result badges in image exports.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.

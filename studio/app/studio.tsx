@@ -13,11 +13,15 @@ import { sessionCopy, studioCopy } from "../lib/i18n";
 import {
   clearStudioHistory,
   clearStudioSnapshot,
+  clearExternalGameDatasets,
+  listExternalGameDatasets,
   listStudioHistory,
   loadStudioSnapshot,
   mergeStudioHistory,
+  saveExternalGameDataset,
   saveStudioSnapshot,
-  saveStudioSnapshotOnly
+  saveStudioSnapshotOnly,
+  type ExternalGameDataset
 } from "../lib/local-store";
 import { fromHistoryEntry, toHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
@@ -56,6 +60,7 @@ import { isKonamiPageSnapshot, type KonamiPageSnapshot } from "../lib/konami-pag
 const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
 const UI_VIEW_KEY = "mai-score-studio-view";
+const ACTIVE_GAME_KEY = "mai-score-studio-active-game";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
 type StudioView = "export" | "session" | "progress" | "records";
@@ -185,6 +190,8 @@ export default function Studio() {
   const [data, setData] = useState<StudioData | null>(null);
   const [rhythmData, setRhythmData] = useState<RhythmRecordEnvelope | null>(null);
   const [konamiPageData, setKonamiPageData] = useState<KonamiPageSnapshot | null>(null);
+  const [externalGames, setExternalGames] = useState<ExternalGameDataset[]>([]);
+  const [hasMaimaiData, setHasMaimaiData] = useState(false);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
   const [language, setLanguage] = useState<LanguageId>("en");
@@ -213,6 +220,11 @@ export default function Studio() {
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(language);
   const sessionText = sessionCopy(language);
+  const activeGame = data ? "maimai-dx" : rhythmData?.source.game ?? konamiPageData?.source.game ?? "";
+  const availableGames = [
+    ...(hasMaimaiData || data ? [{ game: "maimai-dx", label: "maimai DX" }] : []),
+    ...externalGames.map((entry) => ({ game: entry.game, label: rhythmGameLabel(entry.game) }))
+  ];
   const copyRef = useRef(copy);
   copyRef.current = copy;
 
@@ -260,10 +272,12 @@ export default function Studio() {
         if (!stored || cancelled) return false;
         const normalized = normalizeB50(stored.data);
         setData(normalized);
+        setHasMaimaiData(true);
         setAssets(stored.assets);
         setSource(stored.source);
         setGeneratedAt(stored.generatedAt);
         setLanguage(stored.language);
+        localStorage.setItem(ACTIVE_GAME_KEY, "maimai-dx");
         if (normalized.fullRecords) {
           const migrated = toHistoryEntry(normalized, stored.source, stored.language, stored.savedAt);
           setHistory(await mergeStudioHistory([migrated]));
@@ -281,6 +295,13 @@ export default function Studio() {
     };
 
     void (async () => {
+      let savedGames: ExternalGameDataset[] = [];
+      try {
+        savedGames = await listExternalGameDatasets();
+        if (!cancelled) setExternalGames(savedGames);
+      } catch {
+        // Switching still works for data imported in this tab.
+      }
       try {
         const entries = await listStudioHistory();
         if (!cancelled) setHistory(entries);
@@ -304,6 +325,10 @@ export default function Studio() {
             setSource("Mai-Score extension");
             setGeneratedAt(timestamp);
             setMessage(`${received.data.summary.collected.toLocaleString()} readable pages collected.`);
+            await rememberExternalGame({
+              game: received.data.source.game, kind: "konami-pages", data: received.data,
+              source: "Mai-Score extension", language: received.language
+            });
             window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
             return;
           }
@@ -317,6 +342,10 @@ export default function Studio() {
             setSource("Mai-Score extension");
             setGeneratedAt(timestamp);
             setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString()} charts imported.`);
+            await rememberExternalGame({
+              game: parsed.source.game as KonamiPageSnapshot["source"]["game"], kind: "rhythm-record", data: parsed,
+              source: "Mai-Score extension", language: received.language
+            });
             window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
             return;
           }
@@ -324,6 +353,8 @@ export default function Studio() {
           setKonamiPageData(null);
           setRhythmData(null);
           setData(parsed);
+          setHasMaimaiData(true);
+          localStorage.setItem(ACTIVE_GAME_KEY, "maimai-dx");
           setLanguage(received.language);
           setSource("Mai-Score extension");
           setGeneratedAt(timestamp);
@@ -372,7 +403,18 @@ export default function Studio() {
         return;
       }
 
-      await restoreSavedSnapshot();
+      const preferredGame = localStorage.getItem(ACTIVE_GAME_KEY);
+      const preferredExternal = savedGames.find((entry) => entry.game === preferredGame);
+      if (preferredExternal && !cancelled) {
+        try {
+          if (await loadStudioSnapshot()) setHasMaimaiData(true);
+        } catch {
+          // The selected external game remains usable without maimai storage.
+        }
+        showExternalGame(preferredExternal);
+        return;
+      }
+      if (!await restoreSavedSnapshot() && savedGames[0] && !cancelled) showExternalGame(savedGames[0]);
     })();
 
     return () => {
@@ -410,6 +452,55 @@ export default function Studio() {
   );
 
   const touchSettings = () => setSettingsUpdatedAt(new Date().toISOString());
+
+  async function rememberExternalGame(dataset: Omit<ExternalGameDataset, "savedAt">) {
+    localStorage.setItem(ACTIVE_GAME_KEY, dataset.game);
+    try {
+      const saved = await saveExternalGameDataset(dataset);
+      setExternalGames((current) => [saved, ...current.filter((entry) => entry.game !== saved.game)]);
+    } catch {
+      const temporary = { ...dataset, savedAt: new Date().toISOString() } as ExternalGameDataset;
+      setExternalGames((current) => [temporary, ...current.filter((entry) => entry.game !== temporary.game)]);
+    }
+  }
+
+  function showExternalGame(dataset: ExternalGameDataset) {
+    setData(null);
+    setAssets({ covers: {} });
+    setSource(dataset.source);
+    setLanguage(dataset.language);
+    setGeneratedAt(dataset.data.generatedAt);
+    localStorage.setItem(ACTIVE_GAME_KEY, dataset.game);
+    if (dataset.kind === "konami-pages") {
+      setRhythmData(null);
+      setKonamiPageData(dataset.data);
+      setMessage(`${dataset.data.summary.collected.toLocaleString(dataset.language)} readable pages collected.`);
+    } else {
+      setKonamiPageData(null);
+      setRhythmData(dataset.data);
+      setMessage(`${rhythmGameLabel(dataset.game)} · ${dataset.data.records.length.toLocaleString(dataset.language)} charts imported.`);
+    }
+  }
+
+  async function switchGame(game: string) {
+    if (game === "maimai-dx") {
+      const stored = await loadStudioSnapshot();
+      if (!stored) return;
+      const normalized = normalizeB50(stored.data);
+      setKonamiPageData(null);
+      setRhythmData(null);
+      setData(normalized);
+      setAssets(stored.assets);
+      setSource(stored.source);
+      setLanguage(stored.language);
+      setGeneratedAt(stored.generatedAt);
+      localStorage.setItem(ACTIVE_GAME_KEY, game);
+      setMessage(studioCopy(stored.language).ready(normalized.player.name, normalized.records.length));
+      return;
+    }
+    const external = externalGames.find((entry) => entry.game === game);
+    if (external) showExternalGame(external);
+  }
 
   const set = <K extends keyof StudioOptions>(key: K, value: StudioOptions[K]) => {
     setOptions((current) => ({ ...current, [key]: value }));
@@ -449,6 +540,7 @@ export default function Studio() {
         setSource(file.name);
         setGeneratedAt(new Date().toISOString());
         setMessage(`${input.summary.collected.toLocaleString(language)} readable pages collected.`);
+        await rememberExternalGame({ game: input.source.game, kind: "konami-pages", data: input, source: file.name, language });
         return;
       }
       if (isGenericRhythmRecord(input)) {
@@ -460,12 +552,18 @@ export default function Studio() {
         setSource(file.name);
         setGeneratedAt(new Date().toISOString());
         setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString(language)} charts imported.`);
+        await rememberExternalGame({
+          game: parsed.source.game as KonamiPageSnapshot["source"]["game"], kind: "rhythm-record", data: parsed,
+          source: file.name, language
+        });
         return;
       }
       const parsed = parseMaiScore(input);
       setKonamiPageData(null);
       setRhythmData(null);
       setData(parsed);
+      setHasMaimaiData(true);
+      localStorage.setItem(ACTIVE_GAME_KEY, "maimai-dx");
       setAssets({ covers: {} });
       setSource(file.name);
       setGeneratedAt(new Date().toISOString());
@@ -824,10 +922,14 @@ export default function Studio() {
     try {
       await clearStudioSnapshot();
       await clearStudioHistory();
+      await clearExternalGameDatasets();
       setHistory([]);
       setData(null);
       setRhythmData(null);
       setKonamiPageData(null);
+      setExternalGames([]);
+      setHasMaimaiData(false);
+      localStorage.removeItem(ACTIVE_GAME_KEY);
       setAssets({ covers: {} });
       setSource("");
       setGeneratedAt(new Date().toISOString());
@@ -846,6 +948,13 @@ export default function Studio() {
             <span className="brand-mark">M</span>
             <div><strong>Mai-Score Studio</strong><small>{copy.subtitle}</small></div>
           </div>
+          {availableGames.length ? <label className="game-switcher">
+            <span>{language === "zh-Hant" ? "遊戲資料" : language === "ja" ? "ゲームデータ" : "Game data"}</span>
+            <select aria-label={language === "zh-Hant" ? "切換遊戲資料" : language === "ja" ? "ゲームデータを切替" : "Switch game data"}
+              value={activeGame} onChange={(event) => void switchGame(event.target.value)}>
+              {availableGames.map((entry) => <option value={entry.game} key={entry.game}>{entry.label}</option>)}
+            </select>
+          </label> : null}
           <nav className="studio-tabs" aria-label={copy.studioSections} hidden={Boolean(rhythmData || konamiPageData)}>
             <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
             <button type="button" aria-pressed={studioView === "session"} onClick={() => setStudioView("session")}>{sessionText.tab}</button>
