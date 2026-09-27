@@ -4,6 +4,20 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.23.0] — 2026-09-26
+
+### Added
+
+- Turn collected KONAMI page tables into selectable Studio charts by detecting reliable numeric and percentage columns while preferring song-title fields as labels.
+- Export normalized KONAMI collections as analyzed JSON or the selected source table as CSV; keep the original tables visible when a safe chart cannot be inferred.
+- Show a localized collection prompt after entering a signed-in maimai DX NET page. International players can choose B50 plus Full Records or a quick B50-only run; Japan currently offers B50.
+- Save collections started from the in-page prompt as the latest local result, load public artwork in Studio, and continue the existing automatic Studio sync flow.
+
+### Changed
+
+- Refine the Extension and Studio interface with quieter neutral surfaces, restrained sage and bronze accents, consistent control geometry, fewer decorative gradients, and reduced glow and blur effects.
+- Close the maimai collection prompt with its close button, Escape, or a click outside, and keep it dismissed for the rest of that tab session.
+
 ## [0.22.0] — 2026-09-22
 
 ### Added

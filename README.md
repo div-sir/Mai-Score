@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.22.0 — Free KONAMI page collection.** Collect every readable DDR, SOUND VOLTEX, or beatmania IIDX PLAY DATA page available to the current browser session, review structured fields and tables in Studio, and clearly identify data that remains behind sign-in or paid access. Download the packaged version from Releases.
+> **v0.23.0 — Charts and a calmer interface.** Turn readable KONAMI page tables into useful charts and CSV/JSON exports, collect maimai data from a prompt inside DX NET, and use a more restrained, consistent Extension and Studio interface. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
