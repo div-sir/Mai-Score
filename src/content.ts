@@ -22,6 +22,7 @@ import {
 import { calculateB50Breakdown } from "./lib/rating";
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, popupText, type PopupLanguage } from "./lib/i18n";
 import { CHART_DATA_SOURCE } from "./lib/chart-data";
+import type { MaimaiImportRequest } from "./lib/maimai-import";
 import type {
   CollectionResult,
   Difficulty,
@@ -304,3 +305,114 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   });
   return true;
 });
+
+const PROMPT_DISMISSED_KEY = `mai-score-maimai-prompt:${CONNECTION?.id ?? "unknown"}`;
+
+const promptCopy = (language: PopupLanguage, supportsFullRecords: boolean) => language === "zh-Hant" ? {
+  eyebrow: "MAI-SCORE · DX NET",
+  title: "要更新你的成績嗎？",
+  body: supportsFullRecords
+    ? "從目前登入的帳號收集 B50 與已遊玩譜面，完成後直接開啟 Studio。"
+    : "從目前登入的帳號收集 B50，完成後直接開啟 Studio。",
+  full: supportsFullRecords ? "收集完整記錄並開啟 Studio" : "收集 B50 並開啟 Studio",
+  quick: "只收集 B50",
+  collecting: "正在讀取 DX NET…",
+  preparing: "收集完成，正在開啟 Studio…",
+  close: "關閉"
+} : language === "ja" ? {
+  eyebrow: "MAI-SCORE · DX NET",
+  title: "スコアを更新しますか？",
+  body: supportsFullRecords
+    ? "ログイン中のアカウントからB50とプレイ済み譜面を取得し、Studioを開きます。"
+    : "ログイン中のアカウントからB50を取得し、Studioを開きます。",
+  full: supportsFullRecords ? "全記録を取得してStudioを開く" : "B50を取得してStudioを開く",
+  quick: "B50のみ取得",
+  collecting: "DX NETを読み込み中…",
+  preparing: "取得完了。Studioを開いています…",
+  close: "閉じる"
+} : {
+  eyebrow: "MAI-SCORE · DX NET",
+  title: "Update your scores?",
+  body: supportsFullRecords
+    ? "Collect B50 and played charts from the signed-in account, then open Studio."
+    : "Collect B50 from the signed-in account, then open Studio.",
+  full: supportsFullRecords ? "Collect Full Records and open Studio" : "Collect B50 and open Studio",
+  quick: "Collect B50 only",
+  collecting: "Reading DX NET…",
+  preparing: "Collection complete — opening Studio…",
+  close: "Close"
+};
+
+async function mountCollectionPrompt() {
+  if (!CONNECTION || window.sessionStorage.getItem(PROMPT_DISMISSED_KEY)) return;
+  // Real DX NET pages always contain visible page content. Skipping an empty
+  // shell also avoids flashing the prompt while the site is still replacing
+  // its initial document.
+  if (!document.body?.textContent?.trim() && !document.querySelector("img,main,form")) return;
+  const session = await probeSession();
+  if (!session.ok || !session.signedIn || window.sessionStorage.getItem(PROMPT_DISMISSED_KEY)) return;
+  const language = await currentLanguage();
+  const supportsFullRecords = CONNECTION.id === "dxnet-intl";
+  const text = promptCopy(language, supportsFullRecords);
+  const host = document.createElement("div");
+  host.id = "mai-score-collection-prompt";
+  const shadow = host.attachShadow({ mode: "closed" });
+  shadow.innerHTML = `
+    <style>
+      :host{all:initial}.card{position:fixed;z-index:2147483647;right:18px;bottom:18px;width:min(370px,calc(100vw - 36px));box-sizing:border-box;border:1px solid #d8d4ca;border-radius:12px;padding:16px;background:#fbfaf7;color:#252824;box-shadow:0 14px 36px #1719142e;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{display:flex;align-items:flex-start;gap:11px}.mark{display:grid;width:34px;height:34px;flex:none;place-items:center;border-radius:8px;background:#345f55;color:#fff;font-size:14px;font-weight:850}.heading{display:grid;min-width:0;flex:1;gap:1px}.eyebrow{color:#727970;font-size:9px;font-weight:750;letter-spacing:.08em}.title{font-size:16px;font-weight:750;letter-spacing:-.01em}.close{display:grid;width:30px;height:30px;place-items:center;border:1px solid transparent;border-radius:7px;background:transparent;color:#626960;cursor:pointer;font-size:20px;line-height:1}.close:hover{border-color:#d8d4ca;background:#f1efe9}.body{margin:11px 0 14px;color:#646a63;font-size:12px}.actions{display:grid;gap:7px}.action,.quick{width:100%;border-radius:8px;padding:10px 12px;cursor:pointer;font:700 12px/1.3 inherit}.action{border:1px solid #345f55;background:#345f55;color:#fff}.action:hover{background:#2c5149}.quick{border:1px solid #d8d4ca;background:#fff;color:#3d433e}.quick:hover{background:#f4f2ec}.action:disabled,.quick:disabled{cursor:wait;opacity:.58}.status{margin:9px 1px 0;color:#436e62;font-size:10px}.status:empty{display:none}@media(max-width:560px){.card{right:10px;bottom:10px;width:calc(100vw - 20px)}}@media(prefers-color-scheme:dark){.card{border-color:#3a403b;background:#20241f;color:#f1efe9;box-shadow:0 16px 42px #0007}.eyebrow,.body{color:#aeb4ad}.close{color:#c3c7c1}.close:hover,.quick:hover{border-color:#454c46;background:#292e29}.quick{border-color:#454c46;background:#252a25;color:#e4e7e2}.action{border-color:#6d9b8d;background:#6d9b8d;color:#101511}.action:hover{background:#7aa899}.status{color:#91b9ad}}
+    </style>
+    <section class="card" role="dialog" aria-label="${text.title}">
+      <div class="top"><span class="mark" aria-hidden="true">M</span><div class="heading"><span class="eyebrow">${text.eyebrow}</span><strong class="title">${text.title}</strong></div><button class="close" type="button" aria-label="${text.close}">×</button></div>
+      <p class="body">${text.body}</p>
+      <div class="actions"><button class="action" type="button">${text.full}</button>${supportsFullRecords ? `<button class="quick" type="button">${text.quick}</button>` : ""}</div>
+      <p class="status" role="status"></p>
+    </section>`;
+  document.documentElement.append(host);
+  const close = shadow.querySelector<HTMLButtonElement>(".close")!;
+  const action = shadow.querySelector<HTMLButtonElement>(".action")!;
+  const quick = shadow.querySelector<HTMLButtonElement>(".quick");
+  const status = shadow.querySelector<HTMLElement>(".status")!;
+  const dismiss = () => {
+    window.sessionStorage.setItem(PROMPT_DISMISSED_KEY, "1");
+    document.removeEventListener("pointerdown", outsideClick, true);
+    document.removeEventListener("keydown", keydown, true);
+    host.remove();
+  };
+  const outsideClick = (event: Event) => {
+    if (!event.composedPath().includes(host)) dismiss();
+  };
+  const keydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") dismiss();
+  };
+  close.addEventListener("click", dismiss);
+  const run = async (includeFullRecords: boolean) => {
+    action.disabled = true;
+    if (quick) quick.disabled = true;
+    status.textContent = text.collecting;
+    try {
+      const data = await collect(CONNECTION, includeFullRecords);
+      status.textContent = text.preparing;
+      const response = await chrome.runtime.sendMessage({
+        type: "MAI_SCORE_MAIMAI_IMPORT",
+        data,
+        language,
+        autoSync: true
+      } satisfies MaimaiImportRequest) as { ok: boolean; error?: string } | undefined;
+      if (!response?.ok) throw new Error(response?.error ?? "Mai-Score could not open Studio.");
+      dismiss();
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : String(error);
+      action.disabled = false;
+      if (quick) quick.disabled = false;
+    }
+  };
+  action.addEventListener("click", () => void run(supportsFullRecords));
+  quick?.addEventListener("click", () => void run(false));
+  window.requestAnimationFrame(() => {
+    if (!host.isConnected) return;
+    document.addEventListener("pointerdown", outsideClick, true);
+    document.addEventListener("keydown", keydown, true);
+  });
+}
+
+void mountCollectionPrompt();

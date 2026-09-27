@@ -324,12 +324,23 @@ export default function Studio() {
           setKonamiPageData(null);
           setRhythmData(null);
           setData(parsed);
-          setAssets(received.assets);
           setLanguage(received.language);
           setSource("Mai-Score extension");
           setGeneratedAt(timestamp);
-          const coverCount = Object.keys(received.assets.covers).length;
-          const profileAssetCount = [received.assets.icon, received.assets.frame, received.assets.plate].filter(Boolean).length;
+          let importedAssets = received.assets;
+          const hasImportedAssets = Boolean(importedAssets.icon || importedAssets.frame || importedAssets.plate
+            || Object.keys(importedAssets.covers).length || Object.keys(importedAssets.badges ?? {}).length);
+          setAssets(importedAssets);
+          // The in-page DX NET prompt keeps its transfer small and lets Studio
+          // obtain public artwork through the same-origin asset proxy. Popup
+          // transfers already include artwork and skip this request entirely.
+          if (!hasImportedAssets) {
+            importedAssets = await loadPublicAssets(parsed);
+            if (cancelled) return;
+            setAssets(importedAssets);
+          }
+          const coverCount = Object.keys(importedAssets.covers).length;
+          const profileAssetCount = [importedAssets.icon, importedAssets.frame, importedAssets.plate].filter(Boolean).length;
           setMessage(studioCopy(received.language).transferred(
             parsed.player.name,
             parsed.records.length,
@@ -339,7 +350,7 @@ export default function Studio() {
           try {
             await saveStudioSnapshot({
               data: parsed,
-              assets: received.assets,
+              assets: importedAssets,
               source: "Mai-Score extension",
               generatedAt: timestamp,
               language: received.language

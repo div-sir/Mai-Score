@@ -1,0 +1,37 @@
+{
+  "schema": "mai-score/konami-page-snapshot/v1",
+  "generatedAt": "2026-09-26T12:00:00.000Z",
+  "source": {
+    "game": "dance-dance-revolution",
+    "connectionId": "ddr-konami-page",
+    "startUrl": "https://p.eagate.573.jp/game/ddr/ddrworld/playdata/music.html",
+    "region": "jp",
+    "pageLimit": 40
+  },
+  "pages": [{
+    "url": "https://p.eagate.573.jp/game/ddr/ddrworld/playdata/music.html",
+    "title": "DanceDanceRevolution WORLD",
+    "access": "collected",
+    "headings": ["樂曲資料"],
+    "fields": [{ "label": "DANCER NAME", "value": "SOMI" }],
+    "tables": [{
+      "caption": "最近遊玩的歌曲",
+      "headers": ["曲名", "難度", "分數", "達成率"],
+      "rows": [
+        ["MEGALOVANIA", "CHALLENGE", "987650", "98.765%"],
+        ["Come To Life", "EXPERT", "999120", "99.912%"],
+        ["MAX 360", "CHALLENGE", "950000", "95.000%"],
+        ["Avenger", "EXPERT", "972340", "97.234%"]
+      ]
+    }],
+    "text": ["測試用資料"]
+  }],
+  "summary": {
+    "collected": 1,
+    "paid": 0,
+    "signInRequired": 0,
+    "failed": 0,
+    "fields": 1,
+    "tables": 1
+  }
+}

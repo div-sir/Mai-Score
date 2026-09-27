@@ -1,22 +1,22 @@
 :root{
   color-scheme:dark;
-  --bg:#101311;
-  --bg2:#171b18;
-  --bg3:#202521;
-  --panel:#171b18ee;
-  --line:#e8dfd010;
-  --line2:#e8dfd023;
-  --text:#eeeae2;
-  --muted:#a9aaa3;
-  --muted-dim:#747a73;
-  --accent:#b89b72;
-  --accent2:#82958b;
-  --green:#81aa91;
+  --bg:#151815;
+  --bg2:#1c201c;
+  --bg3:#242924;
+  --panel:#1c201c;
+  --line:#eef1eb12;
+  --line2:#eef1eb26;
+  --text:#ecefe9;
+  --muted:#a6ada5;
+  --muted-dim:#788079;
+  --accent:#a88b69;
+  --accent2:#738b80;
+  --green:#7fa78f;
   --danger:#c4878d;
   --shadow:#0000008c;
   --radius-control:9px;
-  --radius-card:11px;
-  --radius-panel:16px;
+  --radius-card:9px;
+  --radius-panel:12px;
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
@@ -25,7 +25,7 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:"Space Grotesk",Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,ui-sans-serif,system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
 }
 button,select,input{font:inherit}
@@ -43,17 +43,14 @@ button:active{transform:scale(.97)}
   min-height:100vh;
   padding-bottom:14px;
   color:var(--text);
-  background:
-    radial-gradient(ellipse 42% 34% at 8% 0,color-mix(in srgb,var(--accent) 8%,transparent),transparent 72%),
-    radial-gradient(ellipse 36% 30% at 100% 100%,color-mix(in srgb,var(--accent2) 7%,transparent),transparent 70%),
-    var(--bg);
+  background:var(--bg);
 }
 .studio-shell[data-ui-theme=light]{
   color-scheme:light;
-  --bg:#f2efe9;
-  --bg2:#faf8f3;
-  --bg3:#eeeae2;
-  --panel:#fbfaf7ed;
+  --bg:#f2f0eb;
+  --bg2:#faf9f6;
+  --bg3:#eceae4;
+  --panel:#faf9f6;
   --line:#272b2712;
   --line2:#272b2724;
   --text:#272a27;
@@ -65,16 +62,7 @@ button:active{transform:scale(.97)}
   --danger:#a55f68;
   --shadow:#403a2f2b;
 }
-.studio-shell::after{
-  content:"";
-  position:fixed;
-  z-index:20;
-  inset:0;
-  pointer-events:none;
-  opacity:.035;
-  mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.48'/%3E%3C/svg%3E");
-}
+.studio-shell::after{display:none}
 .topbar{
   position:sticky;
   z-index:40;
@@ -86,9 +74,7 @@ button:active{transform:scale(.97)}
   gap:24px;
   padding:14px 24px;
   border-bottom:1px solid var(--line);
-  background:color-mix(in srgb,var(--bg) 90%,transparent);
-  box-shadow:0 12px 36px -28px var(--shadow);
-  backdrop-filter:blur(18px) saturate(1.12);
+  background:var(--bg);
 }
 .topbar-primary{display:flex;align-items:center;gap:22px;min-width:max-content}
 .brand{display:flex;align-items:center;gap:12px;min-width:max-content}
@@ -98,9 +84,8 @@ button:active{transform:scale(.97)}
   height:42px;
   place-items:center;
   border:1px solid color-mix(in srgb,var(--accent2) 40%,var(--line2));
-  border-radius:13px;
-  background:linear-gradient(145deg,color-mix(in srgb,var(--accent2) 88%,#fff 12%),color-mix(in srgb,var(--accent) 68%,var(--accent2)));
-  box-shadow:0 12px 28px -16px color-mix(in srgb,var(--accent2) 75%,transparent),inset 0 1px 0 #ffffff38;
+  border-radius:9px;
+  background:var(--accent2);
   color:#101319;
   font-size:20px;
   font-weight:900;
@@ -578,6 +563,8 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
 .konami-pages-dashboard{width:min(1280px,calc(100% - 40px));margin:22px auto 60px}.konami-pages-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;margin-bottom:16px;border:1px solid #31534f;border-radius:24px;padding:28px;background:linear-gradient(135deg,color-mix(in srgb,#20b997 15%,var(--bg2)),var(--bg2) 60%)}.konami-pages-hero>div:first-child>span{color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}.konami-pages-hero h1{margin:6px 0 5px;font-size:32px}.konami-pages-hero p{margin:0;color:var(--muted);font-size:11px}.konami-pages-metrics{display:grid;grid-template-columns:repeat(4,minmax(92px,1fr));gap:8px}.konami-pages-metrics div{display:grid;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg3);text-align:right}.konami-pages-metrics strong{color:#4ed6b5;font:850 24px ui-monospace,"SFMono-Regular",monospace}.konami-pages-metrics span{color:var(--muted);font-size:9px}.konami-pages-metrics .restricted strong{color:#e7b56f}.konami-pages-search{width:100%;min-height:46px;margin-bottom:12px;border:1px solid var(--line2);border-radius:13px;background:var(--bg2);color:var(--text);padding:0 15px}.konami-pages-list{display:grid;gap:10px}.konami-page-card{border:1px solid var(--line);border-radius:16px;background:var(--bg2);overflow:hidden}.konami-page-card.paid,.konami-page-card.sign-in-required{border-color:color-mix(in srgb,#d69c58 45%,var(--line))}.konami-page-card.failed{border-color:color-mix(in srgb,#db6b82 45%,var(--line))}.konami-page-card>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;cursor:pointer;list-style:none}.konami-page-card>summary::-webkit-details-marker{display:none}.konami-page-card>summary>div{display:grid;min-width:0;gap:3px}.konami-page-card>summary strong,.konami-page-card>summary small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.konami-page-card>summary strong{font-size:14px}.konami-page-card>summary small{color:var(--muted);font-size:10px}.konami-page-card>summary>span{flex:none;border-radius:999px;padding:5px 8px;background:#214b43;color:#9ff0d1;font-size:9px;font-weight:750}.konami-page-card.paid>summary>span,.konami-page-card.sign-in-required>summary>span{background:#4a3521;color:#f1c889}.konami-page-card.failed>summary>span{background:#4d2831;color:#f6a8b7}.konami-page-body{display:grid;gap:14px;border-top:1px solid var(--line);padding:16px}.konami-page-body>a{justify-self:start;color:#55cdeb;font-size:10px}.konami-page-body>dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:0}.konami-page-body>dl div{display:grid;gap:4px;border-radius:10px;padding:10px;background:var(--bg3)}.konami-page-body dt{color:var(--muted);font-size:9px}.konami-page-body dd{margin:0;font-size:12px;font-weight:700;overflow-wrap:anywhere}.konami-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}.konami-table-wrap>strong{display:block;padding:10px 12px;border-bottom:1px solid var(--line);font-size:11px}.konami-table-wrap table{width:100%;border-collapse:collapse;font-size:10px}.konami-table-wrap th,.konami-table-wrap td{max-width:380px;padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.konami-table-wrap th{position:sticky;top:0;background:var(--bg3);color:var(--muted)}.konami-raw{border:1px solid var(--line);border-radius:10px}.konami-raw>summary{padding:10px 12px;color:var(--muted);cursor:pointer;font-size:10px}.konami-raw ul{display:grid;gap:7px;margin:0;padding:0 28px 14px;font-size:10px}.konami-page-error{color:#f6a8b7}.konami-page-body>p{margin:0;color:var(--muted);font-size:11px}
 @media(max-width:850px){.konami-pages-dashboard{width:min(100% - 20px,1280px);margin-top:12px}.konami-pages-hero{grid-template-columns:1fr;padding:20px}.konami-pages-metrics{grid-template-columns:1fr 1fr}.konami-page-card>summary{align-items:flex-start}.konami-page-body>dl{grid-template-columns:1fr}}
 .konami-page-card{content-visibility:auto;contain-intrinsic-size:72px}
+.konami-analysis{display:grid;gap:14px;margin-bottom:14px;border:1px solid #31534f;border-radius:18px;padding:18px;background:linear-gradient(145deg,color-mix(in srgb,#20b997 8%,var(--bg2)),var(--bg2))}.konami-analysis-heading,.konami-chart-controls{display:flex;align-items:end;justify-content:space-between;gap:14px}.konami-analysis-heading h2{margin:0;font-size:17px}.konami-analysis-heading p{margin:3px 0 0;color:var(--muted);font-size:10px}.konami-analysis button{border:1px solid #31534f;border-radius:10px;padding:9px 12px;background:var(--bg3);color:var(--text);cursor:pointer;font-size:10px;font-weight:750}.konami-chart-controls label{display:grid;min-width:0;flex:1;gap:5px}.konami-chart-controls label>span{color:var(--muted);font-size:9px;font-weight:700;text-transform:uppercase}.konami-chart-controls select{width:100%;min-height:40px;border:1px solid var(--line2);border-radius:10px;background:var(--bg3);color:var(--text);padding:0 11px}.konami-auto-chart{display:grid;gap:12px;margin:0}.konami-auto-chart figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.konami-auto-chart figcaption strong{font-size:13px}.konami-auto-chart figcaption span{color:var(--muted);font-size:9px}.konami-bar-list{display:grid;gap:7px}.konami-bar-row{display:grid;grid-template-columns:minmax(100px,180px) minmax(100px,1fr) minmax(64px,auto);align-items:center;gap:10px}.konami-bar-row>span{overflow:hidden;color:var(--text);font-size:10px;text-overflow:ellipsis;white-space:nowrap}.konami-bar-row>div{height:12px;border-radius:3px;background:color-mix(in srgb,var(--line) 55%,transparent);overflow:hidden}.konami-bar-row i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#20b997,#4f8cff)}.konami-bar-row strong{font:750 10px ui-monospace,"SFMono-Regular",monospace;text-align:right}.konami-chart-empty{margin:0;border:1px dashed var(--line2);border-radius:12px;padding:24px;color:var(--muted);font-size:11px;text-align:center}
+@media(max-width:650px){.konami-analysis-heading,.konami-chart-controls{align-items:stretch;flex-direction:column}.konami-analysis-heading button,.konami-chart-controls button{width:100%}.konami-bar-row{grid-template-columns:minmax(80px,120px) minmax(70px,1fr) minmax(56px,auto);gap:7px}.konami-auto-chart figcaption{align-items:flex-start;flex-direction:column;gap:3px}}
 .chart-target-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px}.chart-target-bars>div{display:grid;gap:6px;border:1px solid var(--line);border-radius:10px;padding:9px;background:color-mix(in srgb,var(--bg3) 70%,transparent)}
 .chart-target-bars span{display:flex;align-items:baseline;justify-content:space-between}.chart-target-bars small{color:var(--accent);font-size:9px}.chart-target-bars i{height:5px;overflow:hidden;border-radius:999px;background:var(--bg)}.chart-target-bars i b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent2),var(--accent))}
 .chart-history-timeline{display:grid;gap:0;margin:0;padding:0;list-style:none}.chart-history-timeline li{position:relative;display:grid;grid-template-columns:12px 1fr auto auto;gap:8px;align-items:center;min-height:34px;color:var(--muted);font-size:9px}.chart-history-timeline li:not(:last-child)::after{content:"";position:absolute;top:22px;bottom:-12px;left:4px;width:1px;background:var(--line2)}
@@ -798,3 +785,28 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
 @media(prefers-reduced-motion:reduce){.b50-dialog-content{animation:none}.difficulty-card{transition:none}}
 @media(max-width:650px){.b50-chart-dialog{padding:12px;border-radius:16px}.b50-dialog-hero{grid-template-columns:76px 1fr;gap:12px;min-height:auto;padding:12px}.b50-dialog-hero .upgrade-cover{width:76px;height:76px}.achievement-orbit{grid-column:1/-1;width:100%;height:76px}.b50-dialog-title h2{padding-right:28px;font-size:20px}.b50-target-grid{grid-template-columns:1fr}.chart-detail-facts{grid-template-columns:1fr 1fr}.chart-detail-facts span:last-child{grid-column:1/-1}.chart-target-bars{grid-template-columns:1fr}}
 .unmatched-panel ul{margin:8px 0;padding-left:20px;color:var(--muted);font-size:10px}.unmatched-panel li{margin:4px 0}
+
+/* Product UI refinement: quiet surfaces, restrained colour, and consistent
+   control geometry. Gradients remain only where they encode data. */
+.icon-toggle,.icon-picker,.secondary-button,.load-button,.reset-button,.preset-button,.export-button,.danger-button,.share-button,.sync-button,.drive-connect-button,.data-menu>summary,.studio-tabs,.studio-tabs button{border-radius:9px}
+.load-button,.drive-connect-button,.sync-button{background:var(--accent);box-shadow:none;color:#171814}
+.load-button:hover,.drive-connect-button:hover,.sync-button:hover,.panel-primary-button:not(:disabled):hover{box-shadow:none;transform:none}
+.studio-tabs button[aria-pressed=true]{background:var(--accent);box-shadow:none}
+.drive-compact,.control-panel,.preview-panel,.timeline-panel,.insight-panel,.records-detail-panel,.session-panel,.session-metrics article{box-shadow:none;backdrop-filter:none}
+.control-panel,.preview-panel,.timeline-panel,.insight-panel,.records-detail-panel,.session-panel,.session-metrics article{border-color:var(--line2)}
+.drive-more>div,.data-menu>div,.records-advanced-filters>div{box-shadow:0 12px 28px -20px var(--shadow);backdrop-filter:none}
+.preview-stage{background-color:#111411;background-image:linear-gradient(45deg,#ffffff035 25%,transparent 25%),linear-gradient(-45deg,#ffffff035 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ffffff035 75%),linear-gradient(-45deg,transparent 75%,#ffffff035 75%)}
+.preview-stage img{box-shadow:0 16px 36px #0008}
+.metric-card::before,.session-metrics article::after{display:none}
+.session-share-panel,.konami-pages-hero,.konami-analysis,.b50-chart-dialog,.b50-dialog-hero{background:var(--panel)}
+.konami-pages-hero,.konami-analysis{border-color:var(--line2);border-radius:12px}
+.konami-pages-metrics strong{color:var(--accent2)}
+.konami-bar-row i{background:var(--accent2)}
+.b50-chart-dialog{border-radius:14px;box-shadow:0 22px 60px #0009}
+.b50-chart-dialog::backdrop{backdrop-filter:none}
+.b50-dialog-hero{border-radius:10px}
+.b50-dialog-hero::before{box-shadow:none}
+.b50-dialog-hero .upgrade-cover{box-shadow:none}
+.achievement-orbit>span{background:var(--bg2)}
+.b50-rating-baseline>i,.chart-target-bars i b{background:var(--accent)}
+.session-highlights li:hover,.practice-panel li:hover{transform:none}
