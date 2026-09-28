@@ -115,6 +115,13 @@ export default function Privacy() {
             explicitly download or share it.
           </li>
           <li>
+            <strong>DDR and SOUND VOLTEX insight cards</strong> are also rendered entirely in
+            your browser. They contain the selected game, aggregate chart and level statistics,
+            the selected score target, and a short list of nearby targets; they do not contain
+            your full score dataset or account identifier and leave the device only when you
+            explicitly download or share one.
+          </li>
+          <li>
             <strong>Optional Google Drive sync</strong> is enabled only after you choose Connect Google
             Drive in Studio. After that choice, a one-click Studio update synchronizes the newly
             saved snapshot automatically while the connection remains active. On desktop, an

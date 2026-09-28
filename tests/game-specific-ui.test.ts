@@ -38,6 +38,10 @@ describe("game-specific Studio dashboards", () => {
     expect(html).toContain("Flare / gauge");
     expect(html).toContain("Score insights");
     expect(html).toContain("Target score");
+    expect(html).toContain("Download insight card");
+    expect(html).toContain("Share insight card");
+    expect(html).toContain("All levels");
+    expect(html).toContain("Reset filters");
     expect(html).toContain("SINGLE");
   });
 

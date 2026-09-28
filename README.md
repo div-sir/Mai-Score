@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.24.0 — DDR and SDVX insights.** Switch among saved game datasets in Studio, inspect DDR Flare Skill contributors and entry thresholds, and use cross-game level, target-score, grade, clear, VOLFORCE Best 50, and VF Potential analysis. Download the packaged version from Releases.
+> **v0.24.1 — Shareable DDR and SDVX insights.** Export local 1080×1350 insight cards, filter records by difficulty, level, style, and clear state, and sort by score, level, or title. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
