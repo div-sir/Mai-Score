@@ -4,6 +4,18 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.1] — 2026-09-28
+
+### Added
+
+- Generate 1080×1350 DDR and SOUND VOLTEX insight cards locally, with download and native share actions for level performance, the selected score target, nearby upgrade candidates, and estimated VOLFORCE when available.
+- Filter normalized multi-game records by difficulty, level, play style, and clear or gauge state, then sort them by score, chart level, or song title.
+- Reset all multi-game record filters and sorting with one action, including a responsive mobile layout for the expanded controls.
+
+### Privacy
+
+- Insight cards contain only aggregate statistics and a short target list, never the full score dataset or an account identifier, and leave the browser only after an explicit download or share action.
+
 ## [0.24.0] — 2026-09-27
 
 ### Added

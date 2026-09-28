@@ -163,7 +163,7 @@ export default function KonamiPagesDashboard({ data, language }: { data: KonamiP
     </header>
     {data.source.game === "dance-dance-revolution" ? <DdrFlareSection data={data} language={language} /> : null}
     {(data.source.game === "dance-dance-revolution" || data.source.game === "sound-voltex") && insightRecords.length
-      ? <ScoreInsights key={data.source.game} game={data.source.game} records={insightRecords} language={language} /> : null}
+      ? <ScoreInsights key={data.source.game} game={data.source.game} records={insightRecords} language={language} generatedAt={data.generatedAt} /> : null}
     <section className="konami-analysis">
       <div className="konami-analysis-heading"><div><h2>{text.analysis}</h2><p>{text.top}</p></div>
         <button type="button" onClick={() => downloadText(
