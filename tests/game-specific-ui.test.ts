@@ -56,4 +56,33 @@ describe("game-specific Studio dashboards", () => {
     expect(html).toContain("VF Potential");
     expect(html).toContain("0.388");
   });
+
+  it("shows score changes from the previous local multi-game snapshot", () => {
+    const current: RhythmRecordEnvelope = {
+      schema: "mai-score/rhythm-record/v1", generatedAt: "2026-09-29T12:00:00.000Z",
+      source: { game: "sound-voltex", connectionId: "sdvx" },
+      records: [{ recordId: "song-exh", song: { id: "song", title: "Song" }, chart: { id: "song-exh", difficulty: "EXHAUST", level: "18" }, result: { rawScore: 9_950_000 } }]
+    };
+    const previous: RhythmRecordEnvelope = {
+      ...current, generatedAt: "2026-09-28T12:00:00.000Z",
+      records: [{ ...current.records[0], result: { rawScore: 9_900_000 } }]
+    };
+    const html = renderToStaticMarkup(React.createElement(RhythmRecordsDashboard, { data: current, previousData: previous, language: "en" }));
+    expect(html).toContain("Changes since last update");
+    expect(html).toContain("+50,000");
+    expect(html).toContain("9,900,000 → 9,950,000");
+  });
+
+  it("turns IIDX records into an SP/DP lamp workbench", () => {
+    const data: RhythmRecordEnvelope = {
+      schema: "mai-score/rhythm-record/v1", generatedAt: "2026-09-29T12:00:00.000Z",
+      source: { game: "beatmania-iidx", connectionId: "iidx" },
+      records: [{ recordId: "song-spa", song: { id: "song", title: "Song" }, chart: { id: "song-spa", type: "SP", difficulty: "ANOTHER", level: "12", levelValue: 12 }, result: { rawScore: 2200, grade: "AAA", clearStatus: "HARD CLEAR" } }]
+    };
+    const html = renderToStaticMarkup(React.createElement(RhythmRecordsDashboard, { data, language: "en" }));
+    expect(html).toContain("IIDX lamp workbench");
+    expect(html).toContain("HARD or better");
+    expect(html).toContain("Show in records");
+    expect(html).not.toContain("Target score");
+  });
 });

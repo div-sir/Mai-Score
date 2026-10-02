@@ -3,13 +3,16 @@ import { mergeHistories } from "./history-sync";
 import type { LanguageId, StudioAssets, StudioData } from "./types";
 import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
 import type { KonamiPageSnapshot, KonamiPageGame } from "./konami-page";
+import { rhythmRecordFromKonamiPages } from "./rhythm-insights";
 
 const DB_NAME = "mai-score-studio";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const STORE_NAME = "snapshots";
 const HISTORY_STORE = "history";
 const GAME_STORE = "game-data";
+const GAME_HISTORY_STORE = "game-history";
 const LATEST_KEY = "latest";
+const MAX_GAME_HISTORY = 12;
 
 export interface StudioSnapshot {
   data: StudioData;
@@ -36,6 +39,18 @@ export type ExternalGameDataset = {
   savedAt: string;
 };
 
+type WithoutSavedAt<T> = T extends unknown ? Omit<T, "savedAt"> : never;
+export type ExternalGameDatasetInput = WithoutSavedAt<ExternalGameDataset>;
+
+export interface ExternalGameHistoryEntry {
+  key: string;
+  game: KonamiPageGame;
+  data: RhythmRecordEnvelope;
+  source: string;
+  language: LanguageId;
+  savedAt: string;
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -52,6 +67,9 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(GAME_STORE)) {
         database.createObjectStore(GAME_STORE, { keyPath: "game" });
       }
+      if (!database.objectStoreNames.contains(GAME_HISTORY_STORE)) {
+        database.createObjectStore(GAME_HISTORY_STORE, { keyPath: "key" });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error("Could not open local storage."));
@@ -59,15 +77,52 @@ function openDatabase(): Promise<IDBDatabase> {
 }
 
 export async function saveExternalGameDataset(
-  dataset: Omit<ExternalGameDataset, "savedAt">
+  dataset: ExternalGameDatasetInput
 ): Promise<ExternalGameDataset> {
   const database = await openDatabase();
   try {
     const saved = { ...dataset, savedAt: new Date().toISOString() } as ExternalGameDataset;
-    const transaction = database.transaction(GAME_STORE, "readwrite");
+    const historyData = dataset.kind === "rhythm-record" ? dataset.data : rhythmRecordFromKonamiPages(dataset.data);
+    const keepsHistory = historyData.records.length > 0;
+    const stores = keepsHistory ? [GAME_STORE, GAME_HISTORY_STORE] : [GAME_STORE];
+    const transaction = database.transaction(stores, "readwrite");
     transaction.objectStore(GAME_STORE).put(saved);
+    if (keepsHistory) {
+      const historyStore = transaction.objectStore(GAME_HISTORY_STORE);
+      const key = `${saved.game}\u0000${historyData.generatedAt}`;
+      historyStore.put({ key, game: saved.game, data: historyData, source: saved.source, language: saved.language, savedAt: saved.savedAt } satisfies ExternalGameHistoryEntry);
+      const historyRequest = historyStore.getAll();
+      await new Promise<void>((resolve, reject) => {
+        historyRequest.onsuccess = () => {
+          const obsolete = (historyRequest.result as ExternalGameHistoryEntry[])
+            .filter((entry) => entry.game === saved.game)
+            .sort((left, right) => right.savedAt.localeCompare(left.savedAt))
+            .slice(MAX_GAME_HISTORY);
+          for (const entry of obsolete) historyStore.delete(entry.key);
+          resolve();
+        };
+        historyRequest.onerror = () => reject(historyRequest.error ?? new Error("Could not prune saved game history."));
+      });
+    }
     await complete(transaction);
     return saved;
+  } finally {
+    database.close();
+  }
+}
+
+export async function listExternalGameHistory(game?: ExternalGameDataset["game"]): Promise<ExternalGameHistoryEntry[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(GAME_HISTORY_STORE, "readonly");
+    const request = transaction.objectStore(GAME_HISTORY_STORE).getAll();
+    const result = await new Promise<ExternalGameHistoryEntry[]>((resolve, reject) => {
+      request.onsuccess = () => resolve((request.result as ExternalGameHistoryEntry[]) ?? []);
+      request.onerror = () => reject(request.error ?? new Error("Could not read saved game history."));
+    });
+    await complete(transaction);
+    return result.filter((entry) => !game || entry.game === game)
+      .sort((left, right) => right.savedAt.localeCompare(left.savedAt));
   } finally {
     database.close();
   }
@@ -92,8 +147,9 @@ export async function listExternalGameDatasets(): Promise<ExternalGameDataset[]>
 export async function clearExternalGameDatasets(): Promise<void> {
   const database = await openDatabase();
   try {
-    const transaction = database.transaction(GAME_STORE, "readwrite");
+    const transaction = database.transaction([GAME_STORE, GAME_HISTORY_STORE], "readwrite");
     transaction.objectStore(GAME_STORE).clear();
+    transaction.objectStore(GAME_HISTORY_STORE).clear();
     await complete(transaction);
   } finally {
     database.close();

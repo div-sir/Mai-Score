@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.24.1 — Shareable DDR and SDVX insights.** Export local 1080×1350 insight cards, filter records by difficulty, level, style, and clear state, and sort by score, level, or title. Download the packaged version from Releases.
+> **v0.24.2 — Practical KONAMI score tracking.** Review IIDX lamp progress, compare recent DDR, SOUND VOLTEX, and IIDX snapshots, and explore large record sets with compact tables, pagination, and safe CSV export. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -27,9 +27,11 @@ Building from source instead? See [Development](#development).
 - Exports a richer `mai-score/v1` JSON document and a cross-game `mai-score/rhythm-record/v1` document.
 - On DDR, SOUND VOLTEX, and beatmania IIDX pages, can directly collect the fields, tables, and visible text from PLAY DATA pages available to the current browser session. Paid and sign-in-gated pages are reported rather than bypassed.
 - Keeps the latest maimai, DDR, SOUND VOLTEX, and beatmania IIDX datasets separately in Studio and switches between them without discarding another game's result.
+- Keeps up to 12 lightweight local score snapshots per game and compares the newest DDR, SOUND VOLTEX, or beatmania IIDX collection/import with the previous one, separating new charts from score improvements.
 - Analyzes explicit DDR Flare Skill tables as separate SINGLE and DOUBLE totals, taking the best 30 charts from each of CLASSIC, WHITE, and GOLD and showing the exact entry gap for nearby charts.
 - Summarizes DDR and SOUND VOLTEX scores by level, grade, clear or full-combo state, and target-score gap when the collected page exposes those fields.
 - Estimates SOUND VOLTEX VOLFORCE Best 50, cutoff, and VF Potential only when chart constants and clear types are present, preferring an official per-chart VF value when supplied.
+- Turns IIDX long-form or wide SP/DP score tables into a level-and-lamp workbench with AAA, HARD-or-better, clear, failed, and priority review views; it does not guess BPI or AAA gaps when note counts are absent.
 - Generates PNG and SVG locally with Night, Light, and maimai themes.
 - Uses official DX NET artwork for achievement ranks and FC/AP/FS result badges in image exports.
 - Provides Classic 5×10, Compact 5×10, and Landscape 10×5 image templates.

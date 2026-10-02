@@ -4,6 +4,23 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.2] — 2026-10-01
+
+### Added
+
+- Add an IIDX lamp workbench with SP/DP and level views for AAA, HARD-or-better, clear, failed, and priority review charts.
+- Add local progress comparisons for DDR, SOUND VOLTEX, and IIDX, retaining at most 12 lightweight score snapshots per game.
+- Add compact table and card views, paginated rendering, filtered score summaries, and safe CSV export for multi-game records.
+
+### Improved
+
+- Normalize IIDX long-form and wide official page tables, including EX SCORE, DJ LEVEL, clear type, level, and SP/DP columns.
+- Keep direct KONAMI page history lightweight by retaining normalized score results instead of duplicate page text.
+
+### Privacy
+
+- Multi-game comparison snapshots remain in browser IndexedDB, are excluded from Google Drive sync, and are removed by Clear local data.
+
 ## [0.24.1] — 2026-09-28
 
 ### Added

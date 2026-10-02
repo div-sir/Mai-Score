@@ -13,8 +13,11 @@ import {
   type DdrPlayStyle
 } from "../lib/ddr-flare";
 import type { KonamiPageSnapshot } from "../lib/konami-page";
-import { scoresFromKonamiPages } from "../lib/rhythm-insights";
+import { rhythmRecordFromKonamiPages, scoresFromKonamiPages } from "../lib/rhythm-insights";
 import type { LanguageId } from "../lib/types";
+import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
+import RhythmProgressPanel from "./rhythm-progress-panel";
+import IidxInsights from "./iidx-insights";
 import ScoreInsights from "./score-insights";
 
 const gameLabel = (game: KonamiPageSnapshot["source"]["game"]) => game === "beatmania-iidx"
@@ -117,7 +120,7 @@ function DdrFlareSection({ data, language }: { data: KonamiPageSnapshot; languag
   </section>;
 }
 
-export default function KonamiPagesDashboard({ data, language }: { data: KonamiPageSnapshot; language: LanguageId }) {
+export default function KonamiPagesDashboard({ data, language, previousData }: { data: KonamiPageSnapshot; language: LanguageId; previousData?: RhythmRecordEnvelope }) {
   const [query, setQuery] = useState("");
   const [selectedChartId, setSelectedChartId] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -145,6 +148,7 @@ export default function KonamiPagesDashboard({ data, language }: { data: KonamiP
   const selectedChart = charts.find((chart) => chart.id === selectedChartId) ?? charts[0];
   const selectedTable = tables.find((table) => table.id === selectedChart?.tableId);
   const insightRecords = useMemo(() => scoresFromKonamiPages(data), [data]);
+  const rhythmData = useMemo(() => rhythmRecordFromKonamiPages(data), [data]);
   const pages = useMemo(() => {
     const wanted = deferredQuery.trim().toLocaleLowerCase();
     if (!wanted) return data.pages;
@@ -161,6 +165,8 @@ export default function KonamiPagesDashboard({ data, language }: { data: KonamiP
         <div className={restricted ? "restricted" : ""}><strong>{restricted}</strong><span>{text.restricted}</span></div>
       </div>
     </header>
+    <RhythmProgressPanel current={rhythmData} previous={previousData} language={language} />
+    {data.source.game === "beatmania-iidx" && insightRecords.length ? <IidxInsights records={insightRecords} language={language} /> : null}
     {data.source.game === "dance-dance-revolution" ? <DdrFlareSection data={data} language={language} /> : null}
     {(data.source.game === "dance-dance-revolution" || data.source.game === "sound-voltex") && insightRecords.length
       ? <ScoreInsights key={data.source.game} game={data.source.game} records={insightRecords} language={language} generatedAt={data.generatedAt} /> : null}

@@ -22,6 +22,16 @@ export interface LevelInsight {
   clearRate?: number;
 }
 
+export interface IidxLevelSummary {
+  style: string;
+  level: string;
+  count: number;
+  aaa: number;
+  hardOrBetter: number;
+  cleared: number;
+  failed: number;
+}
+
 export interface SdvxVolforceEntry extends InsightScore {
   vfMilli: number;
   counted: boolean;
@@ -32,6 +42,9 @@ export interface SdvxPotential extends SdvxVolforceEntry {
   projectedMilli: number;
   gainMilli: number;
 }
+
+type KonamiTable = ReturnType<typeof konamiDataTables>[number];
+const IIDX_WIDE_SCORE_HEADER = /^(SP|DP)(BEGINNER|NORMAL|HYPER|ANOTHER|LEGGENDARIA)(?:EX)?(?:SCORE|スコア)$/;
 
 const clean = (value: string) => value.normalize("NFKC").replace(/\s+/g, " ").trim();
 const compact = (value: string) => clean(value).toUpperCase().replace(/[\s_・/()\-.．]/g, "");
@@ -46,6 +59,35 @@ function numericLevel(value?: string): number | undefined {
   const matched = clean(value).match(/\d+(?:\.\d+)?/);
   const parsed = matched ? Number(matched[0]) : Number.NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function iidxWideScores(table: KonamiTable, titleIndex: number): InsightScore[] {
+  const scoreColumns = table.headers.flatMap((header, index) => {
+    const match = compact(header).match(IIDX_WIDE_SCORE_HEADER);
+    return match ? [{ index, style: match[1], difficulty: match[2], prefix: `${match[1]}${match[2]}` }] : [];
+  });
+  const sibling = (prefix: string, patterns: RegExp[]) => table.headers.findIndex((header) => {
+    const normalized = compact(header);
+    return normalized.startsWith(prefix) && patterns.some((pattern) => pattern.test(normalized.slice(prefix.length)));
+  });
+  return table.rows.flatMap((row, rowIndex) => scoreColumns.flatMap((scoreColumn) => {
+    const title = clean(row[titleIndex] ?? "");
+    const score = parseKonamiNumber(row[scoreColumn.index] ?? "");
+    if (!title || score === undefined || score <= 0) return [];
+    const levelIndex = sibling(scoreColumn.prefix, [/^(?:LEVEL|LV|レベル)$/]);
+    const gradeIndex = sibling(scoreColumn.prefix, [/^(?:DJLEVEL|DJレベル|GRADE|ランク)$/]);
+    const clearIndex = sibling(scoreColumn.prefix, [/^(?:CLEAR|CLEARTYPE|クリア|クリアタイプ|クリアランプ)$/]);
+    return [{
+      id: `${table.id}-${rowIndex}-${scoreColumn.style}-${scoreColumn.difficulty}`,
+      title,
+      difficulty: scoreColumn.difficulty,
+      style: scoreColumn.style,
+      ...(levelIndex < 0 ? {} : { level: numericLevel(row[levelIndex]) }),
+      score,
+      ...(gradeIndex < 0 || !row[gradeIndex] ? {} : { grade: clean(row[gradeIndex]) }),
+      ...(clearIndex < 0 || !row[clearIndex] ? {} : { clear: clean(row[clearIndex]) })
+    } satisfies InsightScore];
+  }));
 }
 
 export function scoresFromRhythmRecord(data: RhythmRecordEnvelope): InsightScore[] {
@@ -73,8 +115,9 @@ export function scoresFromRhythmRecord(data: RhythmRecordEnvelope): InsightScore
 export function scoresFromKonamiPages(data: KonamiPageSnapshot): InsightScore[] {
   const records = konamiDataTables(data).flatMap((table) => {
     const titleIndex = column(table.headers, [/^(?:曲名|楽曲名|タイトル|TITLE|MUSIC|SONG)$/]);
-    const scoreIndex = column(table.headers, [/^(?:スコア|分數|分数|得点|SCORE|BESTSCORE|ハイスコア)$/]);
-    if (titleIndex === undefined || scoreIndex === undefined) return [];
+    if (titleIndex === undefined) return [];
+    const scoreIndex = column(table.headers, [/^(?:EXスコア|スコア|分數|分数|得点|EXSCORE|SCORE|BESTSCORE|ハイスコア)$/]);
+    if (scoreIndex === undefined) return data.source.game === "beatmania-iidx" ? iidxWideScores(table, titleIndex) : [];
     const difficultyIndex = column(table.headers, [/(?:難易度|DIFFICULTY|譜面)/]);
     const levelIndex = column(table.headers, [/^(?:LEVEL|LV|レベル)$/]);
     const gradeIndex = column(table.headers, [/(?:クリアランク|成績|等級|GRADE|RANK)/]);
@@ -111,6 +154,34 @@ export function scoresFromKonamiPages(data: KonamiPageSnapshot): InsightScore[] 
   return [...best.values()];
 }
 
+export function rhythmRecordFromKonamiPages(data: KonamiPageSnapshot): RhythmRecordEnvelope {
+  return {
+    schema: "mai-score/rhythm-record/v1",
+    generatedAt: data.generatedAt,
+    source: { game: data.source.game, connectionId: data.source.connectionId, region: data.source.region, url: data.source.startUrl },
+    records: scoresFromKonamiPages(data).map((record) => {
+      const chartId = [record.title, record.difficulty ?? "", record.style ?? ""].join("\u0000");
+      return {
+        recordId: record.id,
+        song: { id: record.title, title: record.title },
+        chart: {
+          id: chartId,
+          ...(record.style ? { type: record.style } : {}),
+          difficulty: record.difficulty ?? "UNKNOWN",
+          ...(record.level === undefined ? {} : { level: String(record.level), levelValue: record.level })
+        },
+        result: {
+          rawScore: record.score,
+          ...(record.grade ? { grade: record.grade } : {}),
+          ...(record.clear ? { clearStatus: record.clear } : {}),
+          ...(record.ratingMilli === undefined ? {} : { rating: { value: record.ratingMilli, system: "volforce-milli" } })
+        },
+        ...(record.style ? { gameSpecific: { style: record.style } } : {})
+      };
+    })
+  };
+}
+
 const failed = (value?: string) => Boolean(value && /FAILED|FAIL|CRASH|TRACK CRASH|落ち/i.test(value));
 
 export function levelInsights(records: readonly InsightScore[]): LevelInsight[] {
@@ -136,6 +207,56 @@ export function distribution(records: readonly InsightScore[], key: "grade" | "c
     counts.set(label, (counts.get(label) ?? 0) + 1);
   }
   return [...counts].map(([label, count]) => ({ label, count })).sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
+}
+
+const iidxLampRank = (clear?: string): number => {
+  const value = compact(clear ?? "");
+  if (/FULLCOMBO|FC/.test(value)) return 7;
+  if (/EXHARD/.test(value)) return 6;
+  if (/HARD/.test(value)) return 5;
+  if (/^CLEAR$/.test(value)) return 4;
+  if (/EASYCLEAR/.test(value)) return 3;
+  if (/ASSISTCLEAR/.test(value)) return 2;
+  if (/FAILED|FAIL/.test(value)) return 1;
+  return 0;
+};
+
+export function iidxLevelSummaries(records: readonly InsightScore[], style?: string): IidxLevelSummary[] {
+  const groups = new Map<string, InsightScore[]>();
+  for (const record of records) {
+    const recordStyle = clean(record.style ?? "—").toUpperCase();
+    if (style && recordStyle !== style) continue;
+    if (record.level === undefined) continue;
+    const level = Number.isInteger(record.level) ? String(record.level) : record.level.toFixed(1);
+    const key = `${recordStyle}\u0000${level}`;
+    const group = groups.get(key);
+    if (group) group.push(record);
+    else groups.set(key, [record]);
+  }
+  return [...groups].map(([key, entries]) => {
+    const [recordStyle, level] = key.split("\u0000");
+    return {
+      style: recordStyle,
+      level,
+      count: entries.length,
+      aaa: entries.filter((entry) => compact(entry.grade ?? "") === "AAA").length,
+      hardOrBetter: entries.filter((entry) => iidxLampRank(entry.clear) >= 5).length,
+      cleared: entries.filter((entry) => iidxLampRank(entry.clear) >= 3).length,
+      failed: entries.filter((entry) => iidxLampRank(entry.clear) === 1).length
+    };
+  }).sort((left, right) => left.style.localeCompare(right.style) || Number(right.level) - Number(left.level));
+}
+
+export function iidxReviewCandidates(records: readonly InsightScore[], options: { style?: string; level?: string; limit?: number } = {}) {
+  return records.filter((record) => {
+    const style = clean(record.style ?? "—").toUpperCase();
+    const level = record.level === undefined ? "" : Number.isInteger(record.level) ? String(record.level) : record.level.toFixed(1);
+    return (!options.style || style === options.style)
+      && (!options.level || level === options.level)
+      && iidxLampRank(record.clear) < 7;
+  }).map((record) => ({ ...record, lampRank: iidxLampRank(record.clear) }))
+    .sort((left, right) => (right.level ?? 0) - (left.level ?? 0) || left.lampRank - right.lampRank || right.score - left.score)
+    .slice(0, options.limit ?? 12);
 }
 
 export function targetScoreCandidates(records: readonly InsightScore[], target: number, limit = 10): Array<InsightScore & { gap: number }> {

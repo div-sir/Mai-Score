@@ -15,13 +15,16 @@ import {
   clearStudioSnapshot,
   clearExternalGameDatasets,
   listExternalGameDatasets,
+  listExternalGameHistory,
   listStudioHistory,
   loadStudioSnapshot,
   mergeStudioHistory,
   saveExternalGameDataset,
   saveStudioSnapshot,
   saveStudioSnapshotOnly,
-  type ExternalGameDataset
+  type ExternalGameDataset,
+  type ExternalGameDatasetInput,
+  type ExternalGameHistoryEntry
 } from "../lib/local-store";
 import { fromHistoryEntry, toHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
@@ -191,6 +194,7 @@ export default function Studio() {
   const [rhythmData, setRhythmData] = useState<RhythmRecordEnvelope | null>(null);
   const [konamiPageData, setKonamiPageData] = useState<KonamiPageSnapshot | null>(null);
   const [externalGames, setExternalGames] = useState<ExternalGameDataset[]>([]);
+  const [externalGameHistory, setExternalGameHistory] = useState<ExternalGameHistoryEntry[]>([]);
   const [hasMaimaiData, setHasMaimaiData] = useState(false);
   const [assets, setAssets] = useState<StudioAssets>({ covers: {} });
   const [options, setOptions] = useState<StudioOptions>(DEFAULT_OPTIONS);
@@ -296,18 +300,14 @@ export default function Studio() {
 
     void (async () => {
       let savedGames: ExternalGameDataset[] = [];
-      try {
-        savedGames = await listExternalGameDatasets();
-        if (!cancelled) setExternalGames(savedGames);
-      } catch {
-        // Switching still works for data imported in this tab.
-      }
-      try {
-        const entries = await listStudioHistory();
-        if (!cancelled) setHistory(entries);
-      } catch {
-        // IndexedDB may be unavailable; snapshot restoration below handles the
-        // same condition without preventing an imported or transferred file.
+      const [gamesResult, gameHistoryResult, historyResult] = await Promise.allSettled([
+        listExternalGameDatasets(), listExternalGameHistory(), listStudioHistory()
+      ]);
+      if (gamesResult.status === "fulfilled") savedGames = gamesResult.value;
+      if (!cancelled) {
+        if (gamesResult.status === "fulfilled") setExternalGames(gamesResult.value);
+        if (gameHistoryResult.status === "fulfilled") setExternalGameHistory(gameHistoryResult.value);
+        if (historyResult.status === "fulfilled") setHistory(historyResult.value);
       }
 
       if (extensionId && transfer) {
@@ -453,11 +453,16 @@ export default function Studio() {
 
   const touchSettings = () => setSettingsUpdatedAt(new Date().toISOString());
 
-  async function rememberExternalGame(dataset: Omit<ExternalGameDataset, "savedAt">) {
+  async function rememberExternalGame(dataset: ExternalGameDatasetInput) {
     localStorage.setItem(ACTIVE_GAME_KEY, dataset.game);
     try {
       const saved = await saveExternalGameDataset(dataset);
       setExternalGames((current) => [saved, ...current.filter((entry) => entry.game !== saved.game)]);
+      try {
+        setExternalGameHistory(await listExternalGameHistory());
+      } catch {
+        // The current import remains available even if history cannot be read.
+      }
     } catch {
       const temporary = { ...dataset, savedAt: new Date().toISOString() } as ExternalGameDataset;
       setExternalGames((current) => [temporary, ...current.filter((entry) => entry.game !== temporary.game)]);
@@ -928,6 +933,7 @@ export default function Studio() {
       setRhythmData(null);
       setKonamiPageData(null);
       setExternalGames([]);
+      setExternalGameHistory([]);
       setHasMaimaiData(false);
       localStorage.removeItem(ACTIVE_GAME_KEY);
       setAssets({ covers: {} });
@@ -1069,7 +1075,15 @@ export default function Studio() {
         <div className="status-message"><span />{message}</div>
       </div>
 
-      {konamiPageData ? <KonamiPagesDashboard data={konamiPageData} language={language} /> : rhythmData ? <RhythmRecordsDashboard data={rhythmData} language={language} /> : studioView === "session" ? (
+      {konamiPageData ? <KonamiPagesDashboard
+        data={konamiPageData}
+        language={language}
+        previousData={externalGameHistory.find((entry) => entry.game === konamiPageData.source.game && entry.data.generatedAt !== konamiPageData.generatedAt)?.data}
+      /> : rhythmData ? <RhythmRecordsDashboard
+        data={rhythmData}
+        language={language}
+        previousData={externalGameHistory.find((entry) => entry.game === rhythmData.source.game && entry.data.generatedAt !== rhythmData.generatedAt)?.data}
+      /> : studioView === "session" ? (
         <SessionDashboard
           data={data}
           assets={assets}

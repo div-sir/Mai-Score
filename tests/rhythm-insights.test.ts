@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   levelInsights,
+  iidxLevelSummaries,
+  iidxReviewCandidates,
+  rhythmRecordFromKonamiPages,
   scoresFromKonamiPages,
   sdvxVfMilli,
   sdvxVolforce,
@@ -33,6 +36,17 @@ describe("cross-game score insights", () => {
     expect(result.potential[0].gainMilli).toBeGreaterThan(0);
   });
 
+  it("builds IIDX lamp summaries and prioritizes weaker lamps without guessing score gaps", () => {
+    const records: InsightScore[] = [
+      { id: "a", title: "Failed", style: "SP", level: 12, score: 1800, grade: "A", clear: "FAILED" },
+      { id: "b", title: "Hard", style: "SP", level: 12, score: 2200, grade: "AAA", clear: "HARD CLEAR" },
+      { id: "c", title: "Full combo", style: "SP", level: 12, score: 2300, grade: "AAA", clear: "FULLCOMBO CLEAR" },
+      { id: "d", title: "Double", style: "DP", level: 12, score: 2000, grade: "AA", clear: "CLEAR" }
+    ];
+    expect(iidxLevelSummaries(records, "SP")).toEqual([expect.objectContaining({ level: "12", count: 3, aaa: 2, hardOrBetter: 2, cleared: 2, failed: 1 })]);
+    expect(iidxReviewCandidates(records, { style: "SP", level: "12" }).map((entry) => entry.title)).toEqual(["Failed", "Hard"]);
+  });
+
   it("extracts usable free-page score tables without confusing Flare Skill for score", () => {
     const data: KonamiPageSnapshot = {
       schema: "mai-score/konami-page-snapshot/v1", generatedAt: "2026-09-27T00:00:00Z",
@@ -44,7 +58,28 @@ describe("cross-game score insights", () => {
       summary: { collected: 1, paid: 0, signInRequired: 0, failed: 0, fields: 0, tables: 1 }
     };
     expect(scoresFromKonamiPages(data)).toEqual([expect.objectContaining({ title: "Song", level: 18.3, score: 9923042, ratingMilli: 388 })]);
+    const history = rhythmRecordFromKonamiPages(data);
+    expect(history.records[0]).toMatchObject({
+      song: { title: "Song" }, chart: { id: "Song\u0000EXHAUST\u0000", levelValue: 18.3 },
+      result: { rawScore: 9923042, rating: { value: 388, system: "volforce-milli" } }
+    });
     data.pages[0].tables[0].headers[3] = "フレアスキル";
     expect(scoresFromKonamiPages(data)).toEqual([]);
+  });
+
+  it("normalizes wide IIDX SP/DP page tables with EX SCORE columns", () => {
+    const data: KonamiPageSnapshot = {
+      schema: "mai-score/konami-page-snapshot/v1", generatedAt: "2026-09-29T00:00:00Z",
+      source: { game: "beatmania-iidx", connectionId: "iidx", startUrl: "https://p.eagate.573.jp/game/2dx/34/djdata/music.html", region: "jp", pageLimit: 40 },
+      pages: [{ url: "https://example.test", title: "Music data", access: "collected", headings: [], fields: [], text: [], tables: [{
+        headers: ["TITLE", "SP ANOTHER LEVEL", "SP ANOTHER EX SCORE", "SP ANOTHER DJ LEVEL", "SP ANOTHER CLEAR TYPE", "DP HYPER LEVEL", "DP HYPER EX SCORE"],
+        rows: [["Test Song", "12", "2,345", "AAA", "HARD CLEAR", "10", "1,800"]]
+      }] }],
+      summary: { collected: 1, paid: 0, signInRequired: 0, failed: 0, fields: 0, tables: 1 }
+    };
+    expect(scoresFromKonamiPages(data)).toEqual([
+      expect.objectContaining({ title: "Test Song", style: "SP", difficulty: "ANOTHER", level: 12, score: 2345, grade: "AAA", clear: "HARD CLEAR" }),
+      expect.objectContaining({ title: "Test Song", style: "DP", difficulty: "HYPER", level: 10, score: 1800 })
+    ]);
   });
 });
