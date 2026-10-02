@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "September 20, 2026";
+const UPDATED = "September 29, 2026";
 
 export default function Privacy() {
   return (
@@ -120,6 +120,14 @@ export default function Privacy() {
             the selected score target, and a short list of nearby targets; they do not contain
             your full score dataset or account identifier and leave the device only when you
             explicitly download or share one.
+          </li>
+          <li>
+            <strong>Multi-game progress comparisons</strong> keep at most 12 lightweight score
+            snapshots per game in Studio&rsquo;s local IndexedDB. For directly collected KONAMI
+            pages, only the normalized chart results are retained in this history, not another
+            copy of the collected page text. These snapshots are used to identify new and
+            improved DDR, SOUND VOLTEX, or beatmania IIDX charts after the next import, are not
+            included in Google Drive sync, and are deleted by <strong>Clear local data</strong>.
           </li>
           <li>
             <strong>Optional Google Drive sync</strong> is enabled only after you choose Connect Google
