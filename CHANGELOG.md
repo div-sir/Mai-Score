@@ -4,6 +4,15 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.3] — 2026-10-02
+
+### Data
+
+- Refresh the International chart catalog to the 2026-10-02 upstream dataset, expanding it from 6,223 to 6,251 charts.
+- Match the newly available `RONDØ`, `TAKE CONTROL`, `HyperdrivE`, and `Paradoxical Empress` charts.
+- Include `キスキツネ`, `WWW`, and `うたかたよいかないで` based on observed International DX NET availability while their upstream region flags remain pending.
+- Add regression coverage for all eight chart records reported as unmatched after the October update.
+
 ## [0.24.2] — 2026-10-01
 
 ### Added
