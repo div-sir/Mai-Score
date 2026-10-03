@@ -13,7 +13,10 @@ const difficulties = new Set(["basic", "advanced", "expert", "master", "remaster
 // refresh does not silently remove them; once upstream flips the flag this is
 // harmless because each source sheet is still emitted only once.
 const intlAvailabilityOverrides = new Set([
-  "魔理沙は大変なものを盗んでいきました\u0000dx"
+  "魔理沙は大変なものを盗んでいきました\u0000dx",
+  "キスキツネ\u0000dx",
+  "WWW\u0000dx",
+  "うたかたよいかないで\u0000dx"
 ]);
 const sheets = [];
 
