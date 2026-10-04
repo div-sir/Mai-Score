@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mai-Score",
-  "version": "0.24.3",
+  "version": "0.24.4",
   "description": "Collect and review maimai DX, DDR, SOUND VOLTEX, and beatmania IIDX data locally.",
   "icons": {
     "16": "icons/icon16.png",

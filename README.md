@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.24.3 — October International catalog refresh.** Match 6,251 international charts, including the newest CiRCLE PLUS additions reported by DX NET. Download the packaged version from Releases.
+> **v0.24.4 — Correct International chart constants.** Rating calculations now use the active International version's historical constants instead of Japan's newer balance changes. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
