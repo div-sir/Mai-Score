@@ -133,6 +133,7 @@ describe("extension package", () => {
     const compressed = await readFile("public/data/sheets.json.gz");
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));
     const source = JSON.parse(await readFile("src/data/source.json", "utf8"));
+    expect(source).toMatchObject({ region: "intl", version: "CiRCLE PLUS" });
     expect(sheets.length).toBe(source.sheets);
     expect(sheets.length).toBeGreaterThanOrEqual(6223);
     expect(sheets[0]).toMatchObject({
@@ -154,6 +155,13 @@ describe("extension package", () => {
       expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "master", internalLevelValue: 13.6, version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "クロノイデア", difficulty: "master", version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "雑魚", difficulty: "master", version: "CiRCLE PLUS" })
+    ]));
+    expect(sheets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "ワードワードワード", type: "dx", difficulty: "master", level: "13", internalLevelValue: 13.4 }),
+      expect.objectContaining({ title: "表裏一体", type: "dx", difficulty: "master", level: "12+", internalLevelValue: 12.9 }),
+      expect.objectContaining({ title: "Hurtling Boys", type: "dx", difficulty: "master", level: "14", internalLevelValue: 14.5 }),
+      expect.objectContaining({ title: "雑魚", type: "dx", difficulty: "master", level: "13", internalLevelValue: 13.1 }),
+      expect.objectContaining({ title: "サイエンス", type: "dx", difficulty: "master", level: "13", internalLevelValue: 13 })
     ]));
   });
 });

@@ -4,6 +4,19 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.4] — 2026-10-03
+
+### Fixed
+
+- Select chart constants from the active International game version (`CiRCLE PLUS`) instead of inheriting newer Japanese-version balance changes.
+- Correct 32 affected International chart constants used by rating calculations, target planning, recommendations, and catalog views.
+- Detect the current International version from available upstream charts so future catalog synchronizations follow International version updates automatically.
+
+### Data
+
+- Refresh the catalog from the 2026-10-03 upstream dataset and record its selected region and game version in the bundled metadata.
+- Remove temporary availability overrides for `キスキツネ`, `WWW`, and `うたかたよいかないで` now that upstream marks them as International.
+
 ## [0.24.3] — 2026-10-02
 
 ### Data

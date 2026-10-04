@@ -13,11 +13,15 @@ const difficulties = new Set(["basic", "advanced", "expert", "master", "remaster
 // refresh does not silently remove them; once upstream flips the flag this is
 // harmless because each source sheet is still emitted only once.
 const intlAvailabilityOverrides = new Set([
-  "魔理沙は大変なものを盗んでいきました\u0000dx",
-  "キスキツネ\u0000dx",
-  "WWW\u0000dx",
-  "うたかたよいかないで\u0000dx"
+  "魔理沙は大変なものを盗んでいきました\u0000dx"
 ]);
+const versionOrder = new Map(dxdata.versions.map(({ version }, index) => [version, index]));
+const internationalVersion = dxdata.songs
+  .flatMap(song => song.sheets)
+  .filter(sheet => sheet.regions?.intl)
+  .map(sheet => sheet.regionOverrides?.intl?.version ?? sheet.version)
+  .reduce((latest, version) => (versionOrder.get(version) ?? -1) > (versionOrder.get(latest) ?? -1) ? version : latest, "");
+if (!internationalVersion) throw new Error("Could not determine the current International version");
 const sheets = [];
 
 for (const song of dxdata.songs) {
@@ -34,7 +38,9 @@ for (const song of dxdata.songs) {
       type: sheet.type,
       difficulty: sheet.difficulty,
       level: override.level ?? sheet.level,
-      internalLevelValue: override.internalLevelValue ?? sheet.internalLevelValue,
+      internalLevelValue: override.internalLevelValue
+        ?? sheet.multiverInternalLevelValue?.[internationalVersion]
+        ?? sheet.internalLevelValue,
       version: override.version ?? sheet.version,
       imageName: song.imageName
     });
@@ -47,8 +53,10 @@ await mkdir("src/data", { recursive: true });
 await writeFile("public/data/sheets.json.gz", gzipSync(JSON.stringify(sheets), { level: 9 }));
 await writeFile("src/data/source.json", `${JSON.stringify({
   source: SOURCE,
+  region: "intl",
+  version: internationalVersion,
   updateTime: dxdata.updateTime,
   sha256: createHash("sha256").update(sourceText).digest("hex"),
   sheets: sheets.length
 }, null, 2)}\n`);
-console.log(`Wrote ${sheets.length} international sheets (${dxdata.updateTime}).`);
+console.log(`Wrote ${sheets.length} International ${internationalVersion} sheets (${dxdata.updateTime}).`);
