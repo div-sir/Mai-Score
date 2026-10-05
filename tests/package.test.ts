@@ -141,6 +141,7 @@ describe("extension package", () => {
       internalLevelValue: expect.any(Number)
     });
     expect(new Set(sheets.map((sheet: { sheetId: string }) => sheet.sheetId)).size).toBe(sheets.length);
+    expect(sheets.some((sheet: { version: string }) => sheet.version === "MAGiCAL")).toBe(false);
     expect(sheets).toEqual(expect.arrayContaining([
       expect.objectContaining({ title: "Nine Point Eight", version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "ANiMA", version: "CiRCLE PLUS" }),

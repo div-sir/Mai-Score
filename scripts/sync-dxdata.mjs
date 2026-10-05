@@ -3,6 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
 
 const SOURCE = "https://raw.githubusercontent.com/gekichumai/dxrating/main/packages/dxdata/dxdata.json";
+// The International release trails Japan. Update this only after SEGA launches
+// the named version on the International service; individual future-version
+// charts may be flagged intl upstream before that rollout happens.
+const INTERNATIONAL_VERSION = "CiRCLE PLUS";
 const response = await fetch(SOURCE);
 if (!response.ok) throw new Error(`dxdata download failed: ${response.status}`);
 const sourceText = await response.text();
@@ -16,20 +20,18 @@ const intlAvailabilityOverrides = new Set([
   "魔理沙は大変なものを盗んでいきました\u0000dx"
 ]);
 const versionOrder = new Map(dxdata.versions.map(({ version }, index) => [version, index]));
-const internationalVersion = dxdata.songs
-  .flatMap(song => song.sheets)
-  .filter(sheet => sheet.regions?.intl)
-  .map(sheet => sheet.regionOverrides?.intl?.version ?? sheet.version)
-  .reduce((latest, version) => (versionOrder.get(version) ?? -1) > (versionOrder.get(latest) ?? -1) ? version : latest, "");
-if (!internationalVersion) throw new Error("Could not determine the current International version");
+const internationalVersionOrder = versionOrder.get(INTERNATIONAL_VERSION);
+if (internationalVersionOrder === undefined) throw new Error(`Unknown International version: ${INTERNATIONAL_VERSION}`);
 const sheets = [];
 
 for (const song of dxdata.songs) {
   for (const sheet of song.sheets) {
-    const availableInternationally = sheet.regions?.intl
-      || intlAvailabilityOverrides.has(`${song.title}\u0000${sheet.type}`);
-    if (!availableInternationally || !difficulties.has(sheet.difficulty) || !["std", "dx"].includes(sheet.type)) continue;
     const override = sheet.regionOverrides?.intl ?? {};
+    const effectiveVersion = override.version ?? sheet.version;
+    const availableInternationally = (sheet.regions?.intl
+      || intlAvailabilityOverrides.has(`${song.title}\u0000${sheet.type}`))
+      && (versionOrder.get(effectiveVersion) ?? Number.POSITIVE_INFINITY) <= internationalVersionOrder;
+    if (!availableInternationally || !difficulties.has(sheet.difficulty) || !["std", "dx"].includes(sheet.type)) continue;
     const songId = String(song.songId);
     sheets.push({
       sheetId: [songId, sheet.type, sheet.difficulty].join("__dxrt__"),
@@ -39,9 +41,9 @@ for (const song of dxdata.songs) {
       difficulty: sheet.difficulty,
       level: override.level ?? sheet.level,
       internalLevelValue: override.internalLevelValue
-        ?? sheet.multiverInternalLevelValue?.[internationalVersion]
+        ?? sheet.multiverInternalLevelValue?.[INTERNATIONAL_VERSION]
         ?? sheet.internalLevelValue,
-      version: override.version ?? sheet.version,
+      version: effectiveVersion,
       imageName: song.imageName
     });
   }
@@ -54,9 +56,9 @@ await writeFile("public/data/sheets.json.gz", gzipSync(JSON.stringify(sheets), {
 await writeFile("src/data/source.json", `${JSON.stringify({
   source: SOURCE,
   region: "intl",
-  version: internationalVersion,
+  version: INTERNATIONAL_VERSION,
   updateTime: dxdata.updateTime,
   sha256: createHash("sha256").update(sourceText).digest("hex"),
   sheets: sheets.length
 }, null, 2)}\n`);
-console.log(`Wrote ${sheets.length} International ${internationalVersion} sheets (${dxdata.updateTime}).`);
+console.log(`Wrote ${sheets.length} International ${INTERNATIONAL_VERSION} sheets (${dxdata.updateTime}).`);
