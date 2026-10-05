@@ -4,6 +4,13 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Upgrade Studio from Next.js 16.3.4 to 16.3.8 to address the `next/og` ImageResponse security advisory.
+- Refresh the root dependency lock to use a patched Undici release; both npm dependency trees now audit with zero known vulnerabilities.
+- Keep automated chart updates pinned to the confirmed International `CiRCLE PLUS` version and exclude prematurely flagged `MAGiCAL` charts.
+- Update GitHub Actions to their current Node 24-based major releases.
+
 ## [0.24.4] — 2026-10-03
 
 ### Fixed
