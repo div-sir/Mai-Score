@@ -52,7 +52,12 @@ for (const song of dxdata.songs) {
 sheets.sort((a, b) => a.title.localeCompare(b.title, "ja") || a.type.localeCompare(b.type) || a.difficulty.localeCompare(b.difficulty));
 await mkdir("public/data", { recursive: true });
 await mkdir("src/data", { recursive: true });
-await writeFile("public/data/sheets.json.gz", gzipSync(JSON.stringify(sheets), { level: 9 }));
+const compressedSheets = gzipSync(JSON.stringify(sheets), { level: 9 });
+// zlib writes the host OS into byte 9 of the gzip header. Normalizing it to
+// "unknown" keeps the generated catalog byte-for-byte identical on macOS and
+// the Linux GitHub Actions runner.
+compressedSheets[9] = 0xff;
+await writeFile("public/data/sheets.json.gz", compressedSheets);
 await writeFile("src/data/source.json", `${JSON.stringify({
   source: SOURCE,
   region: "intl",

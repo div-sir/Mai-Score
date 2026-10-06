@@ -131,6 +131,7 @@ describe("extension package", () => {
 
   it("contains a valid international chart database", async () => {
     const compressed = await readFile("public/data/sheets.json.gz");
+    expect(compressed[9]).toBe(0xff);
     const sheets = JSON.parse(gunzipSync(compressed).toString("utf8"));
     const source = JSON.parse(await readFile("src/data/source.json", "utf8"));
     expect(source).toMatchObject({ region: "intl", version: "CiRCLE PLUS" });
