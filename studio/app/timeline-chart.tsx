@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import type { RatingTimelinePoint } from "../lib/insights";
 import type { LanguageId } from "../lib/types";
 
@@ -10,15 +10,17 @@ interface TimelineChartProps {
   timeline: RatingTimelinePoint[];
   language: LanguageId;
   title: string;
+  onDeletePoint: (observedAt: string) => Promise<void>;
 }
 
 const WIDTH = 760;
 const HEIGHT = 230;
 const PADDING = { top: 32, right: 24, bottom: 38, left: 58 };
 
-export default function TimelineChart({ timeline, language, title }: TimelineChartProps) {
+export default function TimelineChart({ timeline, language, title, onDeletePoint }: TimelineChartProps) {
   const [field, setField] = useState<TimelineField>("b50");
   const [activeIndex, setActiveIndex] = useState(() => Math.max(0, timeline.length - 1));
+  const [deleting, setDeleting] = useState(false);
   useEffect(() => setActiveIndex(Math.max(0, timeline.length - 1)), [timeline.length]);
   const geometry = useMemo(() => {
     if (!timeline.length) return undefined;
@@ -38,7 +40,7 @@ export default function TimelineChart({ timeline, language, title }: TimelineCha
     return { min, max, plotWidth, plotHeight, points };
   }, [timeline, field]);
 
-  if (!geometry || timeline.length < 2) return <div className="timeline-empty">—</div>;
+  if (!geometry) return <div className="timeline-empty">—</div>;
   const boundedIndex = Math.min(activeIndex, timeline.length - 1);
   const active = geometry.points[boundedIndex];
   const activePoint = timeline[boundedIndex];
@@ -53,6 +55,11 @@ export default function TimelineChart({ timeline, language, title }: TimelineCha
   const tickIndexes = [...new Set([0, Math.floor((timeline.length - 1) / 2), timeline.length - 1])];
   const tooltipX = Math.min(WIDTH - 148, Math.max(PADDING.left, active.x - 58));
   const tooltipY = Math.max(4, active.y - 42);
+  const copy = language === "zh-Hant"
+    ? { selected: "已選紀錄", remove: "刪除異常紀錄", deleting: "正在刪除…" }
+    : language === "ja"
+      ? { selected: "選択中の記録", remove: "異常な記録を削除", deleting: "削除中…" }
+      : { selected: "Selected record", remove: "Delete anomalous record", deleting: "Deleting…" };
 
   return (
     <article className="timeline-panel">
@@ -85,8 +92,17 @@ export default function TimelineChart({ timeline, language, title }: TimelineCha
             cy={point.y}
             r={index === boundedIndex ? 5 : 3}
             tabIndex={0}
+            role="button"
+            aria-label={`${new Date(timeline[index].observedAt).toLocaleString(language)} · ${field.toUpperCase()} ${point.value}`}
             onFocus={() => setActiveIndex(index)}
             onMouseEnter={() => setActiveIndex(index)}
+            onClick={() => setActiveIndex(index)}
+            onKeyDown={(event: KeyboardEvent<SVGCircleElement>) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setActiveIndex(index);
+              }
+            }}
           />
         ))}
         {tickIndexes.map((index) => (
@@ -100,6 +116,14 @@ export default function TimelineChart({ timeline, language, title }: TimelineCha
           <text className="value" x="107" y="27" textAnchor="end">{active.value}</text>
         </g>
       </svg>
+      <footer className="timeline-point-actions">
+        <span><small>{copy.selected}</small><strong>{new Date(activePoint.observedAt).toLocaleString(language)} · {field.toUpperCase()} {active.value}</strong></span>
+        <button type="button" disabled={deleting} onClick={async () => {
+          setDeleting(true);
+          try { await onDeletePoint(activePoint.observedAt); }
+          finally { setDeleting(false); }
+        }}>{deleting ? copy.deleting : copy.remove}</button>
+      </footer>
     </article>
   );
 }

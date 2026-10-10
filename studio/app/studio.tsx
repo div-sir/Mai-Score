@@ -5,15 +5,15 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import B50Preview from "./b50-preview";
 import ProgressDashboard from "./progress";
 import RecordsDashboard from "./records";
-import SessionDashboard from "./session";
 import RhythmRecordsDashboard from "./rhythm-records";
 import KonamiPagesDashboard from "./konami-pages";
 import { renderStudioSvg } from "../lib/render";
-import { sessionCopy, studioCopy } from "../lib/i18n";
+import { studioCopy } from "../lib/i18n";
 import {
   clearStudioHistory,
   clearStudioSnapshot,
   clearExternalGameDatasets,
+  deleteStudioHistoryEntry,
   listExternalGameDatasets,
   listExternalGameHistory,
   listStudioHistory,
@@ -62,11 +62,10 @@ import { isKonamiPageSnapshot, type KonamiPageSnapshot } from "../lib/konami-pag
 
 const STORAGE_KEY = "mai-score-studio-options-v1";
 const UI_THEME_KEY = "mai-score-studio-ui-theme";
-const UI_VIEW_KEY = "mai-score-studio-view";
 const ACTIVE_GAME_KEY = "mai-score-studio-active-game";
 type DriveUiState = "unavailable" | "checking" | "disconnected" | "connected";
 type UiTheme = "dark" | "light";
-type StudioView = "export" | "session" | "progress" | "records";
+type StudioView = "export" | "progress" | "records";
 
 const ACCENT_PRESETS = [
   { name: "Champagne", value: "#b89b72" },
@@ -223,7 +222,6 @@ export default function Studio() {
   const [generatedAt, setGeneratedAt] = useState(() => new Date().toISOString());
   const fileRef = useRef<HTMLInputElement>(null);
   const copy = studioCopy(language);
-  const sessionText = sessionCopy(language);
   const activeGame = data ? "maimai-dx" : rhythmData?.source.game ?? konamiPageData?.source.game ?? "";
   const availableGames = [
     ...(hasMaimaiData || data ? [{ game: "maimai-dx", label: "maimai DX" }] : []),
@@ -236,8 +234,6 @@ export default function Studio() {
     let cancelled = false;
     setOrigin(window.location.origin);
     setUiTheme(localStorage.getItem(UI_THEME_KEY) === "light" ? "light" : "dark");
-    const savedView = localStorage.getItem(UI_VIEW_KEY);
-    if (savedView === "export" || savedView === "session" || savedView === "progress" || savedView === "records") setStudioView(savedView);
     setUiPreferencesReady(true);
     setGeneratedAt(new Date().toISOString());
     setCanShare(typeof navigator.share === "function" && typeof navigator.canShare === "function");
@@ -437,10 +433,6 @@ export default function Studio() {
   useEffect(() => {
     if (uiPreferencesReady) localStorage.setItem(UI_THEME_KEY, uiTheme);
   }, [uiPreferencesReady, uiTheme]);
-
-  useEffect(() => {
-    if (uiPreferencesReady) localStorage.setItem(UI_VIEW_KEY, studioView);
-  }, [studioView, uiPreferencesReady]);
 
   const rendered = useMemo(
     () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
@@ -945,6 +937,36 @@ export default function Studio() {
     }
   }
 
+  async function deleteHistoryPoint(generatedAt: string) {
+    const text = language === "zh-Hant"
+      ? { confirm: "確定刪除這筆 Rating 紀錄？若已連接 Google Drive，也會同步移除。", done: "已刪除 Rating 紀錄。", failed: "無法刪除 Rating 紀錄" }
+      : language === "ja"
+        ? { confirm: "この Rating 記録を削除しますか？Google Drive 接続中の場合は同期データからも削除します。", done: "Rating 記録を削除しました。", failed: "Rating 記録を削除できません" }
+        : { confirm: "Delete this Rating record? If Google Drive is connected, it will also be removed from the synced history.", done: "Rating record deleted.", failed: "Could not delete Rating record" };
+    if (!window.confirm(text.confirm)) return;
+    try {
+      await deleteStudioHistoryEntry(generatedAt);
+      const remaining = history.filter((entry) => entry.generatedAt !== generatedAt);
+      setHistory(remaining);
+      if (data?.exportedAt === generatedAt) {
+        if (remaining.length) await showLatestHistory(remaining, language);
+        else {
+          await clearStudioSnapshot();
+          setData(null);
+          setAssets({ covers: {} });
+          setSource("");
+        }
+      }
+      if (driveState === "connected") {
+        const pushed = await pushToDrive(serializeSyncDocument(remaining, localSettings()));
+        if (!pushed.ok) throw new Error(pushed.reason === "needs-auth" ? copy.syncNeedsAuth : pushed.reason === "no-extension" ? copy.syncNoExtension : pushed.error);
+      }
+      setMessage(text.done);
+    } catch (error) {
+      setMessage(`${text.failed}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
   return (
     <main className="studio-shell" data-ui-theme={uiTheme}>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
@@ -963,7 +985,6 @@ export default function Studio() {
           </label> : null}
           <nav className="studio-tabs" aria-label={copy.studioSections} hidden={Boolean(rhythmData || konamiPageData)}>
             <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
-            <button type="button" aria-pressed={studioView === "session"} onClick={() => setStudioView("session")}>{sessionText.tab}</button>
             <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
             <button type="button" aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
           </nav>
@@ -1083,20 +1104,13 @@ export default function Studio() {
         data={rhythmData}
         language={language}
         previousData={externalGameHistory.find((entry) => entry.game === rhythmData.source.game && entry.data.generatedAt !== rhythmData.generatedAt)?.data}
-      /> : studioView === "session" ? (
-        <SessionDashboard
-          data={data}
-          assets={assets}
-          history={history}
-          language={language}
-          onStatus={setMessage}
-        />
-      ) : studioView === "progress" ? (
+      /> : studioView === "progress" ? (
         <ProgressDashboard
           data={data}
           assets={assets}
           history={history}
           language={language}
+          onDeleteHistoryPoint={deleteHistoryPoint}
         />
       ) : studioView === "records" ? (
         <RecordsDashboard data={data} assets={assets} language={language} history={history} />

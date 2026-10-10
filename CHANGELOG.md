@@ -4,6 +4,19 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Always open Studio on Export instead of restoring the previously selected page.
+- Move FC/AP and FS/FDX badges beside each chart's level or constant in B50 exports.
+- Replace the Records difficulty dropdown with an inclusive BASIC–Re:MASTER range slider and keep filter controls stationary when toggling MASTER only.
+- Open Records song details in the same modal interaction used by the B50 preview.
+- Let Rating progress points be selected and deleted locally, with the removal also written to Google Drive when connected.
+- Hide zero-value `To 100%` gains while preserving their layout space.
+
+### Removed
+
+- Remove the Session page and the detailed History block from Progress to simplify Studio navigation.
+
 ### Maintenance
 
 - Upgrade Studio from Next.js 16.3.4 to 16.3.8 to address the `next/og` ImageResponse security advisory.

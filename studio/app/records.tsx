@@ -5,9 +5,9 @@ import { achievementRank } from "../lib/achievement-rank";
 import { buildLevelCompletion } from "../lib/insights";
 import { studioCopy } from "../lib/i18n";
 import { buildPlateProgress, groupPlatesByVersion } from "../lib/plates";
-import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
+import type { LanguageId, StudioAssets, StudioChartRecord, StudioData } from "../lib/types";
 import SongCover from "./song-cover";
-import ChartDetail from "./chart-detail";
+import RecordDetailDialog from "./record-detail-dialog";
 import PlayQueuePanel from "./play-queue";
 import CatalogPanel from "./catalog";
 import type { HistoryEntry } from "../lib/history";
@@ -19,6 +19,9 @@ interface RecordsDashboardProps {
   assets: StudioAssets;
   language: LanguageId;
 }
+
+const DIFFICULTIES = ["basic", "advanced", "expert", "master", "remaster"] as const;
+const DIFFICULTY_LABELS = ["BASIC", "ADVANCED", "EXPERT", "MASTER", "Re:MASTER"] as const;
 
 export default function RecordsDashboard({ data, assets, language, history }: RecordsDashboardProps) {
   const copy = studioCopy(language);
@@ -35,21 +38,23 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
     Number.isFinite(record.internalLevelValue) ? [Number(record.internalLevelValue)] : []
   ))].sort((a, b) => b - a), [data]);
   const text = language === "zh-Hant"
-    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本", masterOnly: "僅顯示 MASTER", masterPlateNote: "MASTER 進度檢視；實際牌子仍需 BASIC～MASTER。", unmatched: "未匹配曲目" }
+    ? { status: "成績狀態", below: "未達 SSS", empty: "沒有符合條件的成績", reset: "重設篩選", details: "譜面詳情", constant: "定數", version: "版本", masterOnly: "僅顯示 MASTER", difficultyRange: "難度範圍", masterPlateNote: "MASTER 進度檢視；實際牌子仍需 BASIC～MASTER。", unmatched: "未匹配曲目" }
     : language === "ja"
-      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン", masterOnly: "MASTER のみ", masterPlateNote: "MASTER の進捗表示です。実際のプレートには BASIC～MASTER が必要です。", unmatched: "未一致の曲" }
-      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version", masterOnly: "MASTER only", masterPlateNote: "MASTER progress view; actual plates still require BASIC–MASTER.", unmatched: "Unmatched charts" };
+      ? { status: "達成状況", below: "SSS 未達成", empty: "条件に合う成績がありません", reset: "絞り込みを解除", details: "譜面詳細", constant: "定数", version: "バージョン", masterOnly: "MASTER のみ", difficultyRange: "難易度範囲", masterPlateNote: "MASTER の進捗表示です。実際のプレートには BASIC～MASTER が必要です。", unmatched: "未一致の曲" }
+      : { status: "Score status", below: "Below SSS", empty: "No matching scores", reset: "Reset filters", details: "Chart details", constant: "Constant", version: "Version", masterOnly: "MASTER only", difficultyRange: "Difficulty range", masterPlateNote: "MASTER progress view; actual plates still require BASIC–MASTER.", unmatched: "Unmatched charts" };
   const sortLabel = language === "zh-Hant" ? "排序" : language === "ja" ? "並び順" : "Sort";
   const titleLabel = language === "en" ? "Title" : "曲名";
-  const [difficulty, setDifficulty] = useState("all");
+  const [difficultyMin, setDifficultyMin] = useState(0);
+  const [difficultyMax, setDifficultyMax] = useState(DIFFICULTIES.length - 1);
+  const [selectedRecord, setSelectedRecord] = useState<StudioChartRecord | null>(null);
   const [query, setQuery] = useState("");
   const levelCompletion = useMemo(() => buildLevelCompletion(data?.fullRecords ?? []), [data]);
   const effectiveLevel = level === "all" || levelCompletion.some((entry) => entry.level === level)
     ? level
     : "all";
   const visibleRecords = useMemo(() => searchRecords(data?.fullRecords ?? [], {
-    level: effectiveLevel, difficulty, query, sort, status, type, version, constant
-  }, language), [constant, data, effectiveLevel, difficulty, query, language, sort, status, type, version]);
+    level: effectiveLevel, difficultyMin, difficultyMax, query, sort, status, type, version, constant
+  }, language), [constant, data, effectiveLevel, difficultyMax, difficultyMin, query, language, sort, status, type, version]);
   const completion = useMemo(() => visibleRecords.reduce((summary, record) => ({
     total: summary.total + 1,
     sss: summary.sss + (record.achievementRate >= 100 ? 1 : 0),
@@ -74,11 +79,14 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
       : a.version.localeCompare(b.version));
   }, [data?.fullRecords, data?.plateProgress, data?.versionTotals, effectivePlateMasterOnly, plateSort]);
   const plateLabel = { kiwami: "極", shou: language === "zh-Hant" ? "將" : "将", kami: "神", maimai: "舞舞" } as const;
-  const activeFilterCount = [effectiveLevel !== "all", difficulty !== "all", status !== "all", type !== "all", version !== "all", constant !== "all", Boolean(query.trim()), sort !== "achievement"].filter(Boolean).length;
+  const hasDifficultyFilter = difficultyMin !== 0 || difficultyMax !== DIFFICULTIES.length - 1;
+  const masterOnly = difficultyMin === 3 && difficultyMax === 3;
+  const activeFilterCount = [effectiveLevel !== "all", hasDifficultyFilter, status !== "all", type !== "all", version !== "all", constant !== "all", Boolean(query.trim()), sort !== "achievement"].filter(Boolean).length;
   const advancedFilterCount = [status !== "all", type !== "all", version !== "all", constant !== "all", sort !== "achievement"].filter(Boolean).length;
   const resetFilters = () => {
     setLevel("all");
-    setDifficulty("all");
+    setDifficultyMin(0);
+    setDifficultyMax(DIFFICULTIES.length - 1);
     setStatus("all");
     setType("all");
     setVersion("all");
@@ -115,8 +123,17 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
             <label className="records-search">{copy.searchRecords}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.searchRecords} /></label>
             <div className="target-filters records-quick-filters">
             <label>{copy.levelFilter}<select value={effectiveLevel} onChange={(event) => setLevel(event.target.value)}><option value="all">{copy.all}</option>{levelCompletion.map((entry) => <option key={entry.level} value={entry.level}>{entry.level} · {entry.total}</option>)}</select></label>
-            <label>{copy.difficultyFilter}<select value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="all">{copy.all}</option><option value="basic">BASIC</option><option value="advanced">ADVANCED</option><option value="expert">EXPERT</option><option value="master">MASTER</option><option value="remaster">Re:MASTER</option></select></label>
-            <button type="button" className={difficulty === "master" ? "filter-active" : undefined} onClick={() => setDifficulty(difficulty === "master" ? "all" : "master")}>{text.masterOnly}</button>
+            <fieldset className="difficulty-range-filter">
+              <legend>{text.difficultyRange}</legend>
+              <div><strong>{DIFFICULTY_LABELS[difficultyMin]}</strong><span>—</span><strong>{DIFFICULTY_LABELS[difficultyMax]}</strong></div>
+              <span className="difficulty-range-track" aria-hidden="true"><i style={{ left: `${difficultyMin / 4 * 100}%`, right: `${100 - difficultyMax / 4 * 100}%` }} /></span>
+              <input aria-label={`${text.difficultyRange} minimum`} type="range" min="0" max="4" step="1" value={difficultyMin} onChange={(event) => setDifficultyMin(Math.min(Number(event.target.value), difficultyMax))} />
+              <input aria-label={`${text.difficultyRange} maximum`} type="range" min="0" max="4" step="1" value={difficultyMax} onChange={(event) => setDifficultyMax(Math.max(Number(event.target.value), difficultyMin))} />
+            </fieldset>
+            <button type="button" className={masterOnly ? "filter-active" : undefined} aria-pressed={masterOnly} onClick={() => {
+              if (masterOnly) { setDifficultyMin(0); setDifficultyMax(4); }
+              else { setDifficultyMin(3); setDifficultyMax(3); }
+            }}>{text.masterOnly}</button>
             <details className="records-advanced-filters">
               <summary>{moreFilters}{advancedFilterCount ? <b>{advancedFilterCount}</b> : null}</summary>
               <div className="target-filters records-filters">
@@ -127,13 +144,14 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
                 <label>{text.status}<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{copy.all}</option><option value="sss">{text.below}</option><option value="fc">FC / AP</option><option value="ap">AP</option></select></label>
               </div>
             </details>
-            {activeFilterCount ? <button type="button" className="records-reset" onClick={resetFilters}>{text.reset}<b>{activeFilterCount}</b></button> : null}
+            <button type="button" className={`records-reset${activeFilterCount ? "" : " is-placeholder"}`} disabled={!activeFilterCount} aria-hidden={!activeFilterCount} onClick={resetFilters}>{text.reset}<b>{activeFilterCount || 0}</b></button>
             </div>
           </div>
         </header>
         <div className="completion-summary"><span><b>{completion.total}</b>{copy.charts}</span><span><b>{completion.sss}</b>SSS</span><span><b>{completion.sssPlus}</b>SSS+</span><span><b>{completion.fullCombo}</b>FC / AP</span><span><b>{completion.allPerfect}</b>AP</span><span><b>{completion.fullSync}</b>FS / FDX</span></div>
         {!visibleRecords.length && <p role="status" className="panel-empty">{text.empty}</p>}
-        <div className="completion-grid">{visibleRecords.map((record) => <article key={record.chartId ?? `${record.title}-${record.type}-${record.difficulty}`}><SongCover record={record} assets={assets} /><div><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · {record.displayedLevel}{record.internalLevelValue !== undefined ? ` · ${record.internalLevelValue.toFixed(1)}` : ""}</span></div><div className="completion-result"><b>{record.achievementRate.toFixed(4)}%</b><span>{achievementRank(record.achievementRate).toUpperCase()} {[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ")}</span></div><ChartDetail record={record} records={data.fullRecords ?? []} history={history} language={language} /></article>)}</div>
+        <div className="completion-grid">{visibleRecords.map((record) => <button type="button" className="completion-card" key={record.chartId ?? `${record.title}-${record.type}-${record.difficulty}`} onClick={() => setSelectedRecord(record)}><SongCover record={record} assets={assets} /><div><strong>{record.title}</strong><span>{record.type.toUpperCase()} · {record.difficulty.toUpperCase()} · {record.displayedLevel}{record.internalLevelValue !== undefined ? ` · ${record.internalLevelValue.toFixed(1)}` : ""}</span></div><div className="completion-result"><b>{record.achievementRate.toFixed(4)}%</b><span>{achievementRank(record.achievementRate).toUpperCase()} {[record.comboFlag, record.syncFlag].filter(Boolean).join(" · ")}</span></div></button>)}</div>
+        <RecordDetailDialog record={selectedRecord} records={data.fullRecords ?? []} assets={assets} history={history} language={language} onClose={() => setSelectedRecord(null)} onSelectRecord={setSelectedRecord} />
       </article>
 
       <details className="records-detail-panel">

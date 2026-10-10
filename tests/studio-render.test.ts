@@ -144,6 +144,10 @@ describe("Studio renderer", () => {
     const svg = renderStudioSvg(decorated, DEFAULT_OPTIONS, "en", "", new Date(), { covers: {}, badges }).svg;
     expect(svg).toContain("data:image/png;base64,rank");
     expect(svg).toContain("data:image/png;base64,combo");
+    const metaY = Number(svg.match(/<text x="\d+" y="([\d.]+)" font-size="14"[^>]*>DX · EXPERT · 13\+<\/text>/)![1]);
+    const comboY = Number(svg.match(/<image href="data:image\/png;base64,combo" x="[\d.]+" y="([\d.]+)"/)![1]);
+    expect(comboY).toBeLessThan(metaY);
+    expect(metaY - comboY).toBeLessThan(40);
   });
 
   it("truncates a full-width title to the card rather than past its edge", () => {
