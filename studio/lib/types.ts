@@ -22,6 +22,7 @@ export interface StudioOptions {
   showBreakdown: boolean;
   showAchievement: boolean;
   showChartRating: boolean;
+  showRatingProgress: boolean;
   showAchievementRank: boolean;
   showComboBadge: boolean;
   showSyncBadge: boolean;
@@ -143,6 +144,7 @@ export const DEFAULT_OPTIONS: StudioOptions = {
   showBreakdown: true,
   showAchievement: true,
   showChartRating: true,
+  showRatingProgress: false,
   showAchievementRank: true,
   showComboBadge: true,
   showSyncBadge: true,
@@ -213,6 +215,7 @@ export function normalizeStudioOptions(value: unknown): StudioOptions {
     showBreakdown: boolean("showBreakdown"),
     showAchievement: boolean("showAchievement"),
     showChartRating: boolean("showChartRating"),
+    showRatingProgress: boolean("showRatingProgress"),
     showAchievementRank: badgeBoolean("showAchievementRank"),
     showComboBadge: badgeBoolean("showComboBadge"),
     showSyncBadge: badgeBoolean("showSyncBadge"),

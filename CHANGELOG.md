@@ -6,6 +6,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Changed
 
+- Add an optional B50 Rating progress chart to Studio exports, with responsive spacing across every layout and theme.
 - Enlarge FC/AP and FS/FDX badges in exported B50 cards for faster recognition.
 - Always open Studio on Export instead of restoring the previously selected page.
 - Move FC/AP and FS/FDX badges beside each chart's level or constant in B50 exports.

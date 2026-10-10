@@ -7,12 +7,14 @@ describe("normalizing a stored or shared Studio style", () => {
       layout: "landscape",
       theme: "maimai",
       accentScope: "full",
+      showRatingProgress: true,
       watermark: "@div"
     })).toEqual({
       ...DEFAULT_OPTIONS,
       layout: "landscape",
       theme: "maimai",
       accentScope: "full",
+      showRatingProgress: true,
       watermark: "@div"
     });
   });
