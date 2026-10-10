@@ -291,7 +291,7 @@ export function renderStudioSvg(
     const rankWidth = Math.round(rankHeight * 68 / 31);
     const rankX = spec.cardW - spec.pad - rankWidth;
     const rankY = stripY - rankHeight - 6;
-    const flagHeight = Math.max(16, Math.round(spec.rate * .62));
+    const flagHeight = Math.max(20, Math.round(spec.rate * .82));
     const flagWidth = Math.round(flagHeight * 42 / 47);
     const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
     const metaY = spec.pad + spec.title + spec.meta + 13;

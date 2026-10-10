@@ -54,6 +54,8 @@ it("deletes the selected timeline point and keeps a zero To 100% gain placeholde
     ]
   })));
 
+  expect([...host.querySelectorAll(".action-tabs button")].map((button) => button.textContent)).not.toContain("What-if");
+
   await act(async () => host.querySelector<HTMLButtonElement>(".timeline-point-actions button")!.click());
   expect(onDeleteHistoryPoint).toHaveBeenCalledWith("2026-10-02T00:00:00.000Z");
 

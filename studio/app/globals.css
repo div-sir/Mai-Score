@@ -379,7 +379,7 @@ button:active{transform:scale(.97)}
 .output-section label{display:grid;gap:5px;color:var(--muted);font-size:9px}
 .output-section select{min-height:36px;border:1px solid var(--line2);border-radius:10px;padding:7px;background:var(--bg3);color:var(--text);font-size:10px}
 .output-section .export-button{margin:0}
-:is(.field-grid,.target-filters,.output-section,.simulation-chart-picker,.achievement-slider,.catalog-controls,.catalog-simulator,.plate-sort) :is(input,select):hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2))}
+:is(.field-grid,.target-filters,.output-section,.catalog-controls,.catalog-simulator,.plate-sort) :is(input,select):hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2))}
 .export-action-dock{flex:0 0 auto;border-top:1px solid var(--line2);padding:10px 16px 13px;background:color-mix(in srgb,var(--bg2) 94%,transparent);box-shadow:0 -16px 34px -28px var(--shadow);backdrop-filter:blur(16px)}
 .export-action-dock .output-section{margin:0;padding:0;border:0}
 .export-secondary-actions{display:flex;gap:7px}.export-secondary-actions>*{flex:1;margin-top:7px}
@@ -487,24 +487,7 @@ button:active{transform:scale(.97)}
 .upgrade-list dl div{text-align:right}
 .upgrade-list dt{color:var(--muted-dim);font-size:9px;font-weight:700;letter-spacing:.025em;text-transform:uppercase}
 .upgrade-list dd{margin:4px 0 0;font-family:ui-monospace,"SFMono-Regular",monospace;font-size:13px;font-weight:800}
-.simulated-song{display:flex;align-items:center;gap:10px}
-.simulated-song .upgrade-cover{flex:0 0 auto;width:48px;height:48px}
-.simulated-song strong,.simulated-song span{display:block}
-.simulated-song strong{font-size:12px}.simulated-song span{margin-top:4px;color:var(--muted);font-size:9px}
-.simulation-chart-picker{display:grid;gap:5px;margin-bottom:10px;color:var(--muted-dim);font-size:9px;font-weight:700;text-transform:uppercase}
-.simulation-chart-picker select,.chart-history-select{width:100%;border:1px solid var(--line2);border-radius:9px;padding:8px 30px 8px 9px;background:var(--bg3);color:var(--text);font-size:10px}
-.simulation-presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
-.simulation-presets button{border:1px solid var(--line2);border-radius:999px;padding:5px 9px;background:transparent;color:var(--muted);font:750 9px ui-monospace,"SFMono-Regular",monospace}
-.simulation-presets button:hover,.simulation-presets button[aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--text)}
-.achievement-slider{display:grid;gap:8px;margin-top:14px;color:var(--muted);font-size:10px}
-.achievement-slider span{font-weight:700;text-transform:uppercase}.achievement-slider strong{color:var(--text);font-family:ui-monospace,monospace}
-.achievement-slider input{width:100%;accent-color:var(--accent)}
-.achievement-slider .achievement-number{box-sizing:border-box;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;background:var(--bg3);color:var(--text);font:800 13px ui-monospace,"SFMono-Regular",monospace}
-.simulation-results{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
-.simulation-results div{display:grid;gap:5px;border:1px solid var(--line);border-radius:9px;padding:8px}
-.simulation-results span{color:var(--muted-dim);font-size:8px;text-transform:uppercase}.simulation-results strong{font-size:11px}
-.simulation-results .simulation-impact{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,transparent)}
-.simulation-impact strong{font-size:18px}
+.chart-history-select{width:100%;border:1px solid var(--line2);border-radius:9px;padding:8px 30px 8px 9px;background:var(--bg3);color:var(--text);font-size:10px}
 .candidate-list{display:grid;margin:0;padding:0;list-style:none;gap:6px}
 .candidate-list li{display:grid;grid-template-columns:50px minmax(130px,1fr) auto auto;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:8px;background:color-mix(in srgb,var(--bg3) 48%,transparent)}
 .candidate-list .upgrade-cover{width:46px;height:46px;border-radius:9px}
@@ -737,7 +720,6 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
   .records-filters{display:grid;grid-template-columns:1fr 1fr}
   .records-filters label:last-child{grid-column:1/-1}
   .action-tabs button{font-size:10px}
-  .simulation-results{grid-template-columns:1fr}
   .rating-overview-card dl{grid-template-columns:1fr 1fr}
   .candidate-list li{grid-template-columns:48px minmax(0,1fr)}
   .completion-grid{grid-template-columns:1fr;max-height:600px}

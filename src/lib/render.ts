@@ -288,7 +288,7 @@ function renderCard(
   const rankWidth = Math.round(rankHeight * 68 / 31);
   const rankX = spec.cardWidth - pad - rankWidth;
   const rankY = stripY - rankHeight - 6;
-  const flagHeight = Math.max(16, Math.round(spec.achievementSize * .62));
+  const flagHeight = Math.max(20, Math.round(spec.achievementSize * .82));
   const flagWidth = Math.round(flagHeight * 42 / 47);
   const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
   const metaY = pad + spec.titleSize + spec.metaSize + 13;

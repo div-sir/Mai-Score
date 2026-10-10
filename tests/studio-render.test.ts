@@ -146,8 +146,10 @@ describe("Studio renderer", () => {
     expect(svg).toContain("data:image/png;base64,combo");
     const metaY = Number(svg.match(/<text x="\d+" y="([\d.]+)" font-size="14"[^>]*>DX · EXPERT · 13\+<\/text>/)![1]);
     const comboY = Number(svg.match(/<image href="data:image\/png;base64,combo" x="[\d.]+" y="([\d.]+)"/)![1]);
+    const comboHeight = Number(svg.match(/<image href="data:image\/png;base64,combo"[^>]*height="([\d.]+)"/)![1]);
     expect(comboY).toBeLessThan(metaY);
     expect(metaY - comboY).toBeLessThan(40);
+    expect(comboHeight).toBeGreaterThanOrEqual(20);
   });
 
   it("truncates a full-width title to the card rather than past its edge", () => {

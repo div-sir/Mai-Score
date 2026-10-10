@@ -6,6 +6,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Changed
 
+- Enlarge FC/AP and FS/FDX badges in exported B50 cards for faster recognition.
 - Always open Studio on Export instead of restoring the previously selected page.
 - Move FC/AP and FS/FDX badges beside each chart's level or constant in B50 exports.
 - Replace the Records difficulty dropdown with an inclusive BASIC–Re:MASTER range slider and keep filter controls stationary when toggling MASTER only.
@@ -15,6 +16,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Removed
 
+- Remove the Progress What-if score simulator.
 - Remove the Session page and the detailed History block from Progress to simplify Studio navigation.
 
 ### Maintenance

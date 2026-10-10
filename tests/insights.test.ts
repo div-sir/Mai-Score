@@ -9,7 +9,6 @@ import {
   calculateInsightRating,
   listHistoryCharts,
   periodDelta,
-  simulateWhatIf,
   snapshotProvenance
 } from "../studio/lib/insights";
 import { calculateChartRating } from "../src/lib/rating";
@@ -132,14 +131,6 @@ describe("rating insights", () => {
     expect(candidates[0].targetAchievement).toBeLessThanOrEqual(100.5);
   });
 
-  it("recalculates the chart and total B50 in a what-if simulation", () => {
-    const selected = record({ achievementRate: 99.5, chartRating: calculateChartRating(13.7, 99.5) });
-    const data = { records: [selected], b50Rating: 14500 } as StudioData;
-    const simulation = simulateWhatIf(data, selected, 100.5)!;
-    expect(simulation.simulatedChartRating).toBe(calculateChartRating(13.7, 100.5));
-    expect(simulation.b50Delta).toBe(simulation.simulatedChartRating - simulation.currentChartRating);
-    expect(simulation.simulatedB50).toBe(14500 + simulation.b50Delta);
-  });
 });
 
 describe("chart history and provenance", () => {

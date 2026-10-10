@@ -98,17 +98,6 @@ export interface B50Cutoffs {
   atRisk: CutoffRisk[];
 }
 
-export interface WhatIfResult {
-  currentAchievement: number;
-  simulatedAchievement: number;
-  currentChartRating: number;
-  simulatedChartRating: number;
-  chartDelta: number;
-  currentB50: number;
-  simulatedB50: number;
-  b50Delta: number;
-}
-
 export interface SnapshotProvenance {
   observedAt: string;
   importedAt: string;
@@ -249,28 +238,6 @@ export function buildB50Cutoffs(data: StudioData, riskWindow = 3): B50Cutoffs {
     return margin <= riskWindow ? [{ key: chartKey(record), record, cutoff, margin }] : [];
   }).sort((a, b) => a.margin - b.margin || chartRating(a.record) - chartRating(b.record));
   return { b15, b35, atRisk };
-}
-
-export function simulateWhatIf(
-  data: StudioData,
-  record: StudioRecord,
-  simulatedAchievement: number
-): WhatIfResult | undefined {
-  const level = Number(record.internalLevelValue);
-  if (!Number.isFinite(level) || level <= 0) return undefined;
-  const currentChartRating = chartRating(record);
-  const simulatedChartRating = calculateInsightRating(level, simulatedAchievement);
-  const chartDelta = simulatedChartRating - currentChartRating;
-  return {
-    currentAchievement: record.achievementRate,
-    simulatedAchievement,
-    currentChartRating,
-    simulatedChartRating,
-    chartDelta,
-    currentB50: data.b50Rating,
-    simulatedB50: data.b50Rating + chartDelta,
-    b50Delta: chartDelta
-  };
 }
 
 /** Recommends milestone gains for charts already visible in the B50. */
