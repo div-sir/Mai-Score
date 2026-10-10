@@ -173,6 +173,7 @@ export interface StudioCopy {
   breakdown: string;
   achievement: string;
   chartRating: string;
+  ratingProgress: string;
   achievementRankBadge: string;
   comboBadge: string;
   syncBadge: string;
@@ -353,6 +354,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "New B15 / Old B35",
     achievement: "Achievement",
     chartRating: "Chart Rating",
+    ratingProgress: "Rating progress chart",
     achievementRankBadge: "Achievement rank (SSS+)",
     comboBadge: "FC / AP badge",
     syncBadge: "FS / FDX badge",
@@ -532,6 +534,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 舊曲 B35",
     achievement: "達成率",
     chartRating: "單曲 Rating",
+    ratingProgress: "Rating 進步圖",
     achievementRankBadge: "評價徽章（SSS+）",
     comboBadge: "FC / AP 徽章",
     syncBadge: "FS / FDX 徽章",
@@ -711,6 +714,7 @@ const COPY: Record<LanguageId, StudioCopy> = {
     breakdown: "新曲 B15 / 旧曲 B35",
     achievement: "達成率",
     chartRating: "譜面 Rating",
+    ratingProgress: "Rating 推移グラフ",
     achievementRankBadge: "達成率ランク（SSS+）",
     comboBadge: "FC / AP バッジ",
     syncBadge: "FS / FDX バッジ",

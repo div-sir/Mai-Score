@@ -435,8 +435,8 @@ export default function Studio() {
   }, [uiPreferencesReady, uiTheme]);
 
   const rendered = useMemo(
-    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets) : null,
-    [data, options, language, origin, generatedAt, assets]
+    () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets, history) : null,
+    [data, options, language, origin, generatedAt, assets, history]
   );
   const previewUrl = useMemo(
     () => rendered ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rendered.svg)}` : "",
@@ -605,7 +605,7 @@ export default function Studio() {
 
   async function renderExport(): Promise<{ blob: Blob; filename: string }> {
     if (!data) throw new Error(copy.emptyMessage);
-    const finalRendered = renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets);
+    const finalRendered = renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets, history);
     const base = `mai-score-${safeName(data.player.name)}-${options.layout}`;
     if (exportFormat === "svg") {
       return {
@@ -1162,7 +1162,7 @@ export default function Studio() {
             {([
               [copy.playerContent, [["showFrame", copy.frame], ["showIcon", copy.icon], ["showPlate", copy.plate], ["showPlayerTitle", copy.playerTitle]]],
               [copy.chartContent, [["showCovers", copy.covers], ["showRank", copy.rank]]],
-              [copy.scoreContent, [["showAchievement", copy.achievement], ["showChartRating", copy.chartRating], ["showBreakdown", copy.breakdown]]],
+              [copy.scoreContent, [["showAchievement", copy.achievement], ["showChartRating", copy.chartRating], ["showBreakdown", copy.breakdown], ["showRatingProgress", copy.ratingProgress]]],
               [copy.badgeContent, [["showAchievementRank", copy.achievementRankBadge], ["showComboBadge", copy.comboBadge], ["showSyncBadge", copy.syncBadge]]]
             ] as Array<[string, Array<[keyof StudioOptions, string]>]>).map(([group, items]) => <div className="toggle-group" key={group}>
               <h4>{group}</h4><div className="toggle-list">{items.map(([key, label]) => <label key={key}><input type="checkbox" checked={Boolean(options[key])} onChange={(event) => set(key, event.target.checked as never)} />{label}</label>)}</div>

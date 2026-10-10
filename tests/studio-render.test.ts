@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_IMAGE_OPTIONS } from "../src/lib/image-options";
 import { accentReach as extensionAccentReach, renderB50Document } from "../src/lib/render";
 import type { CollectionResult } from "../src/lib/types";
-import { accentReach as studioAccentReach, renderStudioSvg } from "../studio/lib/render";
+import { accentReach as studioAccentReach, buildRatingProgressPoints, renderStudioSvg } from "../studio/lib/render";
+import type { HistoryEntry } from "../studio/lib/history";
 import { DEFAULT_OPTIONS, type AccentScope, type StudioData, type StudioOptions } from "../studio/lib/types";
 
 const data: StudioData = {
@@ -41,6 +42,15 @@ const extensionData: CollectionResult = {
 };
 
 const cardStroke = (svg: string) => svg.match(/stroke="(#[0-9a-f]{8})" stroke-width="3"/)![1];
+
+const history: HistoryEntry[] = [
+  ["2026-05-01T06:00:00.000Z", 14320],
+  ["2026-06-15T06:00:00.000Z", 14610],
+  ["2026-07-20T06:00:00.000Z", 14742]
+].map(([generatedAt, b50Rating]) => ({
+  generatedAt: String(generatedAt), savedAt: String(generatedAt), source: "test", language: "en",
+  playerName: data.player.name, officialRating: Number(b50Rating), b50Rating: Number(b50Rating), records: data.records
+}));
 
 describe("Studio renderer", () => {
   it("agrees with the extension on how far the accent reaches", () => {
@@ -99,6 +109,34 @@ describe("Studio renderer", () => {
     expect(background("minimal")).toBe("#0a1022");
     expect(background("outline")).toBe("#0a1022");
     expect(background("full")).not.toBe("#0a1022");
+  });
+
+  it("renders a responsive Rating progress panel in every layout and theme", () => {
+    const baseHeights = { classic: 2650, compact: 1990, landscape: 1840 } as const;
+    const panelHeights = { classic: 144, compact: 116, landscape: 136 } as const;
+    for (const layout of ["classic", "compact", "landscape"] as const) {
+      for (const theme of ["night", "light", "maimai"] as const) {
+        const rendered = renderStudioSvg(
+          data,
+          { ...DEFAULT_OPTIONS, layout, theme, showRatingProgress: true },
+          "en", "", new Date("2026-08-01T06:00:00.000Z"), { covers: {} }, history
+        );
+        expect(rendered.height, `${layout}/${theme} height`).toBe(baseHeights[layout] + panelHeights[layout] + 30);
+        expect(rendered.svg, `${layout}/${theme} panel`).toContain('data-export-section="rating-progress"');
+        expect(rendered.svg, `${layout}/${theme} line`).toContain("<polyline");
+        expect(rendered.svg, `${layout}/${theme} delta`).toContain(">+556</tspan>");
+        expect(rendered.hitAreas[0].y, `${layout}/${theme} card offset`).toBeGreaterThan(300 + panelHeights[layout]);
+        expect(rendered.hitAreas.every((area) => area.x + area.width <= rendered.width && area.y + area.height <= rendered.height)).toBe(true);
+      }
+    }
+  });
+
+  it("keeps Rating history for the active player and always includes the current export", () => {
+    const foreign = { ...history[0], generatedAt: "2026-04-01T06:00:00.000Z", playerName: "OTHER", b50Rating: 99999 };
+    expect(buildRatingProgressPoints(data, [...history, foreign])).toEqual([
+      ...history.map((entry) => ({ observedAt: entry.generatedAt, rating: entry.b50Rating })),
+      { observedAt: data.exportedAt, rating: data.b50Rating }
+    ]);
   });
 
   it("renders the player title under the name, in its rarity colour", () => {

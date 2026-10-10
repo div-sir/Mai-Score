@@ -1,5 +1,6 @@
 import type { AccentScope, LanguageId, LayoutId, StudioAssets, StudioData, StudioOptions, StudioRecord, ThemeId } from "./types";
 import { achievementRank, recordBadgeNameSet } from "./achievement-rank";
+import type { HistoryEntry } from "./history";
 
 interface Spec {
   width: number; height: number; columns: number; margin: number; startY: number;
@@ -163,6 +164,8 @@ function renderCopy(language: LanguageId) {
     oldBreakdown: "舊曲 B35",
     newSection: "新曲區 · BEST 15",
     oldSection: "舊曲區 · BEST 35",
+    progress: "B50 RATING 進步",
+    snapshots: "筆紀錄",
     charts: "首",
     generated: "由 Mai-Score Studio 在本機產生"
   };
@@ -171,6 +174,8 @@ function renderCopy(language: LanguageId) {
     oldBreakdown: "旧曲 B35",
     newSection: "新曲枠 · BEST 15",
     oldSection: "旧曲枠 · BEST 35",
+    progress: "B50 RATING 推移",
+    snapshots: "件の記録",
     charts: "譜面",
     generated: "Mai-Score Studio でローカル生成"
   };
@@ -179,6 +184,8 @@ function renderCopy(language: LanguageId) {
     oldBreakdown: "Old B35",
     newSection: "NEW CHARTS · BEST 15",
     oldSection: "OLD CHARTS · BEST 35",
+    progress: "B50 RATING PROGRESS",
+    snapshots: "snapshots",
     charts: "charts",
     generated: "Generated locally by Mai-Score Studio"
   };
@@ -194,6 +201,96 @@ function visibleTimestamp(options: StudioOptions, generatedAt: Date, language: L
   return new Intl.DateTimeFormat(locale, format).format(generatedAt);
 }
 
+export interface RatingProgressPoint {
+  observedAt: string;
+  rating: number;
+}
+
+/** Builds one chronological series for the active player and current export. */
+export function buildRatingProgressPoints(data: StudioData, history: readonly HistoryEntry[]): RatingProgressPoint[] {
+  const points = new Map<string, RatingProgressPoint>();
+  for (const entry of history) {
+    if (entry.playerName !== data.player.name || !Number.isFinite(entry.b50Rating)) continue;
+    points.set(entry.generatedAt, { observedAt: entry.generatedAt, rating: entry.b50Rating });
+  }
+  points.set(data.exportedAt, { observedAt: data.exportedAt, rating: data.b50Rating });
+  return [...points.values()].sort((a, b) => a.observedAt.localeCompare(b.observedAt));
+}
+
+function progressDate(value: string, language: LanguageId) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value.slice(0, 10);
+  const locale = language === "zh-Hant" ? "zh-TW" : language === "ja" ? "ja-JP" : "en-US";
+  return new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric" }).format(date);
+}
+
+function renderRatingProgress(
+  points: readonly RatingProgressPoint[],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  palette: Palette,
+  accent: string,
+  language: LanguageId,
+  copy: ReturnType<typeof renderCopy>,
+  compact: boolean
+) {
+  const ratings = points.map((point) => point.rating);
+  const rawMin = Math.min(...ratings);
+  const rawMax = Math.max(...ratings);
+  const padding = Math.max(1, Math.ceil((rawMax - rawMin) * .12));
+  const min = rawMin - padding;
+  const max = rawMax + padding;
+  const plotLeft = compact ? 92 : 112;
+  const plotRight = compact ? 90 : 112;
+  const plotTop = compact ? 38 : 44;
+  const plotBottom = compact ? 26 : 30;
+  const plotWidth = width - plotLeft - plotRight;
+  const plotHeight = height - plotTop - plotBottom;
+  const timestamps = points.map((point) => new Date(point.observedAt).getTime());
+  const validTimes = timestamps.every(Number.isFinite);
+  const firstTime = validTimes ? timestamps[0] : 0;
+  const timeSpan = validTimes ? timestamps.at(-1)! - firstTime : 0;
+  const coordinates = points.map((point, index) => {
+    const ratioX = points.length === 1 ? 1 : timeSpan > 0
+      ? (timestamps[index] - firstTime) / timeSpan
+      : index / (points.length - 1);
+    const ratioY = (point.rating - min) / Math.max(1, max - min);
+    return {
+      x: plotLeft + ratioX * plotWidth,
+      y: plotTop + (1 - ratioY) * plotHeight
+    };
+  });
+  const line = coordinates.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  const area = `${plotLeft},${plotTop + plotHeight} ${line} ${plotLeft + plotWidth},${plotTop + plotHeight}`;
+  const first = points[0];
+  const latest = points.at(-1)!;
+  const latestCoordinate = coordinates.at(-1)!;
+  const delta = latest.rating - first.rating;
+  const deltaLabel = `${delta > 0 ? "+" : ""}${delta}`;
+  const valueSize = compact ? 15 : 18;
+  const labelSize = compact ? 9 : 11;
+  const dateMarkup = points.length === 1
+    ? `<text x="${plotLeft + plotWidth}" y="${height - 8}" text-anchor="end" font-size="${labelSize}" style="fill:${palette.muted}">${esc(progressDate(latest.observedAt, language))}</text>`
+    : `<text x="${plotLeft}" y="${height - 8}" font-size="${labelSize}" style="fill:${palette.muted}">${esc(progressDate(first.observedAt, language))}</text>
+       <text x="${plotLeft + plotWidth}" y="${height - 8}" text-anchor="end" font-size="${labelSize}" style="fill:${palette.muted}">${esc(progressDate(latest.observedAt, language))}</text>`;
+  return `<g data-export-section="rating-progress" transform="translate(${x} ${y})">
+    <defs><linearGradient id="ratingProgressFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${accent}" stop-opacity=".28"/><stop offset="1" stop-color="${accent}" stop-opacity=".02"/></linearGradient></defs>
+    <rect width="${width}" height="${height}" rx="${compact ? 18 : 22}" fill="${palette.header}" stroke="${alpha(accent, .34)}" stroke-width="2"/>
+    <text x="${compact ? 18 : 22}" y="${compact ? 22 : 27}" font-size="${compact ? 11 : 14}" font-weight="850" letter-spacing="1" style="fill:${palette.muted}">${copy.progress}</text>
+    <text x="${width - (compact ? 18 : 22)}" y="${compact ? 22 : 27}" text-anchor="end" font-size="${compact ? 11 : 14}" font-weight="800" style="fill:${palette.muted}">${points.length} ${copy.snapshots} · <tspan style="fill:${accent}">${deltaLabel}</tspan></text>
+    ${[0, .5, 1].map((ratio) => `<line x1="${plotLeft}" y1="${plotTop + ratio * plotHeight}" x2="${plotLeft + plotWidth}" y2="${plotTop + ratio * plotHeight}" stroke="${alpha(palette.muted, .18)}" stroke-width="1"/>`).join("")}
+    <polygon points="${area}" fill="url(#ratingProgressFill)"/>
+    ${coordinates.length > 1 ? `<polyline points="${line}" fill="none" stroke="${accent}" stroke-width="${compact ? 3 : 4}" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+    ${coordinates.map(({ x: pointX, y: pointY }, index) => `<circle cx="${pointX.toFixed(1)}" cy="${pointY.toFixed(1)}" r="${index === coordinates.length - 1 ? (compact ? 5 : 6) : (compact ? 3 : 4)}" fill="${index === coordinates.length - 1 ? accent : palette.header}" stroke="${accent}" stroke-width="${compact ? 2 : 3}"/>`).join("")}
+    <text x="${latestCoordinate.x.toFixed(1)}" y="${Math.max(plotTop + valueSize, latestCoordinate.y - 10).toFixed(1)}" text-anchor="end" font-size="${valueSize}" font-weight="900">${latest.rating}</text>
+    <text x="${plotLeft - 12}" y="${plotTop + 4}" text-anchor="end" font-size="${labelSize}" style="fill:${palette.muted}">${rawMax}</text>
+    <text x="${plotLeft - 12}" y="${plotTop + plotHeight}" text-anchor="end" font-size="${labelSize}" style="fill:${palette.muted}">${rawMin}</text>
+    ${dateMarkup}
+  </g>`;
+}
+
 function rank(records: StudioRecord[], index: number) {
   const bucket = records[index].bucket;
   return records.slice(0, index + 1).filter((record) => record.bucket === bucket).length;
@@ -205,7 +302,8 @@ export function renderStudioSvg(
   language: LanguageId,
   origin = "",
   generatedAt = new Date(),
-  assets: StudioAssets = { covers: {} }
+  assets: StudioAssets = { covers: {} },
+  history: readonly HistoryEntry[] = []
 ) {
   const spec = specs[options.layout];
   const palette = accentedPalette(options.theme, options.accent, options.accentScope);
@@ -214,7 +312,13 @@ export function renderStudioSvg(
   const newRecords = ordered.filter((record) => record.bucket === "b15").slice(0, 15);
   const oldRecords = ordered.filter((record) => record.bucket === "b35").slice(0, 35);
   const newRows = Math.ceil(newRecords.length / spec.columns);
-  const oldStartY = spec.startY + newRows * (spec.cardH + spec.gapY) + spec.sectionGap;
+  const progressPoints = buildRatingProgressPoints(data, history);
+  const progressHeight = options.layout === "compact" ? 116 : options.layout === "landscape" ? 136 : 144;
+  const progressExtra = options.showRatingProgress ? progressHeight + 30 : 0;
+  const contentStartY = spec.startY + progressExtra;
+  const canvasHeight = spec.height + progressExtra;
+  const progressTop = spec.startY - 28;
+  const oldStartY = contentStartY + newRows * (spec.cardH + spec.gapY) + spec.sectionGap;
   const icon = assets.icon ?? assetUrl(data.player.iconUrl, origin);
   const frame = assets.frame ?? assetUrl(data.player.frameUrl, origin);
   const plate = assets.plate ?? assetUrl(data.player.plateUrl, origin);
@@ -235,6 +339,9 @@ export function renderStudioSvg(
   const scoreBoxesX = scoreX - scoreBoxWidth * 2 - scoreBoxGap;
   const timestamp = visibleTimestamp(options, generatedAt, language);
   const compact = options.layout === "compact";
+  const progressMarkup = options.showRatingProgress
+    ? renderRatingProgress(progressPoints, margin, progressTop, panelW, progressHeight, palette, options.accent, language, copy, compact)
+    : "";
   const nameSize = compact ? 42 : 49;
   // The breakdown boxes are the leftmost thing on the right-hand side, so the
   // name block may grow up to them and no further.
@@ -318,15 +425,15 @@ export function renderStudioSvg(
       ${options.showChartRating ? `<text x="${spec.cardW - spec.pad * 2}" y="${stripY + spec.strip * .72}" text-anchor="end" font-size="${spec.rate * .88}" font-weight="850">${record.chartRating ?? "?"}</text>` : ""}
     </g>`;
   }).join("");
-  const cards = renderCards(newRecords, spec.startY, 0) + renderCards(oldRecords, oldStartY, newRecords.length);
+  const cards = renderCards(newRecords, contentStartY, 0) + renderCards(oldRecords, oldStartY, newRecords.length);
 
   return {
     width: spec.width,
-    height: spec.height,
+    height: canvasHeight,
     hitAreas,
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.width}" height="${spec.height}" viewBox="0 0 ${spec.width} ${spec.height}">
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.width}" height="${canvasHeight}" viewBox="0 0 ${spec.width} ${canvasHeight}">
       <style>text{font-family:Inter,ui-sans-serif,system-ui,"Noto Sans",sans-serif;fill:${palette.fg}}</style>
-      <rect width="${spec.width}" height="${spec.height}" fill="${palette.bg}"/>
+      <rect width="${spec.width}" height="${canvasHeight}" fill="${palette.bg}"/>
       ${options.showFrame && frame ? `<image href="${frame}" x="0" y="0" width="${spec.width}" height="${spec.startY - 58}" preserveAspectRatio="xMidYMid slice" opacity=".9"/>` : ""}
       <rect x="${margin}" y="24" width="${panelW}" height="${spec.header - 10}" rx="28" fill="${palette.header}" opacity=".96" stroke="${alpha(options.accent, .28)}" stroke-width="2"/>
       <rect x="${margin}" y="24" width="10" height="${spec.header - 10}" rx="5" fill="${options.accent}"/>
@@ -353,10 +460,11 @@ export function renderStudioSvg(
           <text x="12" y="${scoreBoxHeight * .36}" font-size="${options.layout === "compact" ? 9 : 11}" font-weight="800" letter-spacing=".7" style="fill:${palette.muted}">${copy.oldBreakdown}</text>
           <text x="${scoreBoxWidth - 12}" y="${scoreBoxHeight * .78}" text-anchor="end" font-size="${options.layout === "compact" ? 18 : 22}" font-weight="850">${data.b35Rating}</text>
         </g>` : ""}
+      ${progressMarkup}
       <g>
-        <rect x="${spec.margin}" y="${spec.startY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .16)}"/>
-        <text x="${spec.margin + 14}" y="${spec.startY - 22}" font-size="18" font-weight="850">${copy.newSection}</text>
-        <text x="${spec.width - spec.margin - 14}" y="${spec.startY - 22}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${newRecords.length} ${copy.charts} · ${data.b15Rating}</text>
+        <rect x="${spec.margin}" y="${contentStartY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .16)}"/>
+        <text x="${spec.margin + 14}" y="${contentStartY - 22}" font-size="18" font-weight="850">${copy.newSection}</text>
+        <text x="${spec.width - spec.margin - 14}" y="${contentStartY - 22}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${newRecords.length} ${copy.charts} · ${data.b15Rating}</text>
       </g>
       <g>
         <rect x="${spec.margin}" y="${oldStartY - 46}" width="${spec.width - spec.margin * 2}" height="34" rx="10" fill="${alpha(options.accent, .11)}"/>
@@ -364,8 +472,8 @@ export function renderStudioSvg(
         <text x="${spec.width - spec.margin - 14}" y="${oldStartY - 22}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${oldRecords.length} ${copy.charts} · ${data.b35Rating}</text>
       </g>
       ${cards}
-      <text x="${spec.margin}" y="${spec.height - 28}" font-size="16" style="fill:${palette.muted}">${esc(options.watermark || copy.generated)}</text>
-      <text x="${spec.width - spec.margin}" y="${spec.height - 28}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${esc([timestamp, "preview"].filter(Boolean).join(" · "))}</text>
+      <text x="${spec.margin}" y="${canvasHeight - 28}" font-size="16" style="fill:${palette.muted}">${esc(options.watermark || copy.generated)}</text>
+      <text x="${spec.width - spec.margin}" y="${canvasHeight - 28}" text-anchor="end" font-size="16" style="fill:${palette.muted}">${esc([timestamp, "preview"].filter(Boolean).join(" · "))}</text>
     </svg>`
   };
 }
