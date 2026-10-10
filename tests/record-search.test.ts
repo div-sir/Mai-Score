@@ -12,6 +12,8 @@ it("keeps all levels and supports basic and advanced", () => {
   expect(searchRecords(records, { level: "all" })).toHaveLength(3);
   expect(searchRecords(records, { difficulty: "basic" })).toEqual([records[0]]);
   expect(searchRecords(records, { difficulty: "advanced" })).toEqual([records[1]]);
+  expect(searchRecords(records, { difficultyMin: 1, difficultyMax: 3 })).toEqual([records[1], records[2]]);
+  expect(searchRecords(records, { difficultyMin: 3, difficultyMax: 3 })).toEqual([records[2]]);
 });
 it("combines type, version and search filters", () => {
   expect(searchRecords(records, { type: "dx", version: "B", query: " ALPHA " })).toEqual([records[1]]);

@@ -1,15 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { chartKey, diffHistory, type HistoryEntry } from "../lib/history";
+import { chartKey, type HistoryEntry } from "../lib/history";
 import {
   ACHIEVEMENT_TARGETS,
   buildB50Cutoffs,
-  buildChartHistory,
   buildEntryCandidates,
   buildRatingTimeline,
   buildUpgradeTargets,
-  listHistoryCharts,
   periodDelta,
   simulateWhatIf,
   snapshotProvenance
@@ -25,6 +23,7 @@ interface ProgressDashboardProps {
   assets: StudioAssets;
   history: HistoryEntry[];
   language: LanguageId;
+  onDeleteHistoryPoint: (generatedAt: string) => Promise<void>;
 }
 
 type ActionView = "planner" | "full" | "targets" | "potential" | "protect" | "simulate";
@@ -36,29 +35,15 @@ function signed(value: number | undefined) {
 
 const achievementLabel = (value: number) => `${value.toFixed(value % 1 ? 1 : 0)}%`;
 
-export default function ProgressDashboard({ data, assets, history, language }: ProgressDashboardProps) {
+export default function ProgressDashboard({ data, assets, history, language, onDeleteHistoryPoint }: ProgressDashboardProps) {
   const copy = studioCopy(language);
   const planner = plannerCopy(language);
   const timeline = useMemo(() => buildRatingTimeline(history), [history]);
-  const charts = useMemo(() => listHistoryCharts(history), [history]);
-  const [selectedKey, setSelectedKey] = useState("");
-  const [chartQuery, setChartQuery] = useState("");
   const [difficulty, setDifficulty] = useState("all");
   const [level, setLevel] = useState("all");
   const [simulationKey, setSimulationKey] = useState("");
   const [simulationAchievement, setSimulationAchievement] = useState(100.5);
   const [actionView, setActionView] = useState<ActionView>("planner");
-
-  const activeKey = selectedKey || (charts[0] ? chartKey(charts[0]) : "");
-  const activeChart = charts.find((chart) => chartKey(chart) === activeKey);
-  const chartHistory = useMemo(
-    () => activeKey ? buildChartHistory(history, activeKey) : [],
-    [history, activeKey]
-  );
-  const searchResults = useMemo(() => {
-    const query = chartQuery.trim().toLocaleLowerCase(language);
-    return charts.filter((chart) => !query || `${chart.title} ${chart.difficulty} ${chart.displayedLevel}`.toLocaleLowerCase(language).includes(query));
-  }, [charts, chartQuery, language]);
 
   const allTargets = useMemo(() => data ? buildUpgradeTargets(data, 50) : [], [data]);
   const levels = useMemo(() => [...new Set(allTargets.map((target) => target.record.displayedLevel))]
@@ -81,7 +66,6 @@ export default function ProgressDashboard({ data, assets, history, language }: P
     ? simulateWhatIf(data, simulationRecord, effectiveSimulationAchievement)
     : undefined;
   const latest = history[0];
-  const latestDiff = history.length > 1 ? diffHistory(history[1], history[0]) : undefined;
   const provenance = latest ? snapshotProvenance(latest) : undefined;
   const fullHistoryStart = useMemo(() => history.reduce<HistoryEntry | undefined>(
     (earliest, entry) => entry.fullRecords !== undefined
@@ -113,7 +97,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
         <time dateTime={latest.generatedAt}>{copy.observedAt}: {new Date(latest.generatedAt).toLocaleString(language)}</time>
       </header>
 
-      <TimelineChart timeline={timeline} language={language} title={copy.timeline} />
+      <TimelineChart timeline={timeline} language={language} title={copy.timeline} onDeletePoint={onDeleteHistoryPoint} />
       {fullHistoryStart ? <p className="full-history-coverage">
         <span aria-hidden="true">●</span>{copy.fullHistorySince}: <time dateTime={fullHistoryStart.generatedAt}>{new Date(fullHistoryStart.generatedAt).toLocaleString(language)}</time>
       </p> : null}
@@ -169,7 +153,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
                   </div>
                   <dl>
                     <div><dt>{copy.needed}</dt><dd>+{target.achievementNeeded.toFixed(4)}%</dd></div>
-                    <div><dt>{copy.to100}</dt><dd className="up">+{target.gainTo100}</dd></div>
+                    <div><dt>{copy.to100}</dt><dd className={`up${target.gainTo100 === 0 ? " zero-gain" : ""}`}>+{target.gainTo100}</dd></div>
                     <div><dt>{copy.to1005}</dt><dd className="up">+{target.gainTo1005}</dd></div>
                   </dl>
                 </li>
@@ -263,49 +247,7 @@ export default function ProgressDashboard({ data, assets, history, language }: P
           </> : null}
         </article> : null}
 
-        <header className="insight-group-heading"><span>02</span><div><h2>{copy.historySection}</h2><p>{copy.historySectionDescription}</p></div></header>
-        <article className="insight-panel chart-history-panel">
-          <header><div><h2>{copy.chartHistory}</h2><p>{copy.chartHistoryDescription}</p></div></header>
-          <input
-            className="chart-search"
-            type="search"
-            value={chartQuery}
-            placeholder={copy.searchCharts}
-            aria-label={copy.searchCharts}
-            onChange={(event) => setChartQuery(event.target.value)}
-          />
-          <select className="chart-history-select" value={activeKey} onChange={(event) => setSelectedKey(event.target.value)} aria-label={copy.selectChart}>
-            {searchResults.map((chart) => <option key={chartKey(chart)} value={chartKey(chart)}>
-              {chart.title} · {chart.difficulty.toUpperCase()} {chart.displayedLevel}
-            </option>)}
-          </select>
-          {activeChart && <div className="selected-chart-summary">
-            <SongCover record={activeChart} assets={assets} />
-            <div><strong>{activeChart.title}</strong><span>{activeChart.type.toUpperCase()} · {activeChart.difficulty.toUpperCase()} · {activeChart.displayedLevel}</span></div>
-            <b>{chartHistory.length}<small>{copy.observations}</small></b>
-          </div>}
-          <ol className="chart-history-list" aria-label={copy.chartHistory}>
-            {chartHistory.map((point, index) => {
-              const previous = chartHistory[index - 1];
-              const delta = previous ? point.chartRating - previous.chartRating : undefined;
-              return <li key={point.observedAt}>
-                <time dateTime={point.observedAt}><strong>{new Date(point.observedAt).toLocaleDateString(language)}</strong><small>{new Date(point.observedAt).toLocaleTimeString(language, { hour: "2-digit", minute: "2-digit" })}</small></time>
-                <span><small>{copy.achievement}</small><strong>{point.achievementRate.toFixed(4)}%</strong></span>
-                <span><small>{copy.chartRating}</small><strong>{point.chartRating}</strong></span>
-                <b className={(delta ?? 0) > 0 ? "up" : delta && delta < 0 ? "down" : ""}>{signed(delta)}</b>
-              </li>;
-            })}
-          </ol>
-        </article>
-
-        <article className="insight-panel change-panel">
-          <header><div><h2>{copy.latestChanges}</h2><p>{copy.latestChangesDescription}</p></div></header>
-          {!latestDiff || (!latestDiff.entered.length && !latestDiff.left.length && !latestDiff.changed.length)
-            ? <p className="panel-empty">{copy.noChanges}</p>
-            : <div className="change-summary"><span><strong className="up">{signed(latestDiff.ratingDelta)}</strong>{copy.ratingGain}</span><span><strong>{latestDiff.entered.length}</strong>{copy.enteredB50}</span><span><strong>{latestDiff.left.length}</strong>{copy.leftB50}</span><span><strong>{latestDiff.changed.length}</strong>{copy.improvedCharts}</span></div>}
-        </article>
-
-        <header className="insight-group-heading"><span>03</span><div><h2>{copy.detailsSection}</h2><p>{copy.detailsSectionDescription}</p></div></header>
+        <header className="insight-group-heading"><span>02</span><div><h2>{copy.detailsSection}</h2><p>{copy.detailsSectionDescription}</p></div></header>
         <details className="insight-panel provenance-panel collapsible-panel">
           <summary><span>{copy.sourceDetails}</span><small>{copy.sourceDetailsDescription}</small></summary>
           {provenance && <dl><div><dt>{copy.observedAt}</dt><dd>{new Date(provenance.observedAt).toLocaleString(language)}</dd></div><div><dt>{copy.importedAt}</dt><dd>{new Date(provenance.importedAt).toLocaleString(language)}</dd></div><div><dt>{copy.sourceLabel}</dt><dd>{provenance.source}</dd></div><div><dt>{copy.sourceSchema}</dt><dd>{provenance.sourceSchema}</dd></div><div><dt>{copy.ratingModel}</dt><dd>{provenance.ratingModel}</dd></div>{provenance.chartData && <div><dt>{copy.chartData}</dt><dd>{new Date(provenance.chartData.updateTime).toLocaleDateString(language)} · {provenance.chartData.sheets.toLocaleString(language)}</dd></div>}</dl>}

@@ -282,19 +282,18 @@ function renderCard(
   const flagValues = [options.showComboBadge ? record.comboFlag : undefined, options.showSyncBadge ? record.syncFlag : undefined]
     .filter((value): value is NonNullable<typeof value> => Boolean(value));
   const flagAssets = flagValues.map(value => badgeAssets[`music_icon_${value.replaceAll("+", "p")}.png`]);
-  // Rank artwork is the primary result marker. Give it the open lower-right
-  // area at nearly the achievement text height; FC/AP and FS/FDX remain a
-  // compact ribbon near the jacket and can be toggled independently.
+  // Rank artwork remains the primary result marker. Combo and sync badges sit
+  // beside the level/constant metadata so the achievement line stays clear.
   const rankHeight = Math.max(22, Math.round(spec.achievementSize * .96));
   const rankWidth = Math.round(rankHeight * 68 / 31);
   const rankX = spec.cardWidth - pad - rankWidth;
   const rankY = stripY - rankHeight - 6;
   const flagHeight = Math.max(16, Math.round(spec.achievementSize * .62));
   const flagWidth = Math.round(flagHeight * 42 / 47);
-  const flagsX = pad;
-  const flagsY = stripY - flagHeight - 4;
   const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
-  const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
+  const metaY = pad + spec.titleSize + spec.metaSize + 13;
+  const flagsX = Math.min(contentX + textWidth(meta, spec.metaSize) + 8, spec.cardWidth - pad - flagsWidth);
+  const flagsY = metaY - flagHeight + 3;
   const badgeMarkup = `${rankAsset
     ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
     : options.showAchievementRank ? `<text x="${rankX + rankWidth}" y="${rankY + rankHeight * .8}" text-anchor="end" font-size="${rankHeight * .75}" font-weight="850">${achievementRank(record.achievementRate).toUpperCase()}</text>` : ""}${flagAssets.map((source, badgeIndex) => source ?
@@ -310,10 +309,10 @@ function renderCard(
         ? `<rect x="${pad}" y="${pad}" width="${spec.coverSize}" height="${spec.coverSize}" rx="${Math.round(spec.cardRadius * .6)}" fill="${alpha(color, .16)}"/>`
         : ""}
     <text x="${contentX}" y="${pad + spec.titleSize}" font-size="${spec.titleSize}" font-weight="750">${esc(truncate(record.title, titleUnits))}</text>
-    <text x="${contentX}" y="${pad + spec.titleSize + spec.metaSize + 13}" font-size="${spec.metaSize}" style="fill:${palette.muted}">${esc(meta)}</text>
+    <text x="${contentX}" y="${metaY}" font-size="${spec.metaSize}" style="fill:${palette.muted}">${esc(meta)}</text>
     ${badgeMarkup}
     ${options.showAchievement
-      ? `<text x="${achievementX}" y="${achievementY}" font-size="${spec.achievementSize}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>`
+      ? `<text x="${contentX}" y="${achievementY}" font-size="${spec.achievementSize}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>`
       : ""}
     ${(options.showBucketRank || options.showChartRating)
       ? `<rect x="${pad}" y="${stripY}" width="${spec.cardWidth - pad * 2}" height="${spec.stripHeight}" rx="${Math.round(spec.stripHeight / 3)}" fill="${options.theme === "maimai" ? alpha(color, .13) : palette.strip}"/>

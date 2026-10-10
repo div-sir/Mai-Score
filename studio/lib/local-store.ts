@@ -285,6 +285,17 @@ export async function clearStudioHistory(): Promise<void> {
   }
 }
 
+export async function deleteStudioHistoryEntry(generatedAt: string): Promise<void> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(HISTORY_STORE, "readwrite");
+    transaction.objectStore(HISTORY_STORE).delete(generatedAt);
+    await complete(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export async function clearStudioSnapshot(): Promise<void> {
   const database = await openDatabase();
   try {

@@ -166,6 +166,8 @@ it("preserves another tab's goal when saving", async () => {
 
 it("switches plate progress to a clearly labelled MASTER-only view", async () => {
   const { default: RecordsDashboard } = await import("../studio/app/records");
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new dom.window.Event("close")); };
   const master = { ...record, title: "Master target", version: "A", internalLevelValue: 14, comboFlag: "fc" as const };
   const expert = { ...record, title: "Expert target", difficulty: "expert" as const, version: "A", internalLevelValue: 13.7 };
   const data: StudioData = {
@@ -181,6 +183,15 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
     b15Rating: 0, b35Rating: 0, b50Rating: 0
   };
   await act(async () => root.render(React.createElement(RecordsDashboard, { data, assets: { covers: {} }, history: [], language: "en" })));
+  expect(host.querySelector(".records-reset")!.classList.contains("is-placeholder")).toBe(true);
+  expect(host.querySelectorAll('.difficulty-range-filter input[type="range"]')).toHaveLength(2);
+  const masterOnly = [...host.querySelectorAll<HTMLButtonElement>(".records-quick-filters>button")].find(button => button.textContent === "MASTER only")!;
+  await act(async () => masterOnly.click());
+  expect(masterOnly.getAttribute("aria-pressed")).toBe("true");
+  expect(host.querySelector(".completion-grid")!.textContent).toContain("Master target");
+  expect(host.querySelector(".completion-grid")!.textContent).not.toContain("Expert target");
+  await act(async () => host.querySelector<HTMLButtonElement>(".records-reset")!.click());
+  expect(host.querySelector(".records-reset")!.classList.contains("is-placeholder")).toBe(true);
   const constant = host.querySelector<HTMLSelectElement>('.records-filters select[aria-label="Constant"]')!;
   await act(async () => { constant.value = "14"; constant.dispatchEvent(new dom.window.Event("change", { bubbles: true })); });
   expect(host.querySelector(".records-advanced-filters summary")!.textContent).toContain("1");
@@ -188,6 +199,9 @@ it("switches plate progress to a clearly labelled MASTER-only view", async () =>
   const completionGrid = host.querySelector(".completion-grid")!;
   expect(completionGrid.textContent).toContain("Master targetDX · MASTER · 14 · 14.0");
   expect(completionGrid.textContent).not.toContain("Expert target");
+  await act(async () => host.querySelector<HTMLButtonElement>(".completion-card")!.click());
+  expect(host.querySelector<HTMLDialogElement>(".record-chart-dialog")!.open).toBe(true);
+  expect(host.textContent).toContain("Song details");
   expect(host.querySelector(".plate-grid")!.textContent).toContain("1 / 4");
   const toggle = host.querySelector<HTMLInputElement>(".plate-master-only input")!;
   await act(async () => toggle.click());

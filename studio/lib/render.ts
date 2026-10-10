@@ -285,19 +285,18 @@ export function renderStudioSvg(
     const flagValues = [options.showComboBadge ? record.comboFlag : undefined, options.showSyncBadge ? record.syncFlag : undefined]
       .filter((value): value is NonNullable<typeof value> => Boolean(value));
     const flagAssets = flagValues.map(value => assets.badges?.[`music_icon_${value.replaceAll("+", "p")}.png`]);
-  // Rank artwork is the primary result marker. Give it the open lower-right
-    // area at nearly the achievement text height; FC/AP and FS/FDX remain a
-    // compact ribbon near the jacket and can be toggled independently.
+    // Rank artwork remains the primary result marker. Combo and sync badges
+    // sit beside the level/constant metadata so the score line stays clear.
     const rankHeight = Math.max(22, Math.round(spec.rate * .96));
     const rankWidth = Math.round(rankHeight * 68 / 31);
     const rankX = spec.cardW - spec.pad - rankWidth;
     const rankY = stripY - rankHeight - 6;
     const flagHeight = Math.max(16, Math.round(spec.rate * .62));
     const flagWidth = Math.round(flagHeight * 42 / 47);
-    const flagsX = spec.pad;
-    const flagsY = stripY - flagHeight - 4;
     const flagsWidth = flagAssets.length * flagWidth + Math.max(0, flagAssets.length - 1) * 4;
-    const achievementX = !reservesCover && flagsWidth ? flagsX + flagsWidth + 8 : contentX;
+    const metaY = spec.pad + spec.title + spec.meta + 13;
+    const flagsX = Math.min(contentX + textWidth(meta, spec.meta) + 8, spec.cardW - spec.pad - flagsWidth);
+    const flagsY = metaY - flagHeight + 3;
     const badgeMarkup = `${rankAsset
       ? `<image href="${rankAsset}" x="${rankX}" y="${rankY}" width="${rankWidth}" height="${rankHeight}" preserveAspectRatio="xMidYMid meet"/>`
       : options.showAchievementRank ? `<text x="${rankX + rankWidth}" y="${rankY + rankHeight * .8}" text-anchor="end" font-size="${rankHeight * .75}" font-weight="850">${achievementRank(record.achievementRate).toUpperCase()}</text>` : ""}${flagAssets.map((source, badgeIndex) => source ?
@@ -311,9 +310,9 @@ export function renderStudioSvg(
         : `<rect x="${spec.pad}" y="${spec.pad}" width="${spec.cover}" height="${spec.cover}" rx="10" fill="${alpha(color, .16)}"/>`
       : ""}
       <text x="${contentX}" y="${spec.pad + spec.title}" font-size="${spec.title}" font-weight="750">${esc(truncate(record.title, titleUnits))}</text>
-      <text x="${contentX}" y="${spec.pad + spec.title + spec.meta + 13}" font-size="${spec.meta}" style="fill:${palette.muted}">${esc(meta)}</text>
+      <text x="${contentX}" y="${metaY}" font-size="${spec.meta}" style="fill:${palette.muted}">${esc(meta)}</text>
       ${badgeMarkup}
-      ${options.showAchievement ? `<text x="${achievementX}" y="${achievementY}" font-size="${spec.rate}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>` : ""}
+      ${options.showAchievement ? `<text x="${contentX}" y="${achievementY}" font-size="${spec.rate}" font-weight="800">${record.achievementRate.toFixed(4)}%</text>` : ""}
       ${(options.showRank || options.showChartRating) ? `<rect x="${spec.pad}" y="${stripY}" width="${spec.cardW - spec.pad * 2}" height="${spec.strip}" rx="10" fill="${palette.strip}"/>` : ""}
       ${options.showRank ? `<text x="${spec.pad * 2}" y="${stripY + spec.strip * .68}" font-size="${spec.meta}" style="fill:${palette.muted}">${record.bucket.toUpperCase()} #${rank(ordered, index)}</text>` : ""}
       ${options.showChartRating ? `<text x="${spec.cardW - spec.pad * 2}" y="${stripY + spec.strip * .72}" text-anchor="end" font-size="${spec.rate * .88}" font-weight="850">${record.chartRating ?? "?"}</text>` : ""}
