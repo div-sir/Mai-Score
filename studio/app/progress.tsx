@@ -1,19 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { chartKey, type HistoryEntry } from "../lib/history";
+import type { HistoryEntry } from "../lib/history";
 import {
-  ACHIEVEMENT_TARGETS,
   buildB50Cutoffs,
   buildEntryCandidates,
   buildRatingTimeline,
   buildUpgradeTargets,
   periodDelta,
-  simulateWhatIf,
   snapshotProvenance
 } from "../lib/insights";
 import { plannerCopy, studioCopy } from "../lib/i18n";
-import type { LanguageId, StudioAssets, StudioData, StudioRecord } from "../lib/types";
+import type { LanguageId, StudioAssets, StudioData } from "../lib/types";
 import TimelineChart from "./timeline-chart";
 import SongCover from "./song-cover";
 import { FullRecordRecommendationsPanel, RatingPlannerPanel } from "./rating-planner";
@@ -26,14 +24,12 @@ interface ProgressDashboardProps {
   onDeleteHistoryPoint: (generatedAt: string) => Promise<void>;
 }
 
-type ActionView = "planner" | "full" | "targets" | "potential" | "protect" | "simulate";
+type ActionView = "planner" | "full" | "targets" | "potential" | "protect";
 
 function signed(value: number | undefined) {
   if (value === undefined) return "—";
   return `${value > 0 ? "+" : ""}${value}`;
 }
-
-const achievementLabel = (value: number) => `${value.toFixed(value % 1 ? 1 : 0)}%`;
 
 export default function ProgressDashboard({ data, assets, history, language, onDeleteHistoryPoint }: ProgressDashboardProps) {
   const copy = studioCopy(language);
@@ -41,8 +37,6 @@ export default function ProgressDashboard({ data, assets, history, language, onD
   const timeline = useMemo(() => buildRatingTimeline(history), [history]);
   const [difficulty, setDifficulty] = useState("all");
   const [level, setLevel] = useState("all");
-  const [simulationKey, setSimulationKey] = useState("");
-  const [simulationAchievement, setSimulationAchievement] = useState(100.5);
   const [actionView, setActionView] = useState<ActionView>("planner");
 
   const allTargets = useMemo(() => data ? buildUpgradeTargets(data, 50) : [], [data]);
@@ -54,17 +48,6 @@ export default function ProgressDashboard({ data, assets, history, language, onD
   ).slice(0, 8);
   const cutoffs = useMemo(() => data ? buildB50Cutoffs(data) : undefined, [data]);
   const entryCandidates = useMemo(() => data ? buildEntryCandidates(data) : [], [data]);
-  const simulationRecords = useMemo(() => (data?.records ?? [])
-    .filter((record) => Number.isFinite(Number(record.internalLevelValue)))
-    .sort((a, b) => a.title.localeCompare(b.title)), [data]);
-  const simulationRecord = data?.records.find((record) => chartKey(record) === simulationKey)
-    ?? simulationRecords[0];
-  const effectiveSimulationAchievement = simulationRecord
-    ? Math.min(100.5, Math.max(simulationRecord.achievementRate, simulationAchievement))
-    : simulationAchievement;
-  const simulation = data && simulationRecord
-    ? simulateWhatIf(data, simulationRecord, effectiveSimulationAchievement)
-    : undefined;
   const latest = history[0];
   const provenance = latest ? snapshotProvenance(latest) : undefined;
   const fullHistoryStart = useMemo(() => history.reduce<HistoryEntry | undefined>(
@@ -84,12 +67,6 @@ export default function ProgressDashboard({ data, assets, history, language, onD
   }
 
   const latestPoint = timeline.at(-1)!;
-  const selectSimulation = (record: StudioRecord) => {
-    setSimulationKey(chartKey(record));
-    const next = ACHIEVEMENT_TARGETS.find((target) => target > record.achievementRate + 0.00005) ?? 100.5;
-    setSimulationAchievement(next);
-  };
-
   return (
     <section className="progress-dashboard">
       <header className="progress-header">
@@ -122,8 +99,7 @@ export default function ProgressDashboard({ data, assets, history, language, onD
             ["full", planner.recommendationsTab],
             ["targets", copy.easyGains],
             ["potential", copy.newEntries],
-            ["protect", copy.protectB50],
-            ["simulate", copy.whatIf]
+            ["protect", copy.protectB50]
           ] as Array<[ActionView, string]>).map(([view, label]) => <button key={view} type="button" aria-pressed={actionView === view} onClick={() => setActionView(view)}>{label}</button>)}
         </nav>
         {actionView === "planner" && data ? <RatingPlannerPanel key={data.exportedAt} data={data} assets={assets} language={language} /> : null}
@@ -160,56 +136,6 @@ export default function ProgressDashboard({ data, assets, history, language, onD
               ))}
             </ol>
           )}
-        </article> : null}
-
-        {actionView === "simulate" ? <article className="insight-panel action-panel what-if-panel">
-          <header><div><h2>{copy.simulate}</h2><p>{copy.simulateDescription}</p></div></header>
-          {simulationRecord && simulation ? <>
-            <label className="simulation-chart-picker">
-              <span>{copy.selectChart}</span>
-              <select value={chartKey(simulationRecord)} onChange={(event) => {
-                const record = simulationRecords.find((candidate) => chartKey(candidate) === event.target.value);
-                if (record) selectSimulation(record);
-              }}>
-                {simulationRecords.map((record) => <option key={chartKey(record)} value={chartKey(record)}>
-                  {record.title} · {record.difficulty.toUpperCase()} {record.displayedLevel}
-                </option>)}
-              </select>
-            </label>
-            <div className="simulated-song"><SongCover record={simulationRecord} assets={assets} /><div><strong>{simulationRecord.title}</strong><span>{copy.current}: {achievementLabel(simulationRecord.achievementRate)} · {simulation.currentChartRating} Rating</span></div></div>
-            <div className="simulation-presets" aria-label={copy.quickTargets}>
-              {ACHIEVEMENT_TARGETS.filter((target) => target > simulationRecord.achievementRate + 0.00005).map((target) => (
-                <button key={target} type="button" aria-pressed={Math.abs(effectiveSimulationAchievement - target) < 0.00005} onClick={() => setSimulationAchievement(target)}>
-                  {achievementLabel(target)}
-                </button>
-              ))}
-            </div>
-            <label className="achievement-slider">
-              <span>{copy.simulated}</span>
-              <input
-                className="achievement-number"
-                type="number"
-                min={simulationRecord.achievementRate}
-                max="100.5"
-                step="0.0001"
-                value={effectiveSimulationAchievement.toFixed(4)}
-                onChange={(event) => setSimulationAchievement(Number(event.target.value))}
-              />
-              <input
-                type="range"
-                min={simulationRecord.achievementRate}
-                max="100.5"
-                step="0.0001"
-                value={effectiveSimulationAchievement}
-                onChange={(event) => setSimulationAchievement(Number(event.target.value))}
-              />
-            </label>
-            <div className="simulation-results">
-              <div><span>{copy.chartRating}</span><strong>{simulation.currentChartRating} → {simulation.simulatedChartRating}</strong></div>
-              <div className="simulation-impact"><span>{copy.b50Impact}</span><strong className={simulation.b50Delta >= 0 ? "up" : "down"}>{signed(simulation.b50Delta)}</strong></div>
-              <div><span>B50</span><strong>{simulation.currentB50} → {simulation.simulatedB50}</strong></div>
-            </div>
-          </> : <p className="panel-empty">{copy.noUpgradeTargets}</p>}
         </article> : null}
 
         {actionView === "potential" ? <article className="insight-panel action-panel candidate-panel">

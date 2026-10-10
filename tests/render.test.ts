@@ -103,6 +103,7 @@ describe("B50 image templates", () => {
     expect(shown).toContain("data:image/png;base64,rank");
     expect(shown).toContain("data:image/png;base64,combo");
     expect(shown).toContain("data:image/png;base64,sync");
+    expect(Number(shown.match(/<image href="data:image\/png;base64,combo"[^>]*height="([\d.]+)"/)![1])).toBeGreaterThanOrEqual(20);
     expect(hidden).not.toContain("data:image/png;base64,rank");
   });
 

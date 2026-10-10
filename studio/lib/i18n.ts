@@ -201,7 +201,6 @@ export interface StudioCopy {
   easyGains: string;
   newEntries: string;
   protectB50: string;
-  whatIf: string;
   historySection: string;
   historySectionDescription: string;
   detailsSection: string;
@@ -222,7 +221,6 @@ export interface StudioCopy {
   theoretical: string;
   chartHistory: string;
   chartHistoryDescription: string;
-  selectChart: string;
   latestChanges: string;
   latestChangesDescription: string;
   noChanges: string;
@@ -243,15 +241,9 @@ export interface StudioCopy {
   atRisk: string;
   atRiskDescription: string;
   margin: string;
-  simulate: string;
-  simulateDescription: string;
-  quickTargets: string;
   potentialEntries: string;
   potentialEntriesDescription: string;
   noEntryCandidates: string;
-  current: string;
-  simulated: string;
-  b50Impact: string;
   all: string;
   difficultyFilter: string;
   levelFilter: string;
@@ -389,7 +381,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     easyGains: "Easy gains",
     newEntries: "New entries",
     protectB50: "Protect B50",
-    whatIf: "What-if",
     historySection: "History",
     historySectionDescription: "Review Rating snapshots and best-score observations for every chart saved with Full Records.",
     detailsSection: "Data details",
@@ -410,7 +401,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theoretical: "To 100.5",
     chartHistory: "Chart history",
     chartHistoryDescription: "Observed best values from each saved Full Records snapshot; these are not individual play timestamps.",
-    selectChart: "Select chart",
     latestChanges: "Latest change",
     latestChangesDescription: "Difference between the two newest observed B50 snapshots.",
     noChanges: "No score or membership change was found between the latest snapshots.",
@@ -431,15 +421,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRisk: "Near the cutoff",
     atRiskDescription: "Charts within 3 Rating of the current B15 or B35 floor.",
     margin: "Margin",
-    simulate: "What-if",
-    simulateDescription: "Choose a chart and target score to see the B50 result immediately.",
-    quickTargets: "Quick targets",
     potentialEntries: "Potential B50 entries",
     potentialEntriesDescription: "DX NET candidates that can beat your current B15 or B35 cutoff by 100.5%.",
     noEntryCandidates: "No reachable candidate is available in the imported data.",
-    current: "Current",
-    simulated: "Simulated",
-    b50Impact: "B50 impact",
     all: "All",
     difficultyFilter: "Difficulty",
     levelFilter: "Level",
@@ -576,7 +560,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     easyGains: "容易提升",
     newEntries: "上榜候選",
     protectB50: "守住 B50",
-    whatIf: "分數模擬",
     historySection: "歷史",
     historySectionDescription: "查看 Rating 快照，以及完整成績中每張譜面的最佳成績變化。",
     detailsSection: "資料詳情",
@@ -597,7 +580,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theoretical: "到 100.5",
     chartHistory: "單曲歷史",
     chartHistoryDescription: "顯示各次完整成績快照觀測到的最佳值，不代表實際遊玩時間。",
-    selectChart: "選擇譜面",
     latestChanges: "最新變化",
     latestChangesDescription: "比較最近兩筆 B50 觀測快照。",
     noChanges: "最近兩筆快照之間沒有發現分數或入選變化。",
@@ -618,15 +600,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRisk: "接近分數線",
     atRiskDescription: "距離目前 B15 或 B35 最低分 3 Rating 以內的譜面。",
     margin: "餘裕",
-    simulate: "升分模擬",
-    simulateDescription: "選擇譜面與目標達成率，立即查看 B50 變化。",
-    quickTargets: "快速目標",
     potentialEntries: "可能進入 B50",
     potentialEntriesDescription: "DX NET 候選譜面中，在 100.5% 前可超過目前 B15／B35 分數線的歌曲。",
     noEntryCandidates: "匯入資料中沒有可達成的上榜候選譜面。",
-    current: "目前",
-    simulated: "模擬後",
-    b50Impact: "B50 變化",
     all: "全部",
     difficultyFilter: "難度",
     levelFilter: "等級",
@@ -763,7 +739,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     easyGains: "伸ばしやすい譜面",
     newEntries: "B50入り候補",
     protectB50: "B50を維持",
-    whatIf: "スコア試算",
     historySection: "履歴",
     historySectionDescription: "Rating スナップショットと全成績に保存された各譜面のベスト推移を確認します。",
     detailsSection: "データ詳細",
@@ -784,7 +759,6 @@ const COPY: Record<LanguageId, StudioCopy> = {
     theoretical: "100.5まで",
     chartHistory: "譜面履歴",
     chartHistoryDescription: "保存した全成績スナップショットで観測したベスト値です。実際のプレイ時刻ではありません。",
-    selectChart: "譜面を選択",
     latestChanges: "最新の変化",
     latestChangesDescription: "最新2件の B50 観測を比較します。",
     noChanges: "最新のスナップショット間にスコアや選出の変化はありません。",
@@ -805,15 +779,9 @@ const COPY: Record<LanguageId, StudioCopy> = {
     atRisk: "ボーダー付近",
     atRiskDescription: "現在の B15 / B35 最低値から 3 Rating 以内の譜面です。",
     margin: "余裕",
-    simulate: "What-if",
-    simulateDescription: "譜面と目標達成率を選び、B50 の変化をすぐ確認できます。",
-    quickTargets: "クイック目標",
     potentialEntries: "B50入り候補",
     potentialEntriesDescription: "100.5% までに現在の B15 / B35 ボーダーを超えられる DX NET 候補譜面です。",
     noEntryCandidates: "取り込んだデータに到達可能な候補譜面がありません。",
-    current: "現在",
-    simulated: "シミュレーション",
-    b50Impact: "B50 増分",
     all: "すべて",
     difficultyFilter: "難易度",
     levelFilter: "レベル",
