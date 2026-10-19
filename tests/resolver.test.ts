@@ -89,3 +89,33 @@ it("resolves the October International catalog additions reported by DX NET", as
     expect(chart.chartRating, records[index][0]).toBeGreaterThan(0);
   });
 });
+
+it("resolves the later October International charts reported by DX NET", async () => {
+  const { resolveScores } = await import("../src/lib/resolver");
+  const records = [
+    ["Intergalactic Bound", "expert", "10", 100.9583, 10.5],
+    ["LEMON MELON COOKIE", "expert", "10+", 100.9728, 10.8],
+    ["バッド・ダンス・ホール", "expert", "11", 100.9329, 11.0],
+    ["Cryogenic", "expert", "11", 100.9807, 11.4],
+    ["Intergalactic Bound", "master", "13", 100.5464, 13.1],
+    ["LEMON MELON COOKIE", "master", "11+", 100.9138, 11.7],
+    ["バッド・ダンス・ホール", "master", "13+", 100.0659, 13.7],
+    ["Cryogenic", "master", "13+", 99.9896, 13.8],
+    ["LEMON MELON COOKIE", "remaster", "13", 100.4328, 13.3]
+  ] as const;
+
+  const resolved = await resolveScores(records.map(([title, difficulty, displayedLevel, achievementRate]) => ({
+    title,
+    type: "dx" as const,
+    difficulty,
+    displayedLevel,
+    achievementRate
+  })));
+
+  expect(resolved).toHaveLength(records.length);
+  resolved.forEach((chart, index) => {
+    expect(chart.warning, `${records[index][0]} ${records[index][1]}`).toBeUndefined();
+    expect(chart.internalLevelValue, `${records[index][0]} ${records[index][1]}`).toBe(records[index][4]);
+    expect(chart.chartRating, `${records[index][0]} ${records[index][1]}`).toBeGreaterThan(0);
+  });
+});
