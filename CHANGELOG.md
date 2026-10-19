@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.24.5] — 2026-10-18
+
 ### Changed
 
 - Refresh the International chart catalog with the DX charts for Intergalactic Bound, LEMON MELON COOKIE, バッド・ダンス・ホール, and Cryogenic reported by DX NET.
