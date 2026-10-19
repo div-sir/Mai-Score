@@ -17,7 +17,11 @@ const difficulties = new Set(["basic", "advanced", "expert", "master", "remaster
 // refresh does not silently remove them; once upstream flips the flag this is
 // harmless because each source sheet is still emitted only once.
 const intlAvailabilityOverrides = new Set([
-  "魔理沙は大変なものを盗んでいきました\u0000dx"
+  "魔理沙は大変なものを盗んでいきました\u0000dx",
+  "Intergalactic Bound\u0000dx",
+  "LEMON MELON COOKIE\u0000dx",
+  "バッド・ダンス・ホール\u0000dx",
+  "Cryogenic\u0000dx"
 ]);
 const versionOrder = new Map(dxdata.versions.map(({ version }, index) => [version, index]));
 const internationalVersionOrder = versionOrder.get(INTERNATIONAL_VERSION);
