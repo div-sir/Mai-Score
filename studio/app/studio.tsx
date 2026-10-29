@@ -30,7 +30,7 @@ import {
 import { fromHistoryEntry, toHistoryEntry, type HistoryEntry } from "../lib/history";
 import { recordBadgeNames } from "../lib/achievement-rank";
 import { normalizeB50, parseMaiScore } from "../lib/import";
-import { importWithAdapter } from "../lib/import-adapters";
+import { importFileWithAdapter } from "../lib/import-adapters";
 import {
   mergeSettings,
   parseSyncDocument,
@@ -564,14 +564,14 @@ export default function Studio() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const imported = importWithAdapter(JSON.parse(await file.text()));
+      const imported = importFileWithAdapter({ name: file.name, text: await file.text(), mimeType: file.type });
       if (imported.kind === "konami-pages") {
         const input = imported.data;
         setKonamiPageData(input);
         setRhythmData(null);
         setData(null);
         setAssets({ covers: {} });
-        setSource(file.name);
+        setSource(`${imported.label} · ${file.name}`);
         setGeneratedAt(new Date().toISOString());
         setMessage(`${input.summary.collected.toLocaleString(language)} readable pages collected.`);
         await rememberExternalGame({ game: input.source.game, kind: "konami-pages", data: input, source: file.name, language });
@@ -583,12 +583,12 @@ export default function Studio() {
         setRhythmData(parsed);
         setData(null);
         setAssets({ covers: {} });
-        setSource(file.name);
+        setSource(`${imported.label} · ${file.name}`);
         setGeneratedAt(new Date().toISOString());
-        setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString(language)} charts imported.`);
+        setMessage(`${rhythmGameLabel(parsed.source.game)} · ${parsed.records.length.toLocaleString(language)} charts imported from ${imported.label}.`);
         await rememberExternalGame({
           game: parsed.source.game as KonamiPageSnapshot["source"]["game"], kind: "rhythm-record", data: parsed,
-          source: file.name, language
+          source: `${imported.label} · ${file.name}`, language
         });
         return;
       }
@@ -599,7 +599,7 @@ export default function Studio() {
       setHasMaimaiData(true);
       localStorage.setItem(ACTIVE_GAME_KEY, "maimai-dx");
       setAssets({ covers: {} });
-      setSource(file.name);
+      setSource(`${imported.label} · ${file.name}`);
       setGeneratedAt(new Date().toISOString());
       setMessage(copy.loadingFile(file.name));
       const loadedAssets = await loadPublicAssets(parsed);
@@ -1117,7 +1117,7 @@ export default function Studio() {
               <option value="ja">日本語</option>
             </select>
           </span>
-          <input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={loadFile} />
+          <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
           <Link className="passport-topbar-link" href="/passport">Passport</Link>
           <details className="data-menu">
             <summary>{copy.dataMenu}</summary>

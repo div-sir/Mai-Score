@@ -115,6 +115,11 @@ Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two
 
 Studio is intentionally a compact preview tool: the top bar contains data, Google Drive, appearance, and language controls; the side panel contains export style, prominent visible-content switches, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
 
+Studio can also import the `sdvx_score.csv` best-score export produced by
+[`sdvx_helper`](https://github.com/dj-kata/sdvx_helper). Song, chart, level, lamp,
+score, EX score, grade, per-chart VF, and last-played time are converted locally
+to Rhythm Record v1; the selected CSV is never uploaded by Mai-Score.
+
 The **Progress** tab reads the same browser-local or optionally Drive-synced snapshots. Rating totals are recorded at snapshot time. With Full Records, per-chart history also follows the best achievement and chart Rating observed in every saved complete snapshot, including charts outside B50. DX NET does not provide first-play or score-update timestamps, so these points are snapshot observations rather than individual play events; tracking begins with the first Full Records snapshot saved by Mai-Score. Recommendations still cover only charts already found in the current B50 because Full Records does not identify B15/B35 replacement eligibility.
 
 The first connection adapter is `dxnet-intl`. Future sources can register a new connection ID, game ID, transport, URL matcher, and capabilities without changing the shared Rhythm Record or image pipelines.

@@ -4,10 +4,12 @@ import { isKonamiPageSnapshot } from "./konami-page";
 import type { KonamiPageSnapshot } from "./konami-page";
 import type { RhythmRecordEnvelope } from "../../src/lib/rhythm-record";
 import type { StudioData } from "./types";
+import { isSdvxHelperCsv, parseSdvxHelperCsv } from "./sdvx-helper";
 
 export type ImportedDataset =
   | { adapter: "mai-score"; label: "Mai-Score JSON"; kind: "maimai"; data: StudioData }
   | { adapter: "rhythm-record"; label: "Rhythm Record v1"; kind: "rhythm-record"; data: RhythmRecordEnvelope }
+  | { adapter: "sdvx-helper"; label: "sdvx_helper CSV"; kind: "rhythm-record"; data: RhythmRecordEnvelope }
   | { adapter: "konami-pages"; label: "Mai-Score KONAMI snapshot"; kind: "konami-pages"; data: KonamiPageSnapshot };
 
 export interface ImportAdapter {
@@ -48,4 +50,29 @@ export function importWithAdapter(value: unknown): ImportedDataset {
   const adapter = IMPORT_ADAPTERS.find((candidate) => candidate.detect(value));
   if (!adapter) throw new Error("No compatible import adapter recognized this file.");
   return adapter.parse(value);
+}
+
+export interface ImportFileSource {
+  name: string;
+  text: string;
+  mimeType?: string;
+}
+
+export function importFileWithAdapter(source: ImportFileSource): ImportedDataset {
+  const csvCandidate = /\.csv$/i.test(source.name) || source.mimeType?.includes("csv") || source.text.includes(",");
+  if (csvCandidate && isSdvxHelperCsv(source.text)) {
+    return {
+      adapter: "sdvx-helper",
+      label: "sdvx_helper CSV",
+      kind: "rhythm-record",
+      data: parseGenericRhythmRecord(parseSdvxHelperCsv(source.text))
+    };
+  }
+  let value: unknown;
+  try {
+    value = JSON.parse(source.text);
+  } catch {
+    throw new Error("No compatible import adapter recognized this file. Select a Mai-Score JSON, Rhythm Record, or sdvx_helper CSV export.");
+  }
+  return importWithAdapter(value);
 }

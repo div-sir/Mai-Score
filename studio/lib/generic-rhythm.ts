@@ -62,13 +62,26 @@ export function parseGenericRhythmRecord(value: unknown): RhythmRecordEnvelope {
         id: string(chart.id, `records[${index}].chart.id`),
         ...(optionalString(chart.type) ? { type: optionalString(chart.type) } : {}),
         difficulty: string(chart.difficulty, `records[${index}].chart.difficulty`),
-        ...(optionalString(chart.level) ? { level: optionalString(chart.level) } : {})
+        ...(optionalString(chart.level) ? { level: optionalString(chart.level) } : {}),
+        ...(optionalNumber(chart.levelValue) !== undefined ? { levelValue: optionalNumber(chart.levelValue) } : {})
       },
       result: {
         rawScore,
         ...(optionalString(result.grade) ? { grade: optionalString(result.grade) } : {}),
         ...(optionalString(result.clearStatus) ? { clearStatus: optionalString(result.clearStatus) } : {}),
-        ...(optionalNumber(result.missCount) !== undefined ? { missCount: optionalNumber(result.missCount) } : {})
+        ...(optionalNumber(result.combo) !== undefined ? { combo: optionalNumber(result.combo) } : {}),
+        ...(optionalNumber(result.missCount) !== undefined ? { missCount: optionalNumber(result.missCount) } : {}),
+        ...(result.rating && typeof result.rating === "object" && !Array.isArray(result.rating)
+          && optionalNumber((result.rating as Record<string, unknown>).value) !== undefined
+          && optionalString((result.rating as Record<string, unknown>).system)
+          ? { rating: {
+              value: optionalNumber((result.rating as Record<string, unknown>).value)!,
+              system: optionalString((result.rating as Record<string, unknown>).system)!
+            } } : {}),
+        ...(result.judgments && typeof result.judgments === "object" && !Array.isArray(result.judgments)
+          ? { judgments: Object.fromEntries(Object.entries(result.judgments as Record<string, unknown>)
+              .flatMap(([key, entry]) => optionalNumber(entry) === undefined ? [] : [[key, optionalNumber(entry)!]])) }
+          : {})
       },
       ...(record.gameSpecific && typeof record.gameSpecific === "object" && !Array.isArray(record.gameSpecific)
         ? { gameSpecific: record.gameSpecific as Record<string, unknown> } : {})
