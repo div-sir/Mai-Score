@@ -4,6 +4,22 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Let players claim a fixed `/p/name` Passport URL and update its selected game summaries without changing the public link.
+- Keep a random edit key in the publishing browser, provide an explicit private recovery link for another device, and allow the owner to delete the public Passport and release its name.
+- Preserve the original self-contained serverless Passport link as an alternative that stores nothing on Mai-Score servers.
+
+### Privacy and security
+
+- Store fixed Passport summaries in private Vercel Blob objects; raw score lists, account identifiers, DX NET credentials, cookies, and Google tokens are excluded.
+- Save only a SHA-256 hash of each edit key on the server, enforce same-origin writes, bound request sizes, and use conditional writes to prevent lost updates.
+- Pin the private Blob SDK to the audited 2.4.0 release instead of the current OIDC dependency chain with a known high-severity Zod denial-of-service advisory.
+
+### Maintenance
+
+- Update the test-runtime Undici dependency to 7.30.1 for the latest request, redirect, TLS, WebSocket, and decompression security fixes.
+
 ## [0.25.0] — 2026-10-29
 
 ### Added
