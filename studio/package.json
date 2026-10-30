@@ -1,6 +1,6 @@
 {
   "name": "mai-score-studio",
-  "version": "0.24.5",
+  "version": "0.25.0",
   "private": true,
   "scripts": {
     "predev": "node scripts/prepare-catalog.mjs && node scripts/build-bookmarklet.mjs",

@@ -4,6 +4,26 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.25.0] — 2026-10-29
+
+### Added
+
+- Build a privacy-first Player Passport from selected maimai DX, DDR, SOUND VOLTEX, and beatmania IIDX summaries, then share it through a self-contained public URL without including raw records, account identifiers, cookies, or Google tokens.
+- Provide a fixed-version DX NET bookmark collector for Safari, mobile, and other extension-free browsers. Collection remains opt-in, stores the latest normalized result on the DX NET origin, and hands it directly to Studio.
+- Route JSON score files through an extensible Rhythm Record import-adapter registry.
+- Import `sdvx_helper` CSV score exports, including chart level, difficulty, lamp, score, EX score, grade, VOLFORCE, and last-played fields when present.
+
+### Data
+
+- Refresh the International CiRCLE PLUS catalog to the 2026-10-30 upstream dataset, expanding it from 6,272 to 6,288 charts.
+- Match the DX charts for `魔法仕掛けのファンタジア`, `純情アルメリア`, `運命線上のアリア`, and `Absolute Queen` observed in International DX NET Full Records.
+- Keep `魔法仕掛けのファンタジア` assigned to CiRCLE PLUS for International version and plate statistics while upstream regional metadata still labels it MAGiCAL.
+
+### Verification
+
+- Confirm the updated International DX NET format by collecting B50 50/50 and 1,920 Full Records entries from an authenticated account.
+- Add regression coverage for all four newly observed International charts and their current constants.
+
 ## [0.24.5] — 2026-10-18
 
 ### Changed
