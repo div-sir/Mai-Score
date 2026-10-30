@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "How the Mai-Score extension and Studio handle your data."
 };
 
-const UPDATED = "September 29, 2026";
+const UPDATED = "October 30, 2026";
 
 export default function Privacy() {
   return (
@@ -25,8 +25,9 @@ export default function Privacy() {
           in your browser and remain local by default.
           If you explicitly connect Google Drive, your Studio history can be synchronized to
           your private Drive app-data folder. There is no Mai-Score account, no analytics, and
-          no advertising. The one case where a request reaches our server is song cover art,
-          described under <em>Cover art</em> below.
+          no advertising. If you create a fixed public Player Passport, only the summary you
+          select is stored by Mai-Score. Song-cover proxying is the other feature that sends a
+          request to our server.
         </p>
       </section>
 
@@ -130,6 +131,18 @@ export default function Privacy() {
             included in Google Drive sync, and are deleted by <strong>Clear local data</strong>.
           </li>
           <li>
+            <strong>Optional public Player Passport</strong>{" "}
+            publishes only the display name, short introduction, and per-game summary cards you
+            select. Fixed <code>/p/name</code> profiles are stored as small private objects in
+            Vercel Blob and delivered through Mai-Score; raw scores, account identifiers, login
+            cookies, Google tokens, and official-site HTML are not included. A random edit key is
+            kept in your browser&rsquo;s local storage and stored by Mai-Score only as a one-way hash.
+            A private recovery link can copy that edit key to another browser. Anyone who obtains
+            that recovery link can update or delete the profile, so it must not be shared publicly.
+            The serverless Passport option instead embeds the selected summary in the URL fragment
+            and stores nothing on Mai-Score servers.
+          </li>
+          <li>
             <strong>Optional Google Drive sync</strong> is enabled only after you choose Connect Google
             Drive in Studio. After that choice, a one-click Studio update synchronizes the newly
             saved snapshot automatically while the connection remains active. On desktop, an
@@ -145,8 +158,9 @@ export default function Privacy() {
           </li>
         </ul>
         <p>
-          We do not operate a database of user scores, and the optional Drive copy does not pass
-          through or remain on a Mai-Score server.
+          We do not operate a database of raw user scores. The optional Drive copy does not pass
+          through or remain on a Mai-Score server; only an explicitly published Passport summary
+          is stored by Mai-Score.
         </p>
       </section>
 
@@ -214,8 +228,10 @@ export default function Privacy() {
           grant and clears the local token; it does not silently delete data. Use the separate
           <strong>Delete cloud history</strong> action in Studio to permanently delete the
           Mai-Score history file from Drive app data. That action does not delete local browser
-          history. Because nothing is kept on Mai-Score servers, there is no Mai-Score account
-          or server-side score database to delete.
+          history. If you created a fixed public Passport, use <strong>Delete public Passport</strong>
+          on the Passport builder in a browser that holds its edit key. This deletes the server-side
+          summary and releases the profile name; it does not delete local scores or Drive history.
+          There is no Mai-Score account or server-side raw-score database.
         </p>
       </section>
 
