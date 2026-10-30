@@ -207,6 +207,7 @@ export default function Studio() {
   const [uiTheme, setUiTheme] = useState<UiTheme>("dark");
   const [studioView, setStudioView] = useState<StudioView>("export");
   const [uiPreferencesReady, setUiPreferencesReady] = useState(false);
+  const [restoring, setRestoring] = useState(true);
   const [exportFormat, setExportFormat] = useState<"png" | "svg">("png");
   const [message, setMessage] = useState(studioCopy("en").emptyMessage);
   const [source, setSource] = useState("");
@@ -233,6 +234,52 @@ export default function Studio() {
   copyRef.current = copy;
   const languageRef = useRef(language);
   languageRef.current = language;
+  const flowText = language === "zh-Hant" ? {
+    importData: "匯入資料",
+    loading: "正在還原這台裝置上的資料…",
+    loadingHint: "Studio 會先讀取本機快照與遊戲紀錄，再顯示可用工具。",
+    eyebrow: "開始使用",
+    title: "先加入遊戲資料，再進入需要的工具。",
+    description: "Studio 會辨識檔案格式、保存最新快照，並依遊戲切換到正確的分析介面。登入資訊與原始官方頁面不會上傳。",
+    bookmark: "使用 DX NET 書籤",
+    extension: "取得瀏覽器擴充套件",
+    shortcut: "也可以按 ⌘/Ctrl + O 選擇檔案",
+    steps: [
+      ["01", "收集", "使用擴充套件、DX NET 書籤，或匯入 JSON／CSV。"],
+      ["02", "本機整理", "自動辨識遊戲與格式，將最新資料保存在這台裝置。"],
+      ["03", "分析與輸出", "查看紀錄、進度與升分工具，再輸出圖片或更新公開護照。"]
+    ]
+  } : language === "ja" ? {
+    importData: "データを読み込む",
+    loading: "この端末のデータを復元しています…",
+    loadingHint: "ローカルのスナップショットとゲーム記録を確認してから、利用可能なツールを表示します。",
+    eyebrow: "はじめる",
+    title: "ゲームデータを追加して、必要なツールへ進みます。",
+    description: "Studio はファイル形式を判別し、最新スナップショットを保存して、ゲームに合う分析画面へ切り替えます。ログイン情報や公式ページの HTML は送信しません。",
+    bookmark: "DX NET ブックマークを使う",
+    extension: "ブラウザー拡張を入手",
+    shortcut: "⌘/Ctrl + O でもファイルを選択できます",
+    steps: [
+      ["01", "収集", "拡張機能、DX NET ブックマーク、または JSON／CSV を利用します。"],
+      ["02", "端末内で整理", "ゲームと形式を自動判別し、この端末に最新データを保存します。"],
+      ["03", "分析と出力", "記録や進捗を確認し、画像の出力や公開 Passport の更新を行います。"]
+    ]
+  } : {
+    importData: "Import data",
+    loading: "Restoring data on this device…",
+    loadingHint: "Studio checks local snapshots and game records before showing the available tools.",
+    eyebrow: "GET STARTED",
+    title: "Add game data, then move straight to the tool you need.",
+    description: "Studio detects the file format, keeps the latest snapshot, and opens the right analysis for each game. Sign-in details and raw official pages are never uploaded.",
+    bookmark: "Use the DX NET bookmark",
+    extension: "Get the browser extension",
+    shortcut: "You can also press ⌘/Ctrl + O to choose a file",
+    steps: [
+      ["01", "Collect", "Use the extension, the DX NET bookmark, or import JSON / CSV."],
+      ["02", "Process locally", "Detect the game and format, then retain the latest data on this device."],
+      ["03", "Explore and export", "Review records and progress, export an image, or update your public Passport."]
+    ]
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -415,7 +462,9 @@ export default function Studio() {
         return;
       }
       if (!await restoreSavedSnapshot() && savedGames[0] && !cancelled) showExternalGame(savedGames[0]);
-    })();
+    })().finally(() => {
+      if (!cancelled) setRestoring(false);
+    });
 
     return () => {
       cancelled = true;
@@ -469,6 +518,28 @@ export default function Studio() {
   useEffect(() => {
     if (uiPreferencesReady) localStorage.setItem(UI_THEME_KEY, uiTheme);
   }, [uiPreferencesReady, uiTheme]);
+
+  useEffect(() => {
+    const closeMenus = (except?: Node) => {
+      document.querySelectorAll<HTMLDetailsElement>("details[data-disclosure-menu][open]").forEach((menu) => {
+        if (!except || !menu.contains(except)) menu.open = false;
+      });
+    };
+    const handlePointerDown = (event: PointerEvent) => closeMenus(event.target instanceof Node ? event.target : undefined);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenus();
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "o" && !busy) {
+        event.preventDefault();
+        fileRef.current?.click();
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [busy]);
 
   const rendered = useMemo(
     () => data ? renderStudioSvg(data, options, language, origin, new Date(generatedAt), assets, history) : null,
@@ -1021,9 +1092,9 @@ export default function Studio() {
             </select>
           </label> : null}
           <nav className="studio-tabs" aria-label={copy.studioSections} hidden={Boolean(rhythmData || konamiPageData)}>
-            <button type="button" aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
-            <button type="button" aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
-            <button type="button" aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
+            <button type="button" disabled={!data || restoring} aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
+            <button type="button" disabled={!data || restoring} aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
+            <button type="button" disabled={!data || restoring} aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
           </nav>
         </div>
         <div className="data-actions">
@@ -1055,7 +1126,7 @@ export default function Studio() {
                 <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
                   {syncing ? copy.syncing : copy.syncNow}
                 </button>
-                <details className="drive-more">
+                <details className="drive-more" data-disclosure-menu>
                   <summary aria-label={copy.driveOptions}>•••</summary>
                   <div>
                     <button
@@ -1118,11 +1189,11 @@ export default function Studio() {
             </select>
           </span>
           <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
+          <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
           <Link className="passport-topbar-link" href="/passport">Passport</Link>
-          <details className="data-menu">
+          <details className="data-menu" data-disclosure-menu>
             <summary>{copy.dataMenu}</summary>
             <div>
-              <button className="load-button" onClick={() => fileRef.current?.click()}>{copy.loadJson}</button>
               <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
               <a href="/privacy">{copy.privacyLink}</a>
             </div>
@@ -1134,7 +1205,10 @@ export default function Studio() {
         <div className="status-message"><span />{message}</div>
       </div>
 
-      {konamiPageData ? <KonamiPagesDashboard
+      {restoring ? <section className="studio-loading" aria-live="polite" aria-busy="true">
+        <span className="studio-loading-mark" aria-hidden="true">M</span>
+        <div><strong>{flowText.loading}</strong><p>{flowText.loadingHint}</p></div>
+      </section> : konamiPageData ? <KonamiPagesDashboard
         data={konamiPageData}
         language={language}
         previousData={externalGameHistory.find((entry) => entry.game === konamiPageData.source.game && entry.data.generatedAt !== konamiPageData.generatedAt)?.data}
@@ -1142,7 +1216,24 @@ export default function Studio() {
         data={rhythmData}
         language={language}
         previousData={externalGameHistory.find((entry) => entry.game === rhythmData.source.game && entry.data.generatedAt !== rhythmData.generatedAt)?.data}
-      /> : studioView === "progress" ? (
+      /> : !data ? <section className="studio-welcome">
+        <div className="studio-welcome-copy">
+          <p className="studio-welcome-eyebrow">{flowText.eyebrow}</p>
+          <h1>{flowText.title}</h1>
+          <p>{flowText.description}</p>
+          <div className="studio-welcome-actions">
+            <button type="button" className="load-button" onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
+            <Link href="/passport">{flowText.bookmark}</Link>
+            <a href="https://github.com/div-sir/Mai-Score/releases/latest" target="_blank" rel="noreferrer">{flowText.extension}</a>
+          </div>
+          <small>{flowText.shortcut}</small>
+        </div>
+        <ol className="studio-flow-steps">
+          {flowText.steps.map(([number, title, description]) => <li key={number}>
+            <span>{number}</span><div><strong>{title}</strong><p>{description}</p></div>
+          </li>)}
+        </ol>
+      </section> : studioView === "progress" ? (
         <ProgressDashboard
           data={data}
           assets={assets}

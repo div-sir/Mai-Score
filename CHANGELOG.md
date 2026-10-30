@@ -10,6 +10,10 @@ All notable changes to Mai-Score are documented here.
 - Keep a random edit key in the publishing browser, provide an explicit private recovery link for another device, and allow the owner to delete the public Passport and release its name.
 - Preserve the original self-contained serverless Passport link as an alternative that stores nothing on Mai-Score servers.
 
+### Changed
+
+- Replace Studio's unusable empty export controls with a guided collect → local processing → analysis and export flow, surface data import in the main toolbar, prevent empty analysis views, show a dedicated restore state, and close disclosure menus on outside click or Escape.
+
 ### Privacy and security
 
 - Store fixed Passport summaries in private Vercel Blob objects; raw score lists, account identifiers, DX NET credentials, cookies, and Google tokens are excluded.
