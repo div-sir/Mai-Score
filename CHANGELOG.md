@@ -4,6 +4,8 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+## [0.26.0] — 2026-10-30
+
 ### Added
 
 - Let players claim a fixed `/p/name` Passport URL and update its selected game summaries without changing the public link.

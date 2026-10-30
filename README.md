@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.25.0 — Player Passport and expanded imports.** Share a privacy-first multi-game Passport, collect DX NET from extension-free browsers, import `sdvx_helper` scores, and match 6,288 International CiRCLE PLUS charts. Download the packaged version from Releases.
+> **v0.26.0 — Persistent Passports and a clearer Studio flow.** Claim a stable public Passport URL with private recovery controls, then follow Studio's guided collect → analyze → export workflow. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
