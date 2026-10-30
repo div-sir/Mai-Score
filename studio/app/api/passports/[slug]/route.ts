@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     const { slug } = await params;
     const passport = await getPublishedPassport(slug);
     return passport
-      ? json({ slug, passport }, 200, "public, max-age=30, stale-while-revalidate=60")
+      ? json({ slug, passport })
       : json({ error: "Passport not found." }, 404);
   } catch (error) {
     if (error instanceof BlobAccessError || error instanceof BlobStoreNotFoundError) {
