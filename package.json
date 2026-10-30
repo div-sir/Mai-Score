@@ -17,6 +17,7 @@
     "@types/node": "26.6.4",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
+    "@vercel/blob": "2.4.0",
     "esbuild": "0.28.2",
     "jsdom": "29.1.1",
     "react": "19.2.8",
