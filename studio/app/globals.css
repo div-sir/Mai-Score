@@ -197,6 +197,52 @@ button:active{transform:scale(.97)}
 .data-menu a{padding:5px;color:var(--muted);font-size:9px;text-align:center;text-underline-offset:3px}
 .passport-topbar-link{display:grid;min-height:36px;place-items:center;border:1px solid var(--line2);border-radius:9px;padding:7px 13px;background:color-mix(in srgb,var(--bg3) 78%,transparent);color:var(--text);font-size:10px;font-weight:750;text-decoration:none}
 .passport-topbar-link:hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2));background:color-mix(in srgb,var(--bg3) 90%,var(--accent) 10%)}
+.topbar-import-button{white-space:nowrap}
+
+.studio-loading{
+  display:flex;
+  min-height:calc(100vh - 117px);
+  align-items:center;
+  justify-content:center;
+  gap:15px;
+  padding:32px;
+  text-align:left;
+}
+.studio-loading-mark{
+  display:grid;
+  width:46px;
+  height:46px;
+  flex:0 0 auto;
+  place-items:center;
+  border:1px solid var(--line2);
+  border-radius:12px;
+  background:var(--bg3);
+  color:var(--accent);
+  font-weight:900;
+}
+.studio-loading strong{font-size:14px}.studio-loading p{max-width:470px;margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.55}
+.studio-welcome{
+  display:grid;
+  width:min(1120px,calc(100% - 48px));
+  min-height:calc(100vh - 155px);
+  align-content:center;
+  margin:0 auto;
+  padding:54px 0 72px;
+  grid-template-columns:minmax(0,1.12fr) minmax(330px,.88fr);
+  gap:clamp(44px,8vw,108px);
+}
+.studio-welcome-eyebrow{margin:0 0 12px;color:var(--accent);font-size:9px;font-weight:850;letter-spacing:.16em}
+.studio-welcome h1{max-width:650px;margin:0;font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,5vw,66px);font-weight:500;letter-spacing:-.04em;line-height:1.02}
+.studio-welcome-copy>p:not(.studio-welcome-eyebrow){max-width:620px;margin:18px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+.studio-welcome-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:26px}
+.studio-welcome-actions>a{display:grid;min-height:38px;place-items:center;border:1px solid var(--line2);border-radius:9px;padding:8px 13px;color:var(--text);font-size:10px;font-weight:750;text-decoration:none}
+.studio-welcome-actions>a:hover{border-color:color-mix(in srgb,var(--accent) 52%,var(--line2));background:color-mix(in srgb,var(--accent) 8%,var(--bg3))}
+.studio-welcome-copy>small{display:block;margin-top:12px;color:var(--muted-dim);font-size:9px}
+.studio-flow-steps{display:grid;align-content:center;gap:0;margin:0;padding:0;list-style:none;counter-reset:studio-step}
+.studio-flow-steps li{position:relative;display:grid;min-height:104px;grid-template-columns:42px minmax(0,1fr);gap:14px;border-top:1px solid var(--line2);padding:19px 0}
+.studio-flow-steps li:last-child{border-bottom:1px solid var(--line2)}
+.studio-flow-steps li>span{display:grid;width:34px;height:34px;place-items:center;border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line2));border-radius:50%;color:var(--accent);font:800 9px ui-monospace,"SFMono-Regular",monospace}
+.studio-flow-steps strong{display:block;margin-top:1px;font-size:12px}.studio-flow-steps p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.55}
 
 .passport-shell{min-height:100vh;padding:0 5vw 54px;background:#141714;color:#eef0eb}
 .passport-nav{display:flex;min-height:74px;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f4ed17}.passport-nav a{color:#c5cbc3;font-size:13px;text-decoration:none}.passport-brand{display:flex;align-items:center;gap:10px}.passport-brand span{display:grid;width:34px;height:34px;place-items:center;border:1px solid #a88b69;border-radius:9px;color:#e8d1af;font-weight:900}.passport-brand strong{color:#f4f4ef;font-size:16px}
@@ -694,6 +740,7 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
   .insight-grid{grid-template-columns:1fr}
   .upgrade-panel{grid-row:auto}
   .timeline-panel svg{height:200px}
+  .studio-welcome{width:min(680px,calc(100% - 32px));min-height:auto;padding:54px 0;grid-template-columns:1fr;gap:38px}
 }
 @media(max-width:560px){
   .topbar{display:block}
@@ -714,6 +761,7 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
   .drive-compact .sync-button,.drive-compact .drive-connect-button{margin-left:auto}
   .drive-more>div{position:fixed;top:auto;right:12px;bottom:12px;left:12px;width:auto;padding:12px}
   .data-menu{flex:1}
+  .topbar-import-button{flex:1}
   .data-menu>summary{width:100%}
   .data-menu>div{position:fixed;top:auto;right:12px;bottom:12px;left:12px;width:auto;padding:12px}
   .preview-panel{height:56vh;min-height:340px}
@@ -749,6 +797,8 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
   .session-share-panel{align-items:stretch;flex-direction:column}.session-share-panel>div:last-child{display:grid;grid-template-columns:1fr 1fr}.session-share-panel button{width:100%}
   .legal-page{padding:32px 18px 56px}
   .legal-page h1{font-size:23px}
+  .studio-loading{min-height:58vh;align-items:flex-start;padding:64px 18px}
+  .studio-welcome{width:calc(100% - 28px);padding:38px 0 54px;gap:34px}.studio-welcome h1{font-size:38px}.studio-welcome-actions{display:grid;grid-template-columns:1fr}.studio-welcome-actions>*{width:100%}.studio-flow-steps li{min-height:96px}
 }
 @media(max-width:410px){
   .drive-state-label{flex:1}
