@@ -1,6 +1,6 @@
 # Mai-Score
 
-> **v0.24.5 — October catalog and Studio workflow update.** Match 6,268 International CiRCLE PLUS charts, export Rating progress, and use the streamlined Records and Progress tools. Download the packaged version from Releases.
+> **v0.25.0 — Player Passport and expanded imports.** Share a privacy-first multi-game Passport, collect DX NET from extension-free browsers, import `sdvx_helper` scores, and match 6,288 International CiRCLE PLUS charts. Download the packaged version from Releases.
 
 Mai-Score is a privacy-first Chrome/Edge extension for **maimai DX**, International or Japan-domestic. It reads the official Best 50 page, calculates each chart's rating, and exports a B50 image or JSON.
 
@@ -57,6 +57,9 @@ Building from source instead? See [Development](#development).
 - Creates a 1080×1350 Session share card locally in Studio; the card contains the player name, session summary, and coaching, not the complete score list or opaque DX NET play-log ID.
 - Recommends efficient Rating gains across all resolved played charts, including charts outside the current B50, without guessing the bucket for records whose current-version eligibility is ambiguous.
 - Searches the International catalog by title, song/sheet identity, level, difficulty, STD/DX type, version, exact constant, and sort order.
+- Builds a privacy-first Player Passport from selected maimai, DDR, SOUND VOLTEX, and IIDX summaries. The permanent share URL is self-contained; raw records, account identifiers, cookies, and Google tokens are excluded.
+- Provides a fixed-version DX NET bookmark collector for extension-free browsers. It asks before reading, retains the latest normalized collection on the DX NET origin, and hands data directly to Studio without uploading credentials or raw page HTML.
+- Routes JSON files through an extensible import-adapter registry; third-party tools can target `mai-score/rhythm-record/v1` without coupling Studio to their login sessions.
 
 ## Usage
 
@@ -69,6 +72,8 @@ Building from source instead? See [Development](#development).
    - **Direct export** (collapsed section below the buttons) downloads a quick PNG in the default style, or JSON in the dxrating, Mai-Score full, or Rhythm Record format, without leaving the popup.
 
 The normal collection and Studio handoff stay inside the browser: only a random, one-time five-minute transfer token appears in the URL, never the score document. Scores leave the device only when you explicitly export/share a file or opt in to Google Drive history sync.
+
+For Safari, mobile, or another extension-free browser, open Studio's **Passport** page and copy the DX NET bookmark collector. Create a bookmark with the copied code, run it while signed in to DX NET, and approve the collection window. International Full Records makes five additional authenticated page requests. The latest normalized result stays in DX NET local storage so it can be opened again after closing the collection window.
 
 ## Data and compatibility
 
@@ -109,6 +114,11 @@ Studio is public at `mai-score.milifix.com` and does not require a Mai-Score acc
 Version 0.4.0 fixes inflated B50 totals caused by accidentally including the two candidate sections found after the official New B15 and Old B35 sections. Both the extension and Studio now enforce exactly 15 new charts and 35 old charts, then recompute all three totals from those displayed records.
 
 Studio is intentionally a compact preview tool: the top bar contains data, Google Drive, appearance, and language controls; the side panel contains export style, prominent visible-content switches, and PNG/SVG export. Quick PNG and dxrating/full/Rhythm Record JSON remain available under **Direct export** in the popup.
+
+Studio can also import the `sdvx_score.csv` best-score export produced by
+[`sdvx_helper`](https://github.com/dj-kata/sdvx_helper). Song, chart, level, lamp,
+score, EX score, grade, per-chart VF, and last-played time are converted locally
+to Rhythm Record v1; the selected CSV is never uploaded by Mai-Score.
 
 The **Progress** tab reads the same browser-local or optionally Drive-synced snapshots. Rating totals are recorded at snapshot time. With Full Records, per-chart history also follows the best achievement and chart Rating observed in every saved complete snapshot, including charts outside B50. DX NET does not provide first-play or score-update timestamps, so these points are snapshot observations rather than individual play events; tracking begins with the first Full Records snapshot saved by Mai-Score. Recommendations still cover only charts already found in the current B50 because Full Records does not identify B15/B35 replacement eligibility.
 

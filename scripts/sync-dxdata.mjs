@@ -16,12 +16,19 @@ const difficulties = new Set(["basic", "advanced", "expert", "master", "remaster
 // updated. Keep evidence-backed availability fixes here so a later catalog
 // refresh does not silently remove them; once upstream flips the flag this is
 // harmless because each source sheet is still emitted only once.
-const intlAvailabilityOverrides = new Set([
-  "魔理沙は大変なものを盗んでいきました\u0000dx",
-  "Intergalactic Bound\u0000dx",
-  "LEMON MELON COOKIE\u0000dx",
-  "バッド・ダンス・ホール\u0000dx",
-  "Cryogenic\u0000dx"
+const intlAvailabilityOverrides = new Map([
+  ["魔理沙は大変なものを盗んでいきました\u0000dx", {}],
+  ["Intergalactic Bound\u0000dx", {}],
+  ["LEMON MELON COOKIE\u0000dx", {}],
+  ["バッド・ダンス・ホール\u0000dx", {}],
+  ["Cryogenic\u0000dx", {}],
+  ["純情アルメリア\u0000dx", {}],
+  ["運命線上のアリア\u0000dx", {}],
+  ["Absolute Queen\u0000dx", {}],
+  // Observed on International DX NET on 2026-10-29. Upstream currently
+  // labels this MAGiCAL, so pin it to the active International release until
+  // the regional metadata catches up.
+  ["魔法仕掛けのファンタジア\u0000dx", { version: INTERNATIONAL_VERSION }]
 ]);
 const versionOrder = new Map(dxdata.versions.map(({ version }, index) => [version, index]));
 const internationalVersionOrder = versionOrder.get(INTERNATIONAL_VERSION);
@@ -30,10 +37,11 @@ const sheets = [];
 
 for (const song of dxdata.songs) {
   for (const sheet of song.sheets) {
+    const availabilityOverride = intlAvailabilityOverrides.get(`${song.title}\u0000${sheet.type}`);
     const override = sheet.regionOverrides?.intl ?? {};
-    const effectiveVersion = override.version ?? sheet.version;
+    const effectiveVersion = availabilityOverride?.version ?? override.version ?? sheet.version;
     const availableInternationally = (sheet.regions?.intl
-      || intlAvailabilityOverrides.has(`${song.title}\u0000${sheet.type}`))
+      || availabilityOverride !== undefined)
       && (versionOrder.get(effectiveVersion) ?? Number.POSITIVE_INFINITY) <= internationalVersionOrder;
     if (!availableInternationally || !difficulties.has(sheet.difficulty) || !["std", "dx"].includes(sheet.type)) continue;
     const songId = String(song.songId);

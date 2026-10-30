@@ -119,3 +119,29 @@ it("resolves the later October International charts reported by DX NET", async (
     expect(chart.chartRating, `${records[index][0]} ${records[index][1]}`).toBeGreaterThan(0);
   });
 });
+
+it("resolves the October 29 International charts reported by DX NET", async () => {
+  const { resolveScores } = await import("../src/lib/resolver");
+  const records = [
+    ["魔法仕掛けのファンタジア", "expert", "12", 100.8116, 12.2],
+    ["純情アルメリア", "master", "13", 100.3338, 13.3],
+    ["運命線上のアリア", "master", "13+", 99.7107, 13.6],
+    ["Absolute Queen", "master", "14", 98.0924, 14.2]
+  ] as const;
+
+  const resolved = await resolveScores(records.map(([title, difficulty, displayedLevel, achievementRate]) => ({
+    title,
+    type: "dx" as const,
+    difficulty,
+    displayedLevel,
+    achievementRate
+  })));
+
+  expect(resolved).toHaveLength(records.length);
+  resolved.forEach((chart, index) => {
+    expect(chart.warning, `${records[index][0]} ${records[index][1]}`).toBeUndefined();
+    expect(chart.internalLevelValue, `${records[index][0]} ${records[index][1]}`).toBe(records[index][4]);
+    expect(chart.version, records[index][0]).toBe("CiRCLE PLUS");
+    expect(chart.chartRating, records[index][0]).toBeGreaterThan(0);
+  });
+});

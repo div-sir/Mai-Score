@@ -1,10 +1,10 @@
 {
   "name": "mai-score-studio",
-  "version": "0.24.5",
+  "version": "0.25.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/prepare-catalog.mjs",
-    "prebuild": "node scripts/prepare-catalog.mjs",
+    "predev": "node scripts/prepare-catalog.mjs && node scripts/build-bookmarklet.mjs",
+    "prebuild": "node scripts/prepare-catalog.mjs && node scripts/build-bookmarklet.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -19,6 +19,7 @@
     "@types/node": "22.19.19",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
+    "esbuild": "0.28.2",
     "typescript": "5.9.3"
   }
 }

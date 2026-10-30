@@ -156,7 +156,11 @@ describe("extension package", () => {
       expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "expert", internalLevelValue: 10, version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "魔理沙は大変なものを盗んでいきました", type: "dx", difficulty: "master", internalLevelValue: 13.6, version: "CiRCLE PLUS" }),
       expect.objectContaining({ title: "クロノイデア", difficulty: "master", version: "CiRCLE PLUS" }),
-      expect.objectContaining({ title: "雑魚", difficulty: "master", version: "CiRCLE PLUS" })
+      expect.objectContaining({ title: "雑魚", difficulty: "master", version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "魔法仕掛けのファンタジア", type: "dx", difficulty: "expert", level: "12", internalLevelValue: 12.2, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "純情アルメリア", type: "dx", difficulty: "master", level: "13", internalLevelValue: 13.3, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "運命線上のアリア", type: "dx", difficulty: "master", level: "13+", internalLevelValue: 13.6, version: "CiRCLE PLUS" }),
+      expect.objectContaining({ title: "Absolute Queen", type: "dx", difficulty: "master", level: "14", internalLevelValue: 14.2, version: "CiRCLE PLUS" })
     ]));
     expect(sheets).toEqual(expect.arrayContaining([
       expect.objectContaining({ title: "ワードワードワード", type: "dx", difficulty: "master", level: "13", internalLevelValue: 13.4 }),
