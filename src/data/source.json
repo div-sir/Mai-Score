@@ -2,7 +2,7 @@
   "source": "https://raw.githubusercontent.com/gekichumai/dxrating/main/packages/dxdata/dxdata.json",
   "region": "intl",
   "version": "CiRCLE PLUS",
-  "updateTime": "2026-10-30T01:00:12.554041416+00:00",
-  "sha256": "52ede90b5f6f3eea91e276d86e6548b3263a5d110641c5ba6c76b43aefb3b8eb",
-  "sheets": 6288
+  "updateTime": "2026-11-07T10:02:55.402479527+00:00",
+  "sha256": "e43dcdda33d7c310480bda771b3d353682095e7ab01cff4510fff1c8b7a2d745",
+  "sheets": 6292
 }
