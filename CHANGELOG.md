@@ -4,6 +4,10 @@ All notable changes to Mai-Score are documented here.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Upgrade Studio from Next.js 16.4.2 to 16.4.6 to address the published security advisory reported by the Next.js build tool.
+
 ## [0.26.0] — 2026-10-30
 
 ### Added
