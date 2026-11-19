@@ -1190,6 +1190,7 @@ export default function Studio() {
           </span>
           <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
           <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
+          <Link className="passport-topbar-link" href="/songs">{language === "zh-Hant" ? "歌曲研究" : language === "ja" ? "楽曲研究" : "Songs"}</Link>
           <Link className="passport-topbar-link" href="/passport">Passport</Link>
           <details className="data-menu" data-disclosure-menu>
             <summary>{copy.dataMenu}</summary>
