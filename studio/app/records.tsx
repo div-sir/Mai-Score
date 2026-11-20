@@ -12,6 +12,7 @@ import PlayQueuePanel from "./play-queue";
 import CatalogPanel from "./catalog";
 import type { HistoryEntry } from "../lib/history";
 import { searchRecords } from "../lib/record-search";
+import DxScoreInsightsPanel from "./dx-score-insights";
 
 interface RecordsDashboardProps {
   data: StudioData | null;
@@ -116,6 +117,7 @@ export default function RecordsDashboard({ data, assets, language, history }: Re
 
       <PlayQueuePanel records={data.fullRecords} language={language} />
       <CatalogPanel records={data.fullRecords} language={language} data={data} />
+      <DxScoreInsightsPanel data={data} language={language} />
       <article className="insight-panel full-records-panel">
         <header className="records-panel-heading">
           <div><h2>{copy.levelCompletion}</h2><p>{copy.levelCompletionDescription}</p></div>
