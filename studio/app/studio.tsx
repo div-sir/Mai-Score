@@ -280,6 +280,11 @@ export default function Studio() {
       ["03", "Explore and export", "Review records and progress, export an image, or update your public Passport."]
     ]
   };
+  const utilityText = language === "zh-Hant"
+    ? { more: "更多", explore: "探索", songs: "歌曲研究", preferences: "顯示設定" }
+    : language === "ja"
+      ? { more: "その他", explore: "見る", songs: "楽曲研究", preferences: "表示設定" }
+      : { more: "More", explore: "Explore", songs: "Song research", preferences: "Display" };
 
   useEffect(() => {
     let cancelled = false;
@@ -1091,69 +1096,23 @@ export default function Studio() {
               {availableGames.map((entry) => <option value={entry.game} key={entry.game}>{entry.label}</option>)}
             </select>
           </label> : null}
-          <nav className="studio-tabs" aria-label={copy.studioSections} hidden={Boolean(rhythmData || konamiPageData)}>
+          {data ? <nav className="studio-tabs" aria-label={copy.studioSections}>
             <button type="button" disabled={!data || restoring} aria-pressed={studioView === "export"} onClick={() => setStudioView("export")}>{copy.exportTab}</button>
             <button type="button" disabled={!data || restoring} aria-pressed={studioView === "progress"} onClick={() => setStudioView("progress")}>{copy.progressTab}</button>
             <button type="button" disabled={!data || restoring} aria-pressed={studioView === "records"} onClick={() => setStudioView("records")}>{copy.recordsTab}</button>
-          </nav>
+          </nav> : null}
         </div>
         <div className="data-actions">
-          <div className="data-summary">
+          {data || rhythmData || konamiPageData ? <div className="data-summary">
             <span>{source || copy.emptySource}</span>
             <strong>{data?.player.name ?? (rhythmData ? rhythmGameLabel(rhythmData.source.game) : konamiPageData ? rhythmGameLabel(konamiPageData.source.game) : "—")}</strong>
             <small>{data ? `B50 ${data.b50Rating} · ${new Date(data.exportedAt).toLocaleString(language)}`
               : rhythmData ? `${rhythmData.records.length.toLocaleString(language)} charts · ${new Date(rhythmData.generatedAt).toLocaleString(language)}`
                 : konamiPageData ? `${konamiPageData.summary.collected.toLocaleString(language)} pages · ${new Date(konamiPageData.generatedAt).toLocaleString(language)}`
                 : copy.emptyPreview}</small>
-          </div>
-          <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading} hidden={Boolean(rhythmData || konamiPageData)}>
-            <span className="drive-logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
-                <path d="M16.4 8.9 21 17h-5.2l-2.6-4.5z" />
-                <path d="m3 17 2.6-4.5h7.6l2.6 4.5z" />
-              </svg>
-            </span>
-            <span className="drive-state-label">
-              <i />
-              {driveState === "checking" ? copy.driveChecking
-                : driveState === "connected" ? copy.driveConnected
-                  : driveState === "disconnected" ? copy.driveDisconnected
-                    : copy.driveUnavailable}
-            </span>
-            {driveState === "connected" ? (
-              <>
-                <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>
-                  {syncing ? copy.syncing : copy.syncNow}
-                </button>
-                <details className="drive-more" data-disclosure-menu>
-                  <summary aria-label={copy.driveOptions}>•••</summary>
-                  <div>
-                    <button
-                      className="secondary-button drive-disconnect-button"
-                      disabled={syncing || deletingCloud || disconnectingDrive || busy}
-                      onClick={disconnectDriveFromStudio}
-                    >
-                      {disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}
-                    </button>
-                    <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>
-                      {deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}
-                    </button>
-                  </div>
-                </details>
-              </>
-            ) : (
-              <button
-                className="drive-connect-button"
-                disabled={busy || connectingDrive || driveState === "checking" || driveState === "unavailable"}
-                onClick={connectGoogleDriveFromStudio}
-              >
-                {connectingDrive ? copy.driveConnecting
-                  : driveState === "checking" ? copy.driveChecking
-                    : copy.driveConnect}
-              </button>
-            )}
-          </div>
+          </div> : null}
+          <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
+          <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
           <button
             type="button"
             className="icon-toggle"
@@ -1173,30 +1132,54 @@ export default function Studio() {
               </svg>
             )}
           </button>
-          <span className="icon-picker" title={copy.language}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M3.2 9.4h17.6M3.2 14.6h17.6M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
-            </svg>
-            <select
-              aria-label={copy.language}
-              value={language}
-              onChange={(event) => changeLanguage(event.target.value as LanguageId)}
-            >
-              <option value="en">EN</option>
-              <option value="zh-Hant">繁中</option>
-              <option value="ja">日本語</option>
-            </select>
-          </span>
-          <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
-          <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
-          <Link className="passport-topbar-link" href="/songs">{language === "zh-Hant" ? "歌曲研究" : language === "ja" ? "楽曲研究" : "Songs"}</Link>
-          <Link className="passport-topbar-link" href="/passport">Passport</Link>
           <details className="data-menu" data-disclosure-menu>
-            <summary>{copy.dataMenu}</summary>
+            <summary aria-label={utilityText.more} title={utilityText.more}><span aria-hidden="true">•••</span></summary>
             <div>
-              <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
-              <a href="/privacy">{copy.privacyLink}</a>
+              <section className="data-menu-section">
+                <strong>{utilityText.explore}</strong>
+                <nav className="data-menu-links" aria-label={utilityText.explore}>
+                  <Link href="/songs">{utilityText.songs}</Link>
+                  <Link href="/passport">Passport</Link>
+                </nav>
+              </section>
+              <section className="data-menu-section">
+                <strong>{utilityText.preferences}</strong>
+                <span className="icon-picker" title={copy.language}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3.2 9.4h17.6M3.2 14.6h17.6M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
+                  </svg>
+                  <select aria-label={copy.language} value={language} onChange={(event) => changeLanguage(event.target.value as LanguageId)}>
+                    <option value="en">English</option>
+                    <option value="zh-Hant">繁體中文</option>
+                    <option value="ja">日本語</option>
+                  </select>
+                </span>
+              </section>
+              <div className={`drive-compact ${driveState}`} aria-label={copy.syncHeading} hidden={Boolean(rhythmData || konamiPageData)}>
+                <span className="drive-logo" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M8.2 3.5h5.1l3.1 5.4-2.6 4.5H3.6l2.5-4.5z" />
+                    <path d="M16.4 8.9 21 17h-5.2l-2.6-4.5z" />
+                    <path d="m3 17 2.6-4.5h7.6l2.6 4.5z" />
+                  </svg>
+                </span>
+                <span className="drive-state-label"><i />{driveState === "checking" ? copy.driveChecking : driveState === "connected" ? copy.driveConnected : driveState === "disconnected" ? copy.driveDisconnected : copy.driveUnavailable}</span>
+                {driveState === "connected" ? <>
+                  <button className="sync-button" disabled={syncing || deletingCloud || busy} onClick={syncHistory}>{syncing ? copy.syncing : copy.syncNow}</button>
+                  <details className="drive-more" data-disclosure-menu>
+                    <summary aria-label={copy.driveOptions}>•••</summary>
+                    <div>
+                      <button className="secondary-button drive-disconnect-button" disabled={syncing || deletingCloud || disconnectingDrive || busy} onClick={disconnectDriveFromStudio}>{disconnectingDrive ? copy.driveDisconnecting : copy.driveDisconnect}</button>
+                      <button className="danger-button" disabled={syncing || deletingCloud || busy} onClick={deleteCloudHistory}>{deletingCloud ? copy.deletingCloudHistory : copy.deleteCloudHistory}</button>
+                    </div>
+                  </details>
+                </> : <button className="drive-connect-button" disabled={busy || connectingDrive || driveState === "checking" || driveState === "unavailable"} onClick={connectGoogleDriveFromStudio}>{connectingDrive ? copy.driveConnecting : driveState === "checking" ? copy.driveChecking : copy.driveConnect}</button>}
+              </div>
+              <section className="data-menu-footer">
+                <button className="danger-button" onClick={clearLocalData}>{copy.clearLocalData}</button>
+                <a href="/privacy">{copy.privacyLink}</a>
+              </section>
             </div>
           </details>
         </div>
@@ -1229,11 +1212,11 @@ export default function Studio() {
           </div>
           <small>{flowText.shortcut}</small>
         </div>
-        <ol className="studio-flow-steps">
+        <ul className="studio-flow-steps">
           {flowText.steps.map(([number, title, description]) => <li key={number}>
-            <span>{number}</span><div><strong>{title}</strong><p>{description}</p></div>
+            <div><strong>{title}</strong><p>{description}</p></div>
           </li>)}
-        </ol>
+        </ul>
       </section> : studioView === "progress" ? (
         <ProgressDashboard
           data={data}
