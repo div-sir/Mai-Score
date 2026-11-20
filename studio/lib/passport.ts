@@ -9,6 +9,10 @@ export interface PassportGameSummary {
   game: RhythmGameId;
   playerName?: string;
   rating?: number;
+  /** Best known DX Score totals from the collected maimai play log. */
+  dxScore?: number;
+  dxScoreMax?: number;
+  dxScoreCharts?: number;
   playedCharts: number;
   updatedAt: string;
   source: "mai-score" | "rhythm-record" | "konami-pages";
@@ -33,11 +37,30 @@ const clean = (value: unknown, max: number) => typeof value === "string"
   ? value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max)
   : "";
 
+function maimaiDxScoreSummary(data: StudioData): Pick<PassportGameSummary, "dxScore" | "dxScoreMax" | "dxScoreCharts"> {
+  const bestByChart = new Map<string, { score: number; max: number }>();
+  for (const play of data.recentPlays ?? []) {
+    const score = Number(play.dxScore);
+    const max = Number(play.dxScoreMax);
+    if (!Number.isSafeInteger(score) || !Number.isSafeInteger(max) || score < 0 || max <= 0 || score > max) continue;
+    const key = play.chartId || `${play.title}\u0000${play.type}\u0000${play.difficulty}`;
+    const current = bestByChart.get(key);
+    if (!current || score / max > current.score / current.max) bestByChart.set(key, { score, max });
+  }
+  if (!bestByChart.size) return {};
+  const totals = [...bestByChart.values()].reduce((sum, value) => ({
+    score: sum.score + value.score,
+    max: sum.max + value.max
+  }), { score: 0, max: 0 });
+  return { dxScore: totals.score, dxScoreMax: totals.max, dxScoreCharts: bestByChart.size };
+}
+
 export function maimaiPassportSummary(data: StudioData): PassportGameSummary {
   return {
     game: "maimai-dx",
     playerName: clean(data.player.name, 40) || undefined,
     rating: Number.isFinite(data.b50Rating) ? Math.max(0, Math.round(data.b50Rating)) : undefined,
+    ...maimaiDxScoreSummary(data),
     playedCharts: data.fullRecords?.length ?? data.records.length,
     updatedAt: Number.isFinite(Date.parse(data.exportedAt)) ? data.exportedAt : new Date().toISOString(),
     source: "mai-score"
@@ -120,10 +143,17 @@ export function parsePassport(value: unknown): PublicPassport {
       throw new Error("Invalid Passport game values.");
     }
     const rating = Number(game.rating);
+    const dxScore = Number(game.dxScore);
+    const dxScoreMax = Number(game.dxScoreMax);
+    const dxScoreCharts = Number(game.dxScoreCharts);
+    const validDxScore = Number.isSafeInteger(dxScore) && Number.isSafeInteger(dxScoreMax)
+      && Number.isSafeInteger(dxScoreCharts) && dxScore >= 0 && dxScoreMax > 0
+      && dxScore <= dxScoreMax && dxScoreCharts > 0 && dxScoreCharts <= playedCharts;
     return {
       game: game.game as RhythmGameId,
       playerName: clean(game.playerName, 40) || undefined,
       rating: Number.isFinite(rating) && rating >= 0 ? rating : undefined,
+      ...(validDxScore ? { dxScore, dxScoreMax, dxScoreCharts } : {}),
       playedCharts,
       updatedAt,
       source: game.source === "mai-score" || game.source === "rhythm-record" || game.source === "konami-pages"

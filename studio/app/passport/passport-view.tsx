@@ -11,11 +11,18 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat("en", {
 
 export function PassportGameCards({ profile }: { profile: PublicPassport }) {
   return <section className="passport-games" aria-label="Public game summaries">
-    {profile.games.map((game) => <article key={game.game}>
+    {profile.games.map((game) => {
+      const dxRate = game.dxScore !== undefined && game.dxScoreMax
+        ? game.dxScore / game.dxScoreMax * 100 : undefined;
+      return <article key={game.game}>
       <div className={`passport-game-mark game-${game.game}`} aria-hidden="true">{passportGameLabel(game.game).slice(0, 2).toUpperCase()}</div>
-      <div><p>{passportGameLabel(game.game)}</p><h2>{game.rating !== undefined ? game.rating.toLocaleString("en") : game.playerName ?? "Collected"}</h2></div>
-      <dl><div><dt>Played charts</dt><dd>{game.playedCharts.toLocaleString("en")}</dd></div><div><dt>Updated</dt><dd>{dateLabel(game.updatedAt)}</dd></div></dl>
-    </article>)}
+      <div><p>{passportGameLabel(game.game)}</p><h2>{game.rating !== undefined ? game.rating.toLocaleString("en") : game.playerName ?? "Collected"}</h2>{game.rating !== undefined ? <small className="passport-primary-label">Rating</small> : null}</div>
+      <dl>
+        {dxRate !== undefined ? <div className="passport-dx-score"><dt>DX score</dt><dd>{game.dxScore!.toLocaleString("en")} <span>/ {game.dxScoreMax!.toLocaleString("en")}</span></dd><small>{dxRate.toFixed(2)}% · {game.dxScoreCharts} charts</small></div> : null}
+        <div><dt>Played charts</dt><dd>{game.playedCharts.toLocaleString("en")}</dd></div>
+        <div><dt>Updated</dt><dd>{dateLabel(game.updatedAt)}</dd></div>
+      </dl>
+    </article>})}
   </section>;
 }
 
