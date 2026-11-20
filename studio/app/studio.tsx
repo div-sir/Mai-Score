@@ -245,9 +245,9 @@ export default function Studio() {
     extension: "取得瀏覽器擴充套件",
     shortcut: "也可以按 ⌘/Ctrl + O 選擇檔案",
     steps: [
-      ["01", "輸出與分享", "調整 B50 樣式、輸出圖片，或更新公開 Passport。"],
-      ["02", "進度與升分", "查看 Rating 走勢、目標規劃與 Full Records 推薦。"],
-      ["03", "歌曲與紀錄", "搜尋歌曲、定數與自己的遊玩紀錄。"]
+      ["import", "匯入檔案", "選擇已儲存的 Mai-Score JSON，或其他支援的 JSON／CSV。"],
+      ["bookmark", "DX NET 書籤", "適合 Safari 與手機；在已登入的 DX NET 頁面直接收集。"],
+      ["extension", "瀏覽器擴充套件", "適合 Chrome／Edge；進入支援頁面後一鍵更新 Studio。"]
     ]
   } : language === "ja" ? {
     importData: "データを読み込む",
@@ -260,9 +260,9 @@ export default function Studio() {
     extension: "ブラウザー拡張を入手",
     shortcut: "⌘/Ctrl + O でもファイルを選択できます",
     steps: [
-      ["01", "出力と共有", "B50 の見た目を整え、画像出力や公開 Passport を更新します。"],
-      ["02", "進捗とレーティング", "Rating の推移、目標プラン、全成績の候補を確認します。"],
-      ["03", "楽曲と記録", "楽曲、定数、自分のプレー記録を検索します。"]
+      ["import", "ファイルを読み込む", "保存済みの Mai-Score JSON、または対応する JSON／CSV を選びます。"],
+      ["bookmark", "DX NET ブックマーク", "Safari やモバイル向け。ログイン済み DX NET から直接収集します。"],
+      ["extension", "ブラウザー拡張", "Chrome／Edge 向け。対応ページから Studio をワンクリックで更新します。"]
     ]
   } : {
     importData: "Import data",
@@ -275,9 +275,9 @@ export default function Studio() {
     extension: "Get the browser extension",
     shortcut: "You can also press ⌘/Ctrl + O to choose a file",
     steps: [
-      ["01", "Export and share", "Customize B50, export an image, or update your public Passport."],
-      ["02", "Progress and Rating", "Review Rating trends, target plans, and Full Records recommendations."],
-      ["03", "Songs and records", "Search songs, constants, and your saved play records."]
+      ["import", "Import a file", "Choose a saved Mai-Score JSON or another supported JSON / CSV file."],
+      ["bookmark", "DX NET bookmark", "Best for Safari and mobile; collect from your signed-in DX NET page."],
+      ["extension", "Browser extension", "Best for Chrome and Edge; update Studio from a supported page in one click."]
     ]
   };
   const utilityText = language === "zh-Hant"
@@ -1208,17 +1208,18 @@ export default function Studio() {
           <p className="studio-welcome-eyebrow">{flowText.eyebrow}</p>
           <h1>{flowText.title}</h1>
           <p>{flowText.description}</p>
-          <div className="studio-welcome-actions">
-            <button type="button" className="load-button" onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
-            <Link href="/passport">{flowText.bookmark}</Link>
-            <a href="https://github.com/div-sir/Mai-Score/releases/latest" target="_blank" rel="noreferrer">{flowText.extension}</a>
-          </div>
           <small>{flowText.shortcut}</small>
         </div>
         <ul className="studio-flow-steps">
-          {flowText.steps.map(([number, title, description]) => <li key={number}>
-            <div><strong>{title}</strong><p>{description}</p></div>
-          </li>)}
+          {flowText.steps.map(([method, title, description]) => {
+            const content = <><span className={`studio-method-icon ${method}`} aria-hidden="true">{method === "import" ? "＋" : method === "bookmark" ? "B" : "M"}</span><div><strong>{title}</strong><p>{description}</p></div></>;
+            return <li key={method}>{method === "import"
+              ? <button type="button" onClick={() => fileRef.current?.click()}>{content}</button>
+              : method === "bookmark"
+                ? <Link href="/passport">{content}</Link>
+                : <a href="https://github.com/div-sir/Mai-Score/releases/latest" target="_blank" rel="noreferrer">{content}</a>}
+            </li>;
+          })}
         </ul>
       </section> : studioView === "progress" ? (
         <ProgressDashboard

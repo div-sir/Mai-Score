@@ -14,6 +14,7 @@ All notable changes to Mai-Score are documented here.
 - Simplify Studio navigation by keeping the primary import and workspace tabs visible while grouping song research, Passport, language, Google Drive, privacy, and local-data controls into one accessible utility menu.
 - Remove empty player metrics and decorative step numbers before data is loaded, enlarge essential text, and tighten desktop and mobile spacing for a calmer first-use experience.
 - Replace the ambiguous overflow button with a labeled Tools menu, add descriptions to its destinations, remove the duplicate header import action before data is loaded, and make the welcome screen explain available outcomes instead of internal processing steps.
+- Turn the welcome screen's existing three-row layout into full-width actions for file import, the DX NET bookmark, and the browser extension, removing the separate duplicate button strip.
 
 ### Maintenance
 
