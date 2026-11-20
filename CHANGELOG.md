@@ -9,6 +9,10 @@ All notable changes to Mai-Score are documented here.
 - Add a public International song research center with title, song ID, chart type, difficulty, level, and version filters, plus a browsable chart-constant table and per-song chart details.
 - Turn locally saved Full Records into a private personal-difficulty and Rating-opportunity map with strength, weakness, and upgrade-candidate rankings; no personal score data is uploaded or presented as crowd statistics.
 
+### Maintenance
+
+- Upgrade Studio from Next.js 16.4.2 to 16.4.6 to address the published security advisory reported by the Next.js build tool.
+
 ## [0.26.0] — 2026-10-30
 
 ### Added
