@@ -6,6 +6,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Added
 
+- Add best-known maimai DX Score totals to Player Passport game cards, including score rate and recorded-chart coverage without double-counting repeat plays.
 - Add a public International song research center with title, song ID, chart type, difficulty, level, and version filters, plus a browsable chart-constant table and per-song chart details.
 - Turn locally saved Full Records into a private personal-difficulty and Rating-opportunity map with strength, weakness, and upgrade-candidate rankings; no personal score data is uploaded or presented as crowd statistics.
 

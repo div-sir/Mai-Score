@@ -37,6 +37,27 @@ describe("public Passport", () => {
     });
   });
 
+  it("adds best-known DX Score totals without double-counting the same chart", () => {
+    const summary = maimaiPassportSummary({
+      ...maimai,
+      recentPlays: [
+        { ...maimai.records[0], playedAt: "2026-10-28T10:00", track: 1, newAchievement: false, dxScore: 2500, dxScoreMax: 3000 },
+        { ...maimai.records[0], playedAt: "2026-10-28T11:00", track: 1, newAchievement: false, dxScore: 2700, dxScoreMax: 3000 },
+        { ...maimai.records[1], playedAt: "2026-10-28T12:00", track: 2, newAchievement: false, dxScore: 1800, dxScoreMax: 2000 }
+      ]
+    });
+    expect(summary).toMatchObject({ dxScore: 4500, dxScoreMax: 5000, dxScoreCharts: 2 });
+  });
+
+  it("keeps older Passport payloads compatible and drops incomplete DX Score totals", () => {
+    const profile = createPassport("PLAYER", "", [maimaiPassportSummary(maimai)]);
+    expect(parsePassport(profile).games[0].dxScore).toBeUndefined();
+    expect(parsePassport({
+      ...profile,
+      games: [{ ...profile.games[0], dxScore: 100, dxScoreMax: 200 }]
+    }).games[0].dxScore).toBeUndefined();
+  });
+
   it("round-trips Unicode through a URL-safe payload", () => {
     const profile = createPassport("玩家 ソリリウム", "四機種を遊びます", [maimaiPassportSummary(maimai)]);
     const encoded = encodePassport(profile);
