@@ -239,52 +239,52 @@ export default function Studio() {
     loading: "正在還原這台裝置上的資料…",
     loadingHint: "Studio 會先讀取本機快照與遊戲紀錄，再顯示可用工具。",
     eyebrow: "開始使用",
-    title: "先加入遊戲資料，再進入需要的工具。",
-    description: "Studio 會辨識檔案格式、保存最新快照，並依遊戲切換到正確的分析介面。登入資訊與原始官方頁面不會上傳。",
+    title: "選擇加入遊戲資料的方式。",
+    description: "匯入後，Studio 會自動辨識遊戲與格式，直接開啟可用的分析工具。資料只會保存在這台裝置。",
     bookmark: "使用 DX NET 書籤",
     extension: "取得瀏覽器擴充套件",
     shortcut: "也可以按 ⌘/Ctrl + O 選擇檔案",
     steps: [
-      ["01", "收集", "使用擴充套件、DX NET 書籤，或匯入 JSON／CSV。"],
-      ["02", "本機整理", "自動辨識遊戲與格式，將最新資料保存在這台裝置。"],
-      ["03", "分析與輸出", "查看紀錄、進度與升分工具，再輸出圖片或更新公開護照。"]
+      ["01", "輸出與分享", "調整 B50 樣式、輸出圖片，或更新公開 Passport。"],
+      ["02", "進度與升分", "查看 Rating 走勢、目標規劃與 Full Records 推薦。"],
+      ["03", "歌曲與紀錄", "搜尋歌曲、定數與自己的遊玩紀錄。"]
     ]
   } : language === "ja" ? {
     importData: "データを読み込む",
     loading: "この端末のデータを復元しています…",
     loadingHint: "ローカルのスナップショットとゲーム記録を確認してから、利用可能なツールを表示します。",
     eyebrow: "はじめる",
-    title: "ゲームデータを追加して、必要なツールへ進みます。",
-    description: "Studio はファイル形式を判別し、最新スナップショットを保存して、ゲームに合う分析画面へ切り替えます。ログイン情報や公式ページの HTML は送信しません。",
+    title: "ゲームデータの追加方法を選びます。",
+    description: "読み込み後、Studio がゲームと形式を判別し、利用できる分析ツールを直接表示します。データはこの端末に保存されます。",
     bookmark: "DX NET ブックマークを使う",
     extension: "ブラウザー拡張を入手",
     shortcut: "⌘/Ctrl + O でもファイルを選択できます",
     steps: [
-      ["01", "収集", "拡張機能、DX NET ブックマーク、または JSON／CSV を利用します。"],
-      ["02", "端末内で整理", "ゲームと形式を自動判別し、この端末に最新データを保存します。"],
-      ["03", "分析と出力", "記録や進捗を確認し、画像の出力や公開 Passport の更新を行います。"]
+      ["01", "出力と共有", "B50 の見た目を整え、画像出力や公開 Passport を更新します。"],
+      ["02", "進捗とレーティング", "Rating の推移、目標プラン、全成績の候補を確認します。"],
+      ["03", "楽曲と記録", "楽曲、定数、自分のプレー記録を検索します。"]
     ]
   } : {
     importData: "Import data",
     loading: "Restoring data on this device…",
     loadingHint: "Studio checks local snapshots and game records before showing the available tools.",
     eyebrow: "GET STARTED",
-    title: "Add game data, then move straight to the tool you need.",
-    description: "Studio detects the file format, keeps the latest snapshot, and opens the right analysis for each game. Sign-in details and raw official pages are never uploaded.",
+    title: "Choose how to add your game data.",
+    description: "After import, Studio identifies the game and format, then opens the tools you can use. Your data stays on this device.",
     bookmark: "Use the DX NET bookmark",
     extension: "Get the browser extension",
     shortcut: "You can also press ⌘/Ctrl + O to choose a file",
     steps: [
-      ["01", "Collect", "Use the extension, the DX NET bookmark, or import JSON / CSV."],
-      ["02", "Process locally", "Detect the game and format, then retain the latest data on this device."],
-      ["03", "Explore and export", "Review records and progress, export an image, or update your public Passport."]
+      ["01", "Export and share", "Customize B50, export an image, or update your public Passport."],
+      ["02", "Progress and Rating", "Review Rating trends, target plans, and Full Records recommendations."],
+      ["03", "Songs and records", "Search songs, constants, and your saved play records."]
     ]
   };
   const utilityText = language === "zh-Hant"
-    ? { more: "更多", explore: "探索", songs: "歌曲研究", preferences: "顯示設定" }
+    ? { more: "工具", explore: "快速前往", songs: "歌曲研究", songsHint: "搜尋歌曲、定數與譜面", passportHint: "建立並分享玩家頁面", preferences: "語言與同步" }
     : language === "ja"
-      ? { more: "その他", explore: "見る", songs: "楽曲研究", preferences: "表示設定" }
-      : { more: "More", explore: "Explore", songs: "Song research", preferences: "Display" };
+      ? { more: "ツール", explore: "クイックアクセス", songs: "楽曲研究", songsHint: "楽曲・定数・譜面を検索", passportHint: "プレイヤーページを共有", preferences: "言語と同期" }
+      : { more: "Tools", explore: "Quick access", songs: "Song research", songsHint: "Search songs, constants, and charts", passportHint: "Build and share your player page", preferences: "Language and sync" };
 
   useEffect(() => {
     let cancelled = false;
@@ -1112,7 +1112,7 @@ export default function Studio() {
                 : copy.emptyPreview}</small>
           </div> : null}
           <input ref={fileRef} hidden type="file" accept=".json,.csv,application/json,text/csv" onChange={loadFile} />
-          <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button>
+          {data || rhythmData || konamiPageData ? <button className="load-button topbar-import-button" disabled={busy} onClick={() => fileRef.current?.click()}>{flowText.importData}</button> : null}
           <button
             type="button"
             className="icon-toggle"
@@ -1133,13 +1133,16 @@ export default function Studio() {
             )}
           </button>
           <details className="data-menu" data-disclosure-menu>
-            <summary aria-label={utilityText.more} title={utilityText.more}><span aria-hidden="true">•••</span></summary>
+            <summary aria-label={utilityText.more} title={utilityText.more}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+              <span>{utilityText.more}</span>
+            </summary>
             <div>
               <section className="data-menu-section">
                 <strong>{utilityText.explore}</strong>
                 <nav className="data-menu-links" aria-label={utilityText.explore}>
-                  <Link href="/songs">{utilityText.songs}</Link>
-                  <Link href="/passport">Passport</Link>
+                  <Link href="/songs"><strong>{utilityText.songs}</strong><small>{utilityText.songsHint}</small></Link>
+                  <Link href="/passport"><strong>Passport</strong><small>{utilityText.passportHint}</small></Link>
                 </nav>
               </section>
               <section className="data-menu-section">
