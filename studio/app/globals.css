@@ -163,13 +163,13 @@ button:active{transform:scale(.97)}
 .load-button:hover,.drive-connect-button:hover,.sync-button:hover{transform:translateY(-1px);box-shadow:0 18px 34px -18px color-mix(in srgb,var(--accent) 72%,transparent)}
 .data-menu{position:relative}
 .data-menu>summary{
-  display:grid;
-  width:36px;
+  display:flex;
   min-height:36px;
-  place-items:center;
+  align-items:center;
+  gap:7px;
   border:1px solid var(--line2);
   border-radius:999px;
-  padding:0;
+  padding:0 11px;
   background:color-mix(in srgb,var(--bg3) 78%,transparent);
   color:var(--text);
   cursor:pointer;
@@ -177,6 +177,7 @@ button:active{transform:scale(.97)}
   font-weight:700;
   list-style:none;
 }
+.data-menu>summary svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}
 .data-menu>summary::-webkit-details-marker{display:none}
 .data-menu[open]>summary{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2))}
 .data-menu>div{
@@ -196,7 +197,7 @@ button:active{transform:scale(.97)}
 }
 .data-menu button{width:100%;margin:0;border-radius:10px;font-size:10px}
 .data-menu a{padding:5px;color:var(--muted);font-size:9px;text-align:center;text-underline-offset:3px}
-.data-menu-section{display:grid;gap:8px}.data-menu-section>strong{color:var(--muted-dim);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.data-menu-links{display:grid;grid-template-columns:1fr 1fr;gap:7px}.data-menu-links a{display:grid;min-height:40px;place-items:center;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;color:var(--text);font-size:13px;font-weight:700;text-decoration:none}.data-menu-links a:hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2));background:var(--bg3)}.data-menu-section .icon-picker{width:100%;border-radius:9px}.data-menu-section .icon-picker select{min-width:0;flex:1;font-size:13px}.data-menu .drive-compact{width:100%;min-height:52px;padding:6px 7px}.data-menu .drive-state-label{min-width:0;flex:1;font-size:12px}.data-menu .drive-connect-button,.data-menu .sync-button{width:auto;flex:0 0 auto;font-size:12px}.data-menu-footer{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px}.data-menu-footer .danger-button{min-height:36px;font-size:12px}.data-menu-footer a{font-size:12px}
+.data-menu-section{display:grid;gap:8px}.data-menu-section>strong{color:var(--muted-dim);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.data-menu-links{display:grid;gap:7px}.data-menu-links a{display:grid;min-height:52px;place-items:start;gap:3px;border:1px solid var(--line2);border-radius:9px;padding:9px 11px;color:var(--text);text-align:left;text-decoration:none}.data-menu-links a strong{font-size:13px}.data-menu-links a small{color:var(--muted);font-size:11px;font-weight:500}.data-menu-links a:hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2));background:var(--bg3)}.data-menu-section .icon-picker{width:100%;border-radius:9px}.data-menu-section .icon-picker select{min-width:0;flex:1;font-size:13px}.data-menu .drive-compact{width:100%;min-height:52px;padding:6px 7px}.data-menu .drive-state-label{min-width:0;flex:1;font-size:12px}.data-menu .drive-connect-button,.data-menu .sync-button{width:auto;flex:0 0 auto;font-size:12px}.data-menu-footer{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px}.data-menu-footer .danger-button{min-height:36px;font-size:12px}.data-menu-footer a{font-size:12px}
 .passport-topbar-link{display:grid;min-height:36px;place-items:center;border:1px solid var(--line2);border-radius:9px;padding:7px 13px;background:color-mix(in srgb,var(--bg3) 78%,transparent);color:var(--text);font-size:10px;font-weight:750;text-decoration:none}
 .passport-topbar-link:hover{border-color:color-mix(in srgb,var(--accent) 48%,var(--line2));background:color-mix(in srgb,var(--bg3) 90%,var(--accent) 10%)}
 .topbar-import-button{white-space:nowrap}
@@ -781,7 +782,7 @@ button.difficulty-card:focus-visible{outline:2px solid var(--difficulty);outline
   .drive-more>div{position:fixed;top:auto;right:12px;bottom:12px;left:12px;width:auto;padding:12px}
   .data-menu{flex:0 0 auto}
   .topbar-import-button{flex:1}
-  .data-menu>summary{width:40px}
+  .data-menu>summary{width:auto}
   .data-menu>div{position:fixed;top:auto;right:12px;bottom:12px;left:12px;width:auto;padding:12px}
   .preview-panel{height:56vh;min-height:340px}
   .preview-panel.empty{height:240px;min-height:240px}
