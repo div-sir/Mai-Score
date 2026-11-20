@@ -19,7 +19,10 @@ export interface DxScoreInsights {
   totalMax: number;
   rate: number;
   chartCount: number;
+  playCount: number;
   recentBests: number;
+  oldestAt: string;
+  newestAt: string;
   starCounts: readonly number[];
   closestUpgrades: DxScoreChartBest[];
   topCharts: DxScoreChartBest[];
@@ -53,9 +56,13 @@ function chartBest(play: StudioRecentPlay): DxScoreChartBest | undefined {
 /** Summarizes the rolling DX NET play log without counting repeat plays twice. */
 export function buildDxScoreInsights(plays: readonly StudioRecentPlay[] | undefined): DxScoreInsights | undefined {
   const bestByChart = new Map<string, DxScoreChartBest>();
+  const validPlayedAt: string[] = [];
+  let playCount = 0;
   for (const play of plays ?? []) {
     const candidate = chartBest(play);
     if (!candidate) continue;
+    playCount += 1;
+    if (Number.isFinite(Date.parse(`${play.playedAt}:00`))) validPlayedAt.push(play.playedAt);
     const current = bestByChart.get(candidate.key);
     if (!current || candidate.score > current.score || (candidate.score === current.score && candidate.play.playedAt > current.play.playedAt)) {
       bestByChart.set(candidate.key, candidate);
@@ -66,12 +73,16 @@ export function buildDxScoreInsights(plays: readonly StudioRecentPlay[] | undefi
   const totalScore = charts.reduce((sum, chart) => sum + chart.score, 0);
   const totalMax = charts.reduce((sum, chart) => sum + chart.max, 0);
   const starCounts = Array.from({ length: 6 }, (_, stars) => charts.filter((chart) => chart.stars === stars).length);
+  const observedAt = validPlayedAt.sort();
   return {
     totalScore,
     totalMax,
     rate: totalScore / totalMax * 100,
     chartCount: charts.length,
+    playCount,
     recentBests: (plays ?? []).filter((play) => play.newDxScore).length,
+    oldestAt: observedAt[0] ?? charts.at(-1)!.play.playedAt,
+    newestAt: observedAt.at(-1) ?? charts[0].play.playedAt,
     starCounts,
     closestUpgrades: charts.filter((chart) => chart.pointsNeeded !== undefined)
       .sort((a, b) => a.pointsNeeded! - b.pointsNeeded! || b.rate - a.rate || a.play.title.localeCompare(b.play.title))
