@@ -17,7 +17,7 @@ describe("DX Score insights", () => {
       play("A", 2500, 3000), play("A", 2850, 3000, { playedAt: "2026-11-20T13:00", newDxScore: true }),
       play("B", 1800, 2000, { newDxScore: true })
     ]);
-    expect(result).toMatchObject({ totalScore: 4650, totalMax: 5000, rate: 93, chartCount: 2, recentBests: 2 });
+    expect(result).toMatchObject({ totalScore: 4650, totalMax: 5000, rate: 93, chartCount: 2, playCount: 3, recentBests: 2, oldestAt: "2026-11-20T12:00", newestAt: "2026-11-20T13:00" });
     expect(result?.starCounts).toEqual([0, 0, 1, 0, 1, 0]);
     expect(result?.closestUpgrades.find((chart) => chart.play.title === "B")).toMatchObject({ nextStars: 3, pointsNeeded: 60 });
   });
