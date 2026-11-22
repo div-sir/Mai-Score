@@ -13,6 +13,7 @@ All notable changes to Mai-Score are documented here.
 
 ### Changed
 
+- Rework the mobile Studio shell with a compact sticky header, safe-area-aware bottom navigation, denser Records filters, horizontally scrollable completion metrics, larger touch targets, and bottom-sheet song details.
 - Refine the Records DX Score experience with a clearer score overview, explicit data scope, compact star distribution, and switchable upgrade or top-chart rankings.
 - Simplify Studio navigation by keeping the primary import and workspace tabs visible while grouping song research, Passport, language, Google Drive, privacy, and local-data controls into one accessible utility menu.
 - Remove empty player metrics and decorative step numbers before data is loaded, enlarge essential text, and tighten desktop and mobile spacing for a calmer first-use experience.
